@@ -6,12 +6,13 @@
  */
 
 #include "ducky/network/Socket.h"
+#include <sys/errno.h>
 
 namespace ducky {
-namespace network
-{
+namespace network {
 
-Socket::Socket() : sock_fd(0) {
+Socket::Socket() :
+		sock_fd(0) {
 	//
 }
 
@@ -23,15 +24,13 @@ Socket::~Socket() {
 	this->close();
 }
 
-bool Socket::attach(int sock_fd)
-{
+bool Socket::attach(int sock_fd) {
 	this->close();
 	this->sock_fd = sock_fd;
 	return true;
 }
 
-int Socket::dettach()
-{
+int Socket::dettach() {
 	int oldSock = this->sock_fd;
 	this->sock_fd = 0;
 	return oldSock;
@@ -42,6 +41,10 @@ int Socket::create(int af, int style, int protocol) {
 		this->close();
 	}
 	this->sock_fd = socket(af, style, protocol);
+
+	if (this->sock_fd <= 0) {
+		throw SocketException("can't create socket.", errno);
+	}
 
 	return this->sock_fd;
 }
@@ -87,6 +90,9 @@ int Socket::bind(string ip, int port) {
 		addr.sin_port = htons(port);
 		inet_aton(ip.c_str(), &addr.sin_addr);
 		re = ::bind(this->sock_fd, (sockaddr*) &addr, sizeof(sockaddr_in));
+		if (re < 0) {
+			throw SocketBindException("bind socket failed.", errno);
+		}
 	}
 	return re;
 }

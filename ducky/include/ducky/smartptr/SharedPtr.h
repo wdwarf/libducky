@@ -27,10 +27,12 @@ public:
 	}
 
 	T* get() {
+		ducky::thread::MutexLocker lk(mutex);
 		return this->ptr;
 	}
 
 	T* operator->() {
+		ducky::thread::MutexLocker lk(mutex);
 		return this->ptr;
 	}
 
@@ -49,6 +51,7 @@ public:
 	}
 
 	operator bool() {
+		ducky::thread::MutexLocker lk(mutex);
 		return (0 != this->ptr);
 	}
 

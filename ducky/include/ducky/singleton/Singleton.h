@@ -13,16 +13,15 @@
 namespace ducky {
 namespace singleton {
 
+/*
+ * 这个单例会在第一次调用时初始化
+ * */
 template<class T>
-class Singleton: public Object {
+class Singleton: public T, public Object {
 public:
-	typedef T type;
-
-	static type* getInstance() {
-		if (0 == instance) {
-			instance = new type;
-		}
-		return instance;
+	static T* getInstance() {
+		static Singleton<T> instance;
+		return &instance;
 	}
 
 private:
@@ -34,11 +33,42 @@ private:
 	Singleton(const Singleton&);
 	Singleton& operator=(const Singleton&);
 
-	static type* instance;
+};
+
+/*
+ * 这个单例会在main函数执行之前初始化
+ * */
+template<class T>
+class Singleton2: public T {
+private:
+	struct object_creator{
+		object_creator(){
+			Singleton2<T>::getInstance();
+		}
+		inline void doNothing() const{}
+	};
+	static object_creator creator_object;
+
+public:
+	static T* getInstance() {
+		static Singleton2<T> instance;
+		creator_object.doNothing();
+		return &instance;
+	}
+
+private:
+	~Singleton2() {
+	}
+	Singleton2() {
+	}
+
+	Singleton2(const Singleton2&);
+	Singleton2& operator=(const Singleton2&);
+
 };
 
 template<class T>
-typename Singleton<T>::type* Singleton<T>::instance = 0;
+typename Singleton2<T>::object_creator Singleton2<T>::creator_object;
 
 } /* namespace singleton */
 } /* namespace ducky */

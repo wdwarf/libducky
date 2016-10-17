@@ -22,6 +22,7 @@ namespace network {
 
 EXCEPTION_DEF(SocketException);
 EXCEPTION_DEF2(ConnectException, SocketException);
+EXCEPTION_DEF2(SocketBindException, SocketException);
 
 class Socket : public Object {
 public:

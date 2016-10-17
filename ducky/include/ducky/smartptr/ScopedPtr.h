@@ -56,6 +56,8 @@ public:
 
 private:
 	type* _ptr;
+	ScopedPtr(const ScopedPtr& );
+	ScopedPtr& operator=(const ScopedPtr&);
 };
 
 } /* namespace smartptr */
