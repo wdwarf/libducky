@@ -38,7 +38,7 @@ public:
 
 	virtual ThreadState getState() const;	//线程的状态
 
-	static void Sleep(unsigned int ms);	//睡眠函数，单位为毫秒
+	static void sleep(unsigned int ms);	//睡眠函数，单位为毫秒
 
 protected:
 	virtual void run() = 0;	//线程的执行函数，必须实现这个方法。

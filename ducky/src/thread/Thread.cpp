@@ -92,7 +92,7 @@ void Thread::join() {
 	pthread_join(this->thread, NULL);
 }
 
-void Thread::Sleep(unsigned int ms) {
+void Thread::sleep(unsigned int ms) {
 	usleep(ms * 1000);
 }
 
