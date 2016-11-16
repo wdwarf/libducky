@@ -9,6 +9,7 @@
 
 #include <cstring>
 #include <sstream>
+#include <vector>
 
 using namespace std;
 
@@ -38,10 +39,12 @@ public:
 	bool isEmpty() const;
 
 	string toString();
+	stringstream& getBufferStream();
 
 private:
 	char* data;
 	unsigned int size;
+	stringstream bufStream;
 };
 
 Buffer::BufferImpl::BufferImpl() :
@@ -91,6 +94,15 @@ void Buffer::BufferImpl::append(const char* data, unsigned int size) {
 		delete[] this->data;
 	this->data = newData;
 	this->size += size;
+
+	stringstream::pos_type startPos = 0;
+	if (this->bufStream.eof()) {
+		this->bufStream.seekg(0, ios::end);
+	}
+	startPos = this->bufStream.tellg();
+	this->bufStream.seekp(0, ios::end);
+	this->bufStream.write(data, size);
+	this->bufStream.seekg(startPos, ios::beg);
 }
 
 void Buffer::BufferImpl::append(const BufferImpl& buffer) {
@@ -103,6 +115,16 @@ void Buffer::BufferImpl::append(const BufferImpl& buffer) {
 
 	if (NULL != this->data)
 		delete[] this->data;
+
+	stringstream::pos_type startPos = 0;
+	if (this->bufStream.eof()) {
+		this->bufStream.seekg(0, ios::end);
+	}
+	startPos = this->bufStream.tellg();
+	this->bufStream.seekp(0, ios::end);
+	this->bufStream.write(buffer.getData(), buffer.getSize());
+	this->bufStream.seekg(startPos, ios::beg);
+
 	this->data = newData;
 	this->size += buffer.getSize();
 }
@@ -117,9 +139,16 @@ void Buffer::BufferImpl::setData(const char* data, unsigned int size) {
 		this->size = size;
 		this->data = new char[this->size];
 		memcpy(this->data, data, this->size);
+
+		this->bufStream.clear();
+		this->bufStream.str("");
+		this->bufStream.write(this->data, this->size);
 	} else {
 		this->size = 0;
 		this->data = NULL;
+
+		this->bufStream.clear();
+		this->bufStream.str("");
 	}
 	if (oldData)
 		delete[] oldData;
@@ -146,6 +175,9 @@ void Buffer::BufferImpl::clear() {
 		delete[] this->data;
 		this->data = NULL;
 		this->size = 0;
+
+		this->bufStream.clear();
+		this->bufStream.str("");
 	}
 }
 
@@ -167,6 +199,10 @@ string Buffer::BufferImpl::toString() {
 	}
 
 	return strBuf.str();
+}
+
+stringstream& Buffer::BufferImpl::getBufferStream() {
+	return this->bufStream;
 }
 
 /* end of Buffer::BufferImpl */
@@ -238,11 +274,39 @@ string Buffer::toString() const {
 	return this->impl->toString();
 }
 
+stringstream& Buffer::getBufferStream() {
+	return this->impl->getBufferStream();
+}
+
 } /* namespace buffer */
 } /* namespace ducky */
 
-ostream& operator<<(ostream& o, const ducky::buffer::Buffer& buffer) {
+ostream& operator<<(ostream& o, ducky::buffer::Buffer& buffer) {
 	o << buffer.toString();
 	return o;
+}
+
+ducky::buffer::Buffer& operator<<(ducky::buffer::Buffer& buffer, istream& i) {
+	istream::pos_type pos = i.tellg();
+	i.seekg(0, ios::end);
+	istream::pos_type endPos = i.tellg();
+	i.seekg(pos, ios::beg);
+	istream::pos_type len = endPos - pos;
+	vector<char> v(len);
+	i.read(&v[0], len);
+	buffer.append(&v[0], len);
+
+	return buffer;
+}
+
+ducky::buffer::Buffer& operator<<(ducky::buffer::Buffer& buffer, string& str) {
+	buffer.append(str.c_str(), str.length());
+	return buffer;
+}
+
+ducky::buffer::Buffer& operator<<(ducky::buffer::Buffer& buffer,
+		const char* str) {
+	buffer.append(str, strlen(str));
+	return buffer;
 }
 

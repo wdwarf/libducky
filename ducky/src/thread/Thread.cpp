@@ -70,7 +70,7 @@ bool Thread::stop() {
 		return true;
 
 	this->threadState = TS_STOP_REQUIRING;
-	this->join();
+	//this->join();
 
 	return true;
 }

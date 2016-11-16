@@ -9,16 +9,18 @@
 #define DUCKY_BUFFER_BUFFER_H_
 
 #include <string>
-#include <ostream>
+#include <sstream>
 #include "ducky/Object.h"
 
 using std::string;
 using std::ostream;
+using std::istream;
+using std::stringstream;
 
 namespace ducky {
 namespace buffer {
 
-class Buffer : public Object {
+class Buffer: public Object {
 public:
 	Buffer();
 	Buffer(unsigned int initSize);
@@ -40,16 +42,44 @@ public:
 	bool isEmpty() const;
 
 	string toString() const;
+	stringstream& getBufferStream();
 
 private:
 	class BufferImpl;
 	BufferImpl* impl;
-};
-
+}; /* class Buffer */
 
 } /* namespace buffer */
 } /* namespace ducky */
 
-ostream& operator<<(ostream& o, const ducky::buffer::Buffer& buffer);
+ostream& operator<<(ostream& o, ducky::buffer::Buffer& buffer);
+ducky::buffer::Buffer& operator<<(ducky::buffer::Buffer& buffer, istream& i);
+ducky::buffer::Buffer& operator<<(ducky::buffer::Buffer& buffer, string& str);
+ducky::buffer::Buffer& operator<<(ducky::buffer::Buffer& buffer,
+		const char* str);
+
+template<class T>
+ducky::buffer::Buffer& operator<<(ducky::buffer::Buffer& buffer, T& t) {
+	buffer.append((const char*) &t, sizeof(T));
+	return buffer;
+}
+
+template<class T>
+T& operator<<(T& t, ducky::buffer::Buffer& buffer) {
+	buffer.getBufferStream() >> t;
+	return t;
+}
+
+template<class T>
+ducky::buffer::Buffer& operator>>(ducky::buffer::Buffer& buffer, T& t) {
+	buffer.getBufferStream() >> t;
+	return buffer;
+}
+
+template<class T>
+T& operator>>(T& t, ducky::buffer::Buffer& buffer) {
+	buffer.append((const char*) &t, sizeof(T));
+	return t;
+}
 
 #endif /* BUFFER_WBUFFER_H_ */

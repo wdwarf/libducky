@@ -1,41 +1,54 @@
 /*
  * TcpServer.h
  *
- *  Created on: Oct 18, 2016
+ *  Created on: 2016-11-15
  *      Author: ducky
  */
 
-#ifndef DUCKY_NETWORK_TCPSERVER_H_
-#define DUCKY_NETWORK_TCPSERVER_H_
+#ifndef TCPSERVER_H_
+#define TCPSERVER_H_
 
-#include <ducky/Object.h>
-#include <ducky/network/ClientSession.h>
-#include <ducky/exception/Exception.h>
-
-EXCEPTION_DEF(TcpServerException);
+#include <ducky/network/INetServer.h>
+#include <ducky/network/IClientSession.h>
 
 namespace ducky {
 namespace network {
 
-class TcpServer: public Object {
+class _TcpServer: public INetServer {
 public:
-	TcpServer();
-	virtual ~TcpServer();
+	_TcpServer();
+	virtual ~_TcpServer();
 
-	virtual void onAccept(int sock) {
-	}
-	virtual void onCreateSession(ClientSession*& refpSession) = 0;
 	virtual void setIp(const string& ip);
-	virtual void setPort(int port);
+	virtual void setPort(unsigned int port);
 	virtual bool start();
 	virtual bool stop();
+	virtual void onStart() {
+	}
+	virtual void onStop() {
+	}
+
+protected:
+	virtual void onCreateSession(IClientSession*& pSession) = 0;
+
+public:
+	class _TcpServerImpl;
 
 private:
-	class TcpServerImpl;
-	TcpServerImpl* impl;
+	_TcpServerImpl* impl;
+	void run(){}
+
+};
+
+template<class T>
+class TcpServer: public _TcpServer {
+
+private:
+	virtual void onCreateSession(IClientSession*& pSession) {
+		pSession = new T;
+	}
 };
 
 } /* namespace network */
 } /* namespace ducky */
-
-#endif /* DUCKY_NETWORK_TCPSERVER_H_ */
+#endif /* TCPSERVER_H_ */

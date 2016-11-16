@@ -1,21 +1,30 @@
 /*
  * TcpServer.cpp
  *
- *  Created on: Oct 18, 2016
- *      Author: ducky
+ *  Created on: 2016-11-15
+ *      Author: liyawu
  */
 
 #include <ducky/network/TcpServer.h>
-#include <ducky/thread/Thread.h>
-#include <ducky/thread/Mutex.h>
-#include <sys/epoll.h>
-#include <ducky/network/Socket.h>
-#include <unistd.h>
+#include <cassert>
+#include <cstring>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include <string>
+#include <sys/epoll.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <vector>
 #include <iostream>
+
+#include <ducky/thread/Thread.h>
+#include <ducky/thread/Semaphore.h>
+#include <ducky/thread/Mutex.h>
+#include <vector>
+#include <netinet/in.h>
+#include <list>
+#include <ducky/buffer/Buffer.h>
+#include "NetServerContext.h"
 
 using namespace std;
 using namespace ducky::thread;
@@ -23,177 +32,401 @@ using namespace ducky::thread;
 namespace ducky {
 namespace network {
 
-class TcpServer::TcpServerImpl: public Thread {
+class _TcpServerWorkThread;
+class _TcpServer::_TcpServerImpl: public INetServer {
 public:
-	TcpServerImpl(TcpServer* svr);
-	virtual ~TcpServerImpl();
+	_TcpServerImpl(_TcpServer* tcpServer);
+	virtual ~_TcpServerImpl();
 
 	virtual void setIp(const string& ip);
-	virtual void setPort(int port);
-	virtual void onAccept(int sock);
-	virtual void onCreateSession(ClientSession*& refpSession);
+	virtual void setPort(unsigned int port);
 	virtual bool start();
 	virtual bool stop();
-	virtual void run();
+	virtual void onStart();
+	virtual void onStop();
+
+protected:
+	virtual void onCreateSession(IClientSession*& pSession);
 
 private:
-	int epfd;
-	Socket svrSock;
-	TcpServer* server;
-	int pollSize;
-	int port;
+	virtual bool bind(unsigned int port, const string& ip);
+	virtual void run();
+	bool setNonBlocking(int sock);
+	int doAccept();
+	_NetServerContext* getContext();
+	void addContext(_NetServerContext* context);
+	ducky::buffer::Buffer doReceive(_NetServerContext* context);
+	void addClientFd(int clientFd);
+	void removeClientFd(int clientFd);
+	int getClientCount();
+
 	string ip;
+	unsigned int port;
+	int sock;
+	int epfd;
+	int eventCount;
+	int workThreadCount;
+
+	ducky::thread::Mutex mutex;
+	ducky::thread::Semaphore semphore;
+	list<_NetServerContext*> contexts;
+	list<int> clientSockets;
+	vector<_TcpServerWorkThread*> workThreads;
+
+	_TcpServer* _tcpServer;
+
+	friend class _TcpServerWorkThread;
 };
 
-TcpServer::TcpServerImpl::TcpServerImpl(TcpServer* svr) :
-		epfd(0), server(svr), pollSize(1000), port(0) {
+enum WorkThreadState {
+	WTS_IDEL, WTS_BUSY
+};
+
+class _TcpServerWorkThread: public ducky::thread::Thread {
+public:
+	_TcpServerWorkThread(_TcpServer::_TcpServerImpl* server);
+	virtual ~_TcpServerWorkThread();
+
+	WorkThreadState getSate();
+	void setState(WorkThreadState state);
+
+private:
+	void run();
+
+	_TcpServer::_TcpServerImpl* _server;
+	WorkThreadState _state;
+};
+
+_TcpServerWorkThread::_TcpServerWorkThread(_TcpServer::_TcpServerImpl* server) :
+		_server(server), _state(WTS_IDEL) {
+
 }
 
-TcpServer::TcpServerImpl::~TcpServerImpl() {
-
+_TcpServerWorkThread::~_TcpServerWorkThread() {
+	cout << "work thread destroied..." << endl;
 }
 
-void TcpServer::TcpServerImpl::setIp(const string& ip) {
+WorkThreadState _TcpServerWorkThread::getSate() {
+	return this->_state;
+}
+
+void _TcpServerWorkThread::setState(WorkThreadState state) {
+	this->_state = state;
+}
+
+void _TcpServerWorkThread::run() {
+	cout << "work thread running..." << endl;
+	while (true) {
+		this->setState(WTS_IDEL);
+		_NetServerContext* context = this->_server->getContext();
+		this->setState(WTS_BUSY);
+
+		if (this->canStop()) {
+			if (context) {
+				context->session->onDisconnected();
+
+				close(context->sockFd);
+				delete context->session;
+				delete context;
+			}
+			break;
+		}
+
+		if (context) {
+			switch (context->state) {
+			case CS_READ: {
+				cout << "do read..." << endl;
+				ducky::buffer::Buffer buf = this->_server->doReceive(context);
+			}
+				break;
+			case CS_DISCONNECTED: {
+				cout << "do disconnected..." << endl;
+				context->session->onDisconnected();
+				this->_server->removeClientFd(context->sockFd);
+				close(context->sockFd);
+				delete context->session;
+				delete context;
+			}
+				break;
+			}
+		} else {
+			break;
+		}
+	}
+	cout << "work thread end..." << endl;
+}
+
+_TcpServer::_TcpServerImpl::_TcpServerImpl(_TcpServer* tcpServer) :
+		port(0), sock(0), epfd(0), eventCount(500), workThreadCount(
+				10), _tcpServer(tcpServer) {
+	// TODO Auto-generated constructor stub
+}
+
+_TcpServer::_TcpServerImpl::~_TcpServerImpl() {
+	// TODO Auto-generated destructor stub
+}
+
+void _TcpServer::_TcpServerImpl::onCreateSession(IClientSession*& pSession) {
+	this->_tcpServer->onCreateSession(pSession);
+}
+
+void _TcpServer::_TcpServerImpl::onStart() {
+	this->_tcpServer->onStart();
+}
+
+void _TcpServer::_TcpServerImpl::onStop() {
+	this->_tcpServer->onStop();
+}
+
+void _TcpServer::_TcpServerImpl::setIp(const string& ip) {
 	this->ip = ip;
 }
 
-void TcpServer::TcpServerImpl::setPort(int port) {
+void _TcpServer::_TcpServerImpl::setPort(unsigned int port) {
 	this->port = port;
 }
 
-bool TcpServer::TcpServerImpl::start() {
-	try {
-		this->epfd = epoll_create(pollSize);
-
-		cout << port << endl;
-		svrSock.createTcp();
-		svrSock.bind(ip, port);
-		svrSock.listen(50);
-
-		struct epoll_event evt;
-		evt.events = EPOLLIN | EPOLLET | EPOLLERR;
-		evt.data.fd = svrSock.getHandle();
-		epoll_ctl(this->epfd, EPOLL_CTL_ADD, svrSock.getHandle(), &evt);
-		cout << "start good" << endl;
-	} catch (std::exception& e) {
-		cout << e.what() << endl;
-		return false;
-	} catch (...) {
-		cout << "start error" << endl;
-		return false;
+bool _TcpServer::_TcpServerImpl::bind(unsigned int port, const string& ip) {
+	sockaddr_in addr;
+	memset(&addr, 0, sizeof(addr));
+	addr.sin_family = AF_INET;
+	addr.sin_port = htons(port);
+	if (ip.empty()) {
+		addr.sin_addr.s_addr = 0;
+	} else {
+		inet_aton(ip.c_str(), &addr.sin_addr);
 	}
+	return (0
+			== ::bind(this->sock, (struct sockaddr *) &addr,
+					sizeof(sockaddr_in)));
+}
+
+bool _TcpServer::_TcpServerImpl::start() {
+	this->sock = socket(AF_INET, SOCK_STREAM, 0);
+	this->setNonBlocking(this->sock);
+	this->bind(this->port, this->ip);
+	::listen(this->sock, 100);
+	this->epfd = epoll_create(256);
+
+	for (int i = 0; i < this->workThreadCount; ++i) {
+		_TcpServerWorkThread* workThread = new _TcpServerWorkThread(this);
+		this->workThreads.push_back(workThread);
+		workThread->start();
+	}
+
+	struct epoll_event ev;
+	ev.data.fd = this->sock;
+	ev.events = EPOLLIN | EPOLLET;
+	epoll_ctl(this->epfd, EPOLL_CTL_ADD, this->sock, &ev);
 
 	return Thread::start();
 }
 
-bool TcpServer::TcpServerImpl::stop() {
-	Thread::stop();
-	if (this->epfd > 0) {
-		close(this->epfd);
+bool _TcpServer::_TcpServerImpl::stop() {
+	for (list<int>::iterator it = this->clientSockets.begin();
+			it != this->clientSockets.end(); ++it) {
+		shutdown(*it, 2);
 	}
+
+	while (this->semphore.getValue() > 0) {
+		usleep(100 * 1000);
+	}
+
+	for (int i = 0; i < this->workThreads.size(); ++i) {
+		_TcpServerWorkThread* workThread = this->workThreads[i];
+		workThread->stop();
+	}
+
+	for (int i = 0; i < this->workThreads.size(); ++i) {
+		this->semphore.release();
+	}
+
+	for (int i = 0; i < this->workThreads.size(); ++i) {
+		_TcpServerWorkThread* workThread = this->workThreads[i];
+		workThread->join();
+		delete workThread;
+	}
+
+	this->clientSockets.clear();
+	this->workThreads.clear();
+
+	shutdown(this->sock, 2);
+
+	return Thread::stop();
+}
+
+bool _TcpServer::_TcpServerImpl::setNonBlocking(int sock) {
+	int opts;
+	opts = fcntl(sock, F_GETFL);
+	if (opts < 0) {
+		cout << "fcntl(sock, F_GETFL)" << endl;
+		return false;
+	}
+
+	opts |= O_NONBLOCK;
+
+	if (fcntl(sock, F_SETFL, opts) < 0) {
+		cout << "fcntl(sock, F_SETFL, opts)" << endl;
+		return false;
+	}
+
 	return true;
 }
 
-void TcpServer::TcpServerImpl::run() {
+int _TcpServer::_TcpServerImpl::doAccept() {
+	sockaddr_in clientAddr = { 0 };
+	socklen_t addrLen = sizeof(clientAddr);
+	int clientFd = accept(this->sock, (sockaddr*) &clientAddr, &addrLen);
+	if (-1 == clientFd)
+		return clientFd;
 
-	cout << "running..." << endl;
-	const int MAX_EVENT = 10000;
-	const int BUF_SIZE = 10240;
-	char* buf = new char[BUF_SIZE];
-	struct epoll_event* evts = new struct epoll_event[MAX_EVENT];
+	this->addClientFd(clientFd);
+
+	this->setNonBlocking(clientFd);
+	IClientSession* pSession = NULL;
+	this->onCreateSession(pSession);
+	assert(pSession);
+	pSession->init(clientFd);
+	pSession->onConnected();
+
+	cout << " " << inet_ntoa(clientAddr.sin_addr) << endl;
+	cout << " client " << clientFd << " connected" << endl;
+
+	_NetServerContext* context = new _NetServerContext;
+	context->sockFd = clientFd;
+	context->session = pSession;
+	context->addr = clientAddr;
+	context->state = CS_READ;
+
+	struct epoll_event ev;
+	ev.data.fd = clientFd;
+	ev.events = EPOLLIN | EPOLLET | EPOLLONESHOT;
+	ev.data.ptr = context;
+	epoll_ctl(this->epfd, EPOLL_CTL_ADD, clientFd, &ev);
+
+	return clientFd;
+}
+
+_NetServerContext* _TcpServer::_TcpServerImpl::getContext() {
+	this->semphore.wait();
+	MutexLocker lk(this->mutex);
+
+	_NetServerContext* context = NULL;
+
+	if (!this->contexts.empty()) {
+		context = this->contexts.front();
+		this->contexts.pop_front();
+	}
+
+	return context;
+}
+
+void _TcpServer::_TcpServerImpl::addContext(_NetServerContext* context) {
+	MutexLocker lk(this->mutex);
+
+	if (NULL == context)
+		return;
+
+	this->contexts.push_back(context);
+	this->semphore.release();
+}
+
+ducky::buffer::Buffer _TcpServer::_TcpServerImpl::doReceive(
+		_NetServerContext* context) {
+	ducky::buffer::Buffer buffer;
+
+	int sock = context->sockFd;
+	char buf[1024] = { 0 };
+
+	int re = recv(sock, buf, 1023, 0);
+	if (re > 0) {
+		buffer.setData(buf, re);
+		context->session->onRecive(buffer);
+
+		context->state = CS_READ;
+		struct epoll_event ev;
+		ev.data.fd = sock;
+		ev.data.ptr = context;
+		ev.events = EPOLLIN | EPOLLET | EPOLLONESHOT;
+		epoll_ctl(this->epfd, EPOLL_CTL_MOD, sock, &ev);
+	} else {
+		struct epoll_event ev;
+		ev.data.fd = sock;
+		ev.events = EPOLLIN | EPOLLET | EPOLLONESHOT;
+		epoll_ctl(this->epfd, EPOLL_CTL_DEL, sock, &ev);
+
+		context->state = CS_DISCONNECTED;
+		this->addContext(context);
+	}
+	return buffer;
+}
+
+void _TcpServer::_TcpServerImpl::addClientFd(int clientFd) {
+	MutexLocker lk(this->mutex);
+	this->clientSockets.push_back(clientFd);
+}
+
+void _TcpServer::_TcpServerImpl::removeClientFd(int clientFd) {
+	MutexLocker lk(this->mutex);
+	this->clientSockets.remove(clientFd);
+}
+
+int _TcpServer::_TcpServerImpl::getClientCount() {
+	MutexLocker lk(this->mutex);
+	return this->clientSockets.size();
+}
+
+void _TcpServer::_TcpServerImpl::run() {
+	cout << "_TcpServer::_TcpServerImpl::run begin..." << endl;
+	struct epoll_event ev;
+	vector<struct epoll_event> events(this->eventCount);
+	string threadName;
 	while (!this->canStop()) {
-		cout << "waitting..." << endl;
-		int evtCount = epoll_wait(this->epfd, evts, MAX_EVENT, -1);
-		cout << "got signal..." << endl;
+		int nfds = epoll_wait(epfd, &events[0], this->eventCount, -1);
 
-		if (evtCount > 0) {
-			int clientSock = 0;
-			for (int i = 0; i < evtCount; ++i) {
-				if (evts[i].data.fd == this->svrSock.getHandle()) {
-					cout << "accept" << endl;
-					sockaddr_in addr = { 0 };
-					socklen_t len = sizeof(addr);
-					clientSock = accept(this->svrSock.getHandle(),
-							(sockaddr*) &addr, &len);
-
-					struct epoll_event evt;
-					evt.events = EPOLLIN | EPOLLET | EPOLLONESHOT;
-					evt.data.fd = clientSock;
-					epoll_ctl(this->epfd, EPOLL_CTL_ADD, clientSock, &evt);
-				} else if (evts[i].events & EPOLLIN) {
-					if (evts[i].events & EPOLLERR) {
-						cout << "got EPOLLERR" << endl;
-					}
-					clientSock = evts[i].data.fd;
-					int readBytes = read(clientSock, buf, BUF_SIZE);
-					if (readBytes > 0) {
-						struct epoll_event evt;
-						evt.events =
-						EPOLLIN | EPOLLET | EPOLLONESHOT;
-						evt.data.fd = clientSock;
-						epoll_ctl(this->epfd, EPOLL_CTL_MOD, clientSock, &evt);
-					} else {
-						cout << "disconnected" << endl;
-						struct epoll_event evt;
-						evt.events =
-						EPOLLIN | EPOLLET | EPOLLONESHOT;
-						evt.data.fd = clientSock;
-						epoll_ctl(this->epfd, EPOLL_CTL_DEL, clientSock, &evt);
-						close(clientSock);
-					}
-				} else if (evts[i].events & EPOLLOUT) {
-					cout << "EPOLLOUT" << endl;
-
-					clientSock = evts[i].data.fd;
-					struct epoll_event evt;
-					evt.events =
-					EPOLLIN | EPOLLOUT | EPOLLET | EPOLLONESHOT;
-					evt.data.fd = clientSock;
-					epoll_ctl(this->epfd, EPOLL_CTL_MOD, clientSock, &evt);
+		for (int i = 0; i < nfds; ++i) {
+			if (events[i].data.fd == this->sock) {
+				cout << "this->doAccept();" << endl;
+				if (-1 == this->doAccept()) {
+					goto server_exit;
 				}
+			} else if (events[i].events & EPOLLIN) {
+				cout << "this->addContext(" << endl;
+				this->addContext((_NetServerContext*) events[i].data.ptr);
+			} else if (events[i].events & EPOLLOUT) {
+				cout << threadName << " EPOLLOUT" << endl;
 			}
-		} else {
-			//
 		}
+
 	}
 
-	cout << "end running..." << endl;
-	delete[] evts;
+	server_exit: close(this->epfd);
+	close(this->sock);
+	cout << "_TcpServer::_TcpServerImpl::run end..." << endl;
 }
 
-void TcpServer::TcpServerImpl::onAccept(int sock) {
-	this->server->onAccept(sock);
+_TcpServer::_TcpServer() :
+		impl(new _TcpServer::_TcpServerImpl(this)) {
+
 }
 
-void TcpServer::TcpServerImpl::onCreateSession(ClientSession*& refpSession) {
-	this->server->onCreateSession(refpSession);
+_TcpServer::~_TcpServer() {
+	delete this->impl;
 }
 
-TcpServer::TcpServer() {
-	// TODO Auto-generated constructor stub
-	this->impl = new TcpServerImpl(this);
-}
-
-TcpServer::~TcpServer() {
-	// TODO Auto-generated destructor stub
-	this->stop();
-	if (NULL != this->impl) {
-		delete this->impl;
-	}
-}
-
-void TcpServer::setIp(const string& ip) {
+void _TcpServer::setIp(const string& ip) {
 	this->impl->setIp(ip);
 }
-void TcpServer::setPort(int port) {
+
+void _TcpServer::setPort(unsigned int port) {
 	this->impl->setPort(port);
 }
 
-bool TcpServer::start() {
+bool _TcpServer::start() {
 	return this->impl->start();
 }
 
-bool TcpServer::stop() {
+bool _TcpServer::stop() {
 	return this->impl->stop();
 }
 
