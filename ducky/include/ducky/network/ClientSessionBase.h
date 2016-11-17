@@ -26,6 +26,7 @@ public:
 	virtual unsigned int getRemotePort();
 	virtual int send(const char* buf, int len);
 	virtual int send(const string& str);
+	virtual void close();
 
 public:
 	virtual void init(int sock);

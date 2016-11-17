@@ -13,8 +13,8 @@
 namespace ducky {
 namespace network {
 
-ClientSessionBase::ClientSessionBase() : sock(0),
-		localPort(0), remotePort(0) {
+ClientSessionBase::ClientSessionBase() :
+		sock(0), localPort(0), remotePort(0) {
 	// TODO Auto-generated constructor stub
 
 }
@@ -58,8 +58,12 @@ int ClientSessionBase::send(const char* buf, int len) {
 	return ::send(this->sock, buf, len, 0);
 }
 
-int ClientSessionBase::send(const string& str){
+int ClientSessionBase::send(const string& str) {
 	return this->send(str.c_str(), str.length());
+}
+
+void ClientSessionBase::close() {
+	shutdown(this->sock, 2);
 }
 
 } /* namespace network */

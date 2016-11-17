@@ -24,6 +24,7 @@
 #include <netinet/in.h>
 #include <list>
 #include <ducky/buffer/Buffer.h>
+#include "_INetServer.h"
 #include "NetServerContext.h"
 
 using namespace std;
@@ -33,7 +34,7 @@ namespace ducky {
 namespace network {
 
 class _TcpServerWorkThread;
-class _TcpServer::_TcpServerImpl: public INetServer {
+class _TcpServer::_TcpServerImpl: public _INetServer {
 public:
 	_TcpServerImpl(_TcpServer* tcpServer);
 	virtual ~_TcpServerImpl();
@@ -42,6 +43,7 @@ public:
 	virtual void setPort(unsigned int port);
 	virtual bool start();
 	virtual bool stop();
+	virtual bool isRunning();
 	virtual void onStart();
 	virtual void onStop();
 
@@ -50,6 +52,7 @@ protected:
 
 private:
 	virtual bool bind(unsigned int port, const string& ip);
+	virtual bool listen(int n);
 	virtual void run();
 	bool setNonBlocking(int sock);
 	int doAccept();
@@ -78,27 +81,19 @@ private:
 	friend class _TcpServerWorkThread;
 };
 
-enum WorkThreadState {
-	WTS_IDEL, WTS_BUSY
-};
-
 class _TcpServerWorkThread: public ducky::thread::Thread {
 public:
 	_TcpServerWorkThread(_TcpServer::_TcpServerImpl* server);
 	virtual ~_TcpServerWorkThread();
 
-	WorkThreadState getSate();
-	void setState(WorkThreadState state);
-
 private:
 	void run();
 
 	_TcpServer::_TcpServerImpl* _server;
-	WorkThreadState _state;
 };
 
 _TcpServerWorkThread::_TcpServerWorkThread(_TcpServer::_TcpServerImpl* server) :
-		_server(server), _state(WTS_IDEL) {
+		_server(server) {
 
 }
 
@@ -106,20 +101,10 @@ _TcpServerWorkThread::~_TcpServerWorkThread() {
 	cout << "work thread destroied..." << endl;
 }
 
-WorkThreadState _TcpServerWorkThread::getSate() {
-	return this->_state;
-}
-
-void _TcpServerWorkThread::setState(WorkThreadState state) {
-	this->_state = state;
-}
-
 void _TcpServerWorkThread::run() {
 	cout << "work thread running..." << endl;
 	while (true) {
-		this->setState(WTS_IDEL);
 		_NetServerContext* context = this->_server->getContext();
-		this->setState(WTS_BUSY);
 
 		if (this->canStop()) {
 			if (context) {
@@ -157,8 +142,8 @@ void _TcpServerWorkThread::run() {
 }
 
 _TcpServer::_TcpServerImpl::_TcpServerImpl(_TcpServer* tcpServer) :
-		port(0), sock(0), epfd(0), eventCount(500), workThreadCount(
-				10), _tcpServer(tcpServer) {
+		port(0), sock(0), epfd(0), eventCount(500), workThreadCount(10), _tcpServer(
+				tcpServer) {
 	// TODO Auto-generated constructor stub
 }
 
@@ -168,6 +153,10 @@ _TcpServer::_TcpServerImpl::~_TcpServerImpl() {
 
 void _TcpServer::_TcpServerImpl::onCreateSession(IClientSession*& pSession) {
 	this->_tcpServer->onCreateSession(pSession);
+}
+
+bool _TcpServer::_TcpServerImpl::isRunning() {
+	return this->sock > 0;
 }
 
 void _TcpServer::_TcpServerImpl::onStart() {
@@ -201,12 +190,28 @@ bool _TcpServer::_TcpServerImpl::bind(unsigned int port, const string& ip) {
 					sizeof(sockaddr_in)));
 }
 
+bool _TcpServer::_TcpServerImpl::listen(int n) {
+	return (0 == ::listen(this->sock, n));
+}
+
 bool _TcpServer::_TcpServerImpl::start() {
 	this->sock = socket(AF_INET, SOCK_STREAM, 0);
+	if (this->sock <= 0)
+		return false;
+
 	this->setNonBlocking(this->sock);
-	this->bind(this->port, this->ip);
-	::listen(this->sock, 100);
+	if (!this->bind(this->port, this->ip) || !this->listen(100)) {
+		close(this->sock);
+		this->sock = 0;
+		return false;
+	}
+
 	this->epfd = epoll_create(256);
+	if (this->epfd <= 0) {
+		close(this->sock);
+		this->sock = 0;
+		return false;
+	}
 
 	for (int i = 0; i < this->workThreadCount; ++i) {
 		_TcpServerWorkThread* workThread = new _TcpServerWorkThread(this);
@@ -229,19 +234,19 @@ bool _TcpServer::_TcpServerImpl::stop() {
 	}
 
 	while (this->semphore.getValue() > 0) {
-		usleep(100 * 1000);
+		usleep(10 * 1000);
 	}
 
-	for (int i = 0; i < this->workThreads.size(); ++i) {
+	for (size_t i = 0; i < this->workThreads.size(); ++i) {
 		_TcpServerWorkThread* workThread = this->workThreads[i];
 		workThread->stop();
 	}
 
-	for (int i = 0; i < this->workThreads.size(); ++i) {
+	for (size_t i = 0; i < this->workThreads.size(); ++i) {
 		this->semphore.release();
 	}
 
-	for (int i = 0; i < this->workThreads.size(); ++i) {
+	for (size_t i = 0; i < this->workThreads.size(); ++i) {
 		_TcpServerWorkThread* workThread = this->workThreads[i];
 		workThread->join();
 		delete workThread;
@@ -378,7 +383,8 @@ int _TcpServer::_TcpServerImpl::getClientCount() {
 
 void _TcpServer::_TcpServerImpl::run() {
 	cout << "_TcpServer::_TcpServerImpl::run begin..." << endl;
-	struct epoll_event ev;
+	this->onStart();
+
 	vector<struct epoll_event> events(this->eventCount);
 	string threadName;
 	while (!this->canStop()) {
@@ -391,7 +397,6 @@ void _TcpServer::_TcpServerImpl::run() {
 					goto server_exit;
 				}
 			} else if (events[i].events & EPOLLIN) {
-				cout << "this->addContext(" << endl;
 				this->addContext((_NetServerContext*) events[i].data.ptr);
 			} else if (events[i].events & EPOLLOUT) {
 				cout << threadName << " EPOLLOUT" << endl;
@@ -402,6 +407,10 @@ void _TcpServer::_TcpServerImpl::run() {
 
 	server_exit: close(this->epfd);
 	close(this->sock);
+	this->onStop();
+	this->sock = 0;
+	this->epfd = 0;
+
 	cout << "_TcpServer::_TcpServerImpl::run end..." << endl;
 }
 
@@ -428,6 +437,14 @@ bool _TcpServer::start() {
 
 bool _TcpServer::stop() {
 	return this->impl->stop();
+}
+
+void _TcpServer::join() {
+	this->impl->join();
+}
+
+bool _TcpServer::isRunning() {
+	return this->impl->isRunning();
 }
 
 } /* namespace network */

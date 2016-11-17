@@ -23,6 +23,8 @@ public:
 	virtual void setPort(unsigned int port);
 	virtual bool start();
 	virtual bool stop();
+	virtual bool isRunning();
+	virtual void join();
 	virtual void onStart() {
 	}
 	virtual void onStop() {
