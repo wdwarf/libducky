@@ -206,7 +206,7 @@ bool _TcpServer::_TcpServerImpl::start() {
 		return false;
 	}
 
-	this->epfd = epoll_create(256);
+	this->epfd = epoll_create1(0);
 	if (this->epfd <= 0) {
 		close(this->sock);
 		this->sock = 0;
@@ -230,7 +230,7 @@ bool _TcpServer::_TcpServerImpl::start() {
 bool _TcpServer::_TcpServerImpl::stop() {
 	for (list<int>::iterator it = this->clientSockets.begin();
 			it != this->clientSockets.end(); ++it) {
-		shutdown(*it, 2);
+		shutdown(*it, SHUT_RDWR);
 	}
 
 	while (this->semphore.getValue() > 0) {
@@ -255,7 +255,7 @@ bool _TcpServer::_TcpServerImpl::stop() {
 	this->clientSockets.clear();
 	this->workThreads.clear();
 
-	shutdown(this->sock, 2);
+	shutdown(this->sock, SHUT_RDWR);
 
 	return Thread::stop();
 }
@@ -353,7 +353,8 @@ ducky::buffer::Buffer _TcpServer::_TcpServerImpl::doReceive(
 		ev.data.fd = sock;
 		ev.data.ptr = context;
 		ev.events = EPOLLIN | EPOLLET | EPOLLONESHOT;
-		epoll_ctl(this->epfd, EPOLL_CTL_MOD, sock, &ev);
+		int re = epoll_ctl(this->epfd, EPOLL_CTL_MOD, sock, &ev);
+
 	} else {
 		struct epoll_event ev;
 		ev.data.fd = sock;
@@ -389,11 +390,10 @@ void _TcpServer::_TcpServerImpl::run() {
 	string threadName;
 	while (!this->canStop()) {
 		int nfds = epoll_wait(epfd, &events[0], this->eventCount, -1);
-
 		for (int i = 0; i < nfds; ++i) {
 			if (events[i].data.fd == this->sock) {
-				cout << "this->doAccept();" << endl;
-				if (-1 == this->doAccept()) {
+				while(this->doAccept() > 0);
+				if(EAGAIN != errno){
 					goto server_exit;
 				}
 			} else if (events[i].events & EPOLLIN) {

@@ -10,6 +10,10 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
+#include <iostream>
+
+using namespace std;
+
 namespace ducky {
 namespace network {
 

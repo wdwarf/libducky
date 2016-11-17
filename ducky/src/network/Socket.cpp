@@ -6,7 +6,11 @@
  */
 
 #include "ducky/network/Socket.h"
+#include <netdb.h>
 #include <sys/errno.h>
+#include <sstream>
+
+using namespace std;
 
 namespace ducky {
 namespace network {
@@ -71,15 +75,22 @@ int Socket::createUdp() {
 }
 
 int Socket::connect(string ip, int port) {
-	int re = -1;
-	if (this->sock_fd > 0) {
-		sockaddr_in addr;
-		addr.sin_family = AF_INET;
-		addr.sin_port = htons(port);
-		inet_aton(ip.c_str(), &addr.sin_addr);
-		re = ::connect(this->sock_fd, (sockaddr*) &addr, sizeof(sockaddr_in));
+	sockaddr_in addr;
+	addr.sin_family = AF_INET;
+	addr.sin_port = htons(port);
+	hostent* he = gethostbyname(ip.c_str());
+	if (he) {
+		unsigned char* pAddr = (unsigned char*) he->h_addr_list[0];
+		if (pAddr) {
+			stringstream str;
+			str << (unsigned int) pAddr[0] << "." << (unsigned int) pAddr[1]
+					<< "." << (unsigned int) pAddr[2] << "."
+					<< (unsigned int) pAddr[3];
+			ip = str.str().c_str();
+		}
 	}
-	return re;
+	addr.sin_addr.s_addr = inet_addr(ip.c_str());
+	return ::connect(this->sock_fd, (sockaddr*)&addr, sizeof(sockaddr));
 }
 
 int Socket::bind(string ip, int port) {
