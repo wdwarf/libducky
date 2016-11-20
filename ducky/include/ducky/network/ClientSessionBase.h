@@ -8,6 +8,7 @@
 #ifndef CLIENTSESSIONBASE_H_
 #define CLIENTSESSIONBASE_H_
 
+#include <ducky/Object.h>
 #include <string>
 
 using std::string;
@@ -15,7 +16,7 @@ using std::string;
 namespace ducky {
 namespace network {
 
-class ClientSessionBase {
+class ClientSessionBase: public Object {
 public:
 	ClientSessionBase();
 	virtual ~ClientSessionBase();

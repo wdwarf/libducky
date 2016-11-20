@@ -39,9 +39,10 @@ public:
 	_TcpServerImpl(_TcpServer* tcpServer);
 	virtual ~_TcpServerImpl();
 
-	virtual void setIp(const string& ip);
-	virtual void setPort(unsigned int port);
-	virtual bool start();
+	virtual void setIp(const string& ip) throw(NetServerException);
+	virtual void setPort(unsigned int port) throw(NetServerException);
+	virtual void setWorkThreadCount(int workThreadCount) throw(NetServerException);
+	virtual bool start() throw(NetServerException);
 	virtual bool stop();
 	virtual bool isRunning();
 	virtual void onStart();
@@ -98,11 +99,11 @@ _TcpServerWorkThread::_TcpServerWorkThread(_TcpServer::_TcpServerImpl* server) :
 }
 
 _TcpServerWorkThread::~_TcpServerWorkThread() {
-	cout << "work thread destroied..." << endl;
+	//cout << "work thread destroied..." << endl;
 }
 
 void _TcpServerWorkThread::run() {
-	cout << "work thread running..." << endl;
+	//cout << "work thread running..." << endl;
 	while (true) {
 		_NetServerContext* context = this->_server->getContext();
 
@@ -120,12 +121,12 @@ void _TcpServerWorkThread::run() {
 		if (context) {
 			switch (context->state) {
 			case CS_READ: {
-				cout << "do read..." << endl;
+				//cout << "do read..." << endl;
 				ducky::buffer::Buffer buf = this->_server->doReceive(context);
 			}
 				break;
 			case CS_DISCONNECTED: {
-				cout << "do disconnected..." << endl;
+				//cout << "do disconnected..." << endl;
 				context->session->onDisconnected();
 				this->_server->removeClientFd(context->sockFd);
 				close(context->sockFd);
@@ -138,7 +139,7 @@ void _TcpServerWorkThread::run() {
 			break;
 		}
 	}
-	cout << "work thread end..." << endl;
+	//cout << "work thread end..." << endl;
 }
 
 _TcpServer::_TcpServerImpl::_TcpServerImpl(_TcpServer* tcpServer) :
@@ -159,6 +160,13 @@ bool _TcpServer::_TcpServerImpl::isRunning() {
 	return this->sock > 0;
 }
 
+void _TcpServer::_TcpServerImpl::setWorkThreadCount(int workThreadCount) throw(NetServerException) {
+	if (this->isRunning()) {
+		throw NetServerException("Server is running");
+	}
+	this->workThreadCount = workThreadCount;
+}
+
 void _TcpServer::_TcpServerImpl::onStart() {
 	this->_tcpServer->onStart();
 }
@@ -167,11 +175,17 @@ void _TcpServer::_TcpServerImpl::onStop() {
 	this->_tcpServer->onStop();
 }
 
-void _TcpServer::_TcpServerImpl::setIp(const string& ip) {
+void _TcpServer::_TcpServerImpl::setIp(const string& ip) throw(NetServerException) {
+	if (this->isRunning()) {
+		throw NetServerException("Server is running");
+	}
 	this->ip = ip;
 }
 
-void _TcpServer::_TcpServerImpl::setPort(unsigned int port) {
+void _TcpServer::_TcpServerImpl::setPort(unsigned int port) throw(NetServerException) {
+	if (this->isRunning()) {
+		throw NetServerException("Server is running");
+	}
 	this->port = port;
 }
 
@@ -194,7 +208,11 @@ bool _TcpServer::_TcpServerImpl::listen(int n) {
 	return (0 == ::listen(this->sock, n));
 }
 
-bool _TcpServer::_TcpServerImpl::start() {
+bool _TcpServer::_TcpServerImpl::start() throw(NetServerException) {
+	if (this->isRunning()) {
+		throw NetServerException("Server is running");
+	}
+
 	this->sock = socket(AF_INET, SOCK_STREAM, 0);
 	if (this->sock <= 0)
 		return false;
@@ -264,14 +282,14 @@ bool _TcpServer::_TcpServerImpl::setNonBlocking(int sock) {
 	int opts;
 	opts = fcntl(sock, F_GETFL);
 	if (opts < 0) {
-		cout << "fcntl(sock, F_GETFL)" << endl;
+		//cout << "fcntl(sock, F_GETFL)" << endl;
 		return false;
 	}
 
 	opts |= O_NONBLOCK;
 
 	if (fcntl(sock, F_SETFL, opts) < 0) {
-		cout << "fcntl(sock, F_SETFL, opts)" << endl;
+		//cout << "fcntl(sock, F_SETFL, opts)" << endl;
 		return false;
 	}
 
@@ -294,8 +312,8 @@ int _TcpServer::_TcpServerImpl::doAccept() {
 	pSession->init(clientFd);
 	pSession->onConnected();
 
-	cout << " " << inet_ntoa(clientAddr.sin_addr) << endl;
-	cout << " client " << clientFd << " connected" << endl;
+	//cout << " " << inet_ntoa(clientAddr.sin_addr) << endl;
+	//cout << " client " << clientFd << " connected" << endl;
 
 	_NetServerContext* context = new _NetServerContext;
 	context->sockFd = clientFd;
@@ -383,7 +401,7 @@ int _TcpServer::_TcpServerImpl::getClientCount() {
 }
 
 void _TcpServer::_TcpServerImpl::run() {
-	cout << "_TcpServer::_TcpServerImpl::run begin..." << endl;
+	//cout << "_TcpServer::_TcpServerImpl::run begin..." << endl;
 	this->onStart();
 
 	vector<struct epoll_event> events(this->eventCount);
@@ -392,14 +410,15 @@ void _TcpServer::_TcpServerImpl::run() {
 		int nfds = epoll_wait(epfd, &events[0], this->eventCount, -1);
 		for (int i = 0; i < nfds; ++i) {
 			if (events[i].data.fd == this->sock) {
-				while(this->doAccept() > 0);
-				if(EAGAIN != errno){
+				while (this->doAccept() > 0)
+					;
+				if (EAGAIN != errno) {
 					goto server_exit;
 				}
 			} else if (events[i].events & EPOLLIN) {
 				this->addContext((_NetServerContext*) events[i].data.ptr);
 			} else if (events[i].events & EPOLLOUT) {
-				cout << threadName << " EPOLLOUT" << endl;
+				//cout << threadName << " EPOLLOUT" << endl;
 			}
 		}
 
@@ -411,7 +430,7 @@ void _TcpServer::_TcpServerImpl::run() {
 	this->sock = 0;
 	this->epfd = 0;
 
-	cout << "_TcpServer::_TcpServerImpl::run end..." << endl;
+	//cout << "_TcpServer::_TcpServerImpl::run end..." << endl;
 }
 
 _TcpServer::_TcpServer() :
@@ -423,15 +442,15 @@ _TcpServer::~_TcpServer() {
 	delete this->impl;
 }
 
-void _TcpServer::setIp(const string& ip) {
+void _TcpServer::setIp(const string& ip) throw(NetServerException) {
 	this->impl->setIp(ip);
 }
 
-void _TcpServer::setPort(unsigned int port) {
+void _TcpServer::setPort(unsigned int port) throw(NetServerException) {
 	this->impl->setPort(port);
 }
 
-bool _TcpServer::start() {
+bool _TcpServer::start() throw(NetServerException) {
 	return this->impl->start();
 }
 
@@ -445,6 +464,10 @@ void _TcpServer::join() {
 
 bool _TcpServer::isRunning() {
 	return this->impl->isRunning();
+}
+
+void _TcpServer::setWorkThreadCount(int workThreadCount) throw(NetServerException) {
+	this->impl->setWorkThreadCount(workThreadCount);
 }
 
 } /* namespace network */

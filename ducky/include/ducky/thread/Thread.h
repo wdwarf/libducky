@@ -8,6 +8,7 @@
 #ifndef DUCKY_THREAD_THREAD_H_
 #define DUCKY_THREAD_THREAD_H_
 
+#include <ducky/Object.h>
 #include <pthread.h>
 #include <string>
 
@@ -22,7 +23,7 @@ typedef enum {
 
 string ToString(ThreadState state);
 
-class Thread {
+class Thread: public Object {
 public:
 	Thread();
 	virtual ~Thread();

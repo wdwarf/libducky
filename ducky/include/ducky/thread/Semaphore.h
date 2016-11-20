@@ -8,6 +8,7 @@
 #ifndef SEMAPHORE_H_
 #define SEMAPHORE_H_
 
+#include <ducky/Object.h>
 #include <semaphore.h>
 #include <string>
 
@@ -18,7 +19,7 @@ namespace ducky
 namespace thread
 {
 
-class Semaphore
+class Semaphore: public Object
 {
 public:
 	Semaphore();

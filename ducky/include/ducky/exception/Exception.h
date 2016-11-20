@@ -8,13 +8,14 @@
 #ifndef WEXCEPTION_H_
 #define WEXCEPTION_H_
 
+#include <ducky/Object.h>
 #include <exception>
 #include <string>
 
 namespace ducky {
 namespace exception {
 
-class Exception: public std::exception {
+class Exception: public std::exception, public Object {
 public:
 	Exception(const std::string& msg, int errNo = 0) _GLIBCXX_USE_NOEXCEPT;
 	virtual ~Exception() _GLIBCXX_USE_NOEXCEPT;
