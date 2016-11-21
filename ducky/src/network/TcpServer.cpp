@@ -43,7 +43,7 @@ public:
 	virtual void setPort(unsigned int port) throw(NetServerException);
 	virtual void setWorkThreadCount(int workThreadCount) throw(NetServerException);
 	virtual bool start() throw(NetServerException);
-	virtual bool stop();
+	virtual bool stop(bool joinServerThread = false);
 	virtual bool isRunning();
 	virtual void onStart();
 	virtual void onStop();
@@ -60,6 +60,7 @@ private:
 	_NetServerContext* getContext();
 	void addContext(_NetServerContext* context);
 	ducky::buffer::Buffer doReceive(_NetServerContext* context);
+	void doSend(_NetServerContext* context);
 	void addClientFd(int clientFd);
 	void removeClientFd(int clientFd);
 	int getClientCount();
@@ -125,6 +126,10 @@ void _TcpServerWorkThread::run() {
 				ducky::buffer::Buffer buf = this->_server->doReceive(context);
 			}
 				break;
+			case CS_WRITE:{
+				this->_server->doSend(context);
+				break;
+			}
 			case CS_DISCONNECTED: {
 				//cout << "do disconnected..." << endl;
 				context->session->onDisconnected();
@@ -245,7 +250,7 @@ bool _TcpServer::_TcpServerImpl::start() throw(NetServerException) {
 	return Thread::start();
 }
 
-bool _TcpServer::_TcpServerImpl::stop() {
+bool _TcpServer::_TcpServerImpl::stop(bool joinServerThread) {
 	for (list<int>::iterator it = this->clientSockets.begin();
 			it != this->clientSockets.end(); ++it) {
 		shutdown(*it, SHUT_RDWR);
@@ -275,7 +280,11 @@ bool _TcpServer::_TcpServerImpl::stop() {
 
 	shutdown(this->sock, SHUT_RDWR);
 
-	return Thread::stop();
+	int re = Thread::stop();
+	if(re && joinServerThread){
+		this->join();
+	}
+	return re;
 }
 
 bool _TcpServer::_TcpServerImpl::setNonBlocking(int sock) {
@@ -309,7 +318,7 @@ int _TcpServer::_TcpServerImpl::doAccept() {
 	IClientSession* pSession = NULL;
 	this->onCreateSession(pSession);
 	assert(pSession);
-	pSession->init(clientFd);
+	pSession->init(clientFd, this->epfd);
 	pSession->onConnected();
 
 	//cout << " " << inet_ntoa(clientAddr.sin_addr) << endl;
@@ -371,7 +380,7 @@ ducky::buffer::Buffer _TcpServer::_TcpServerImpl::doReceive(
 		ev.data.fd = sock;
 		ev.data.ptr = context;
 		ev.events = EPOLLIN | EPOLLET | EPOLLONESHOT;
-		int re = epoll_ctl(this->epfd, EPOLL_CTL_MOD, sock, &ev);
+		epoll_ctl(this->epfd, EPOLL_CTL_MOD, sock, &ev);
 
 	} else {
 		struct epoll_event ev;
@@ -383,6 +392,12 @@ ducky::buffer::Buffer _TcpServer::_TcpServerImpl::doReceive(
 		this->addContext(context);
 	}
 	return buffer;
+}
+
+void _TcpServer::_TcpServerImpl::doSend(_NetServerContext* context){
+	::send(context->sockFd, context->dataBuffer.getData(), context->dataBuffer.getSize(), 0);
+	context->session->onSend(context->dataBuffer);
+	delete context;
 }
 
 void _TcpServer::_TcpServerImpl::addClientFd(int clientFd) {
@@ -418,7 +433,7 @@ void _TcpServer::_TcpServerImpl::run() {
 			} else if (events[i].events & EPOLLIN) {
 				this->addContext((_NetServerContext*) events[i].data.ptr);
 			} else if (events[i].events & EPOLLOUT) {
-				//cout << threadName << " EPOLLOUT" << endl;
+				this->addContext((_NetServerContext*) events[i].data.ptr);
 			}
 		}
 
@@ -429,8 +444,6 @@ void _TcpServer::_TcpServerImpl::run() {
 	this->onStop();
 	this->sock = 0;
 	this->epfd = 0;
-
-	//cout << "_TcpServer::_TcpServerImpl::run end..." << endl;
 }
 
 _TcpServer::_TcpServer() :
@@ -454,8 +467,8 @@ bool _TcpServer::start() throw(NetServerException) {
 	return this->impl->start();
 }
 
-bool _TcpServer::stop() {
-	return this->impl->stop();
+bool _TcpServer::stop(bool joinServerThread) {
+	return this->impl->stop(joinServerThread);
 }
 
 void _TcpServer::join() {

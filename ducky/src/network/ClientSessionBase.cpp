@@ -9,16 +9,18 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-
+#include <sys/epoll.h>
 #include <iostream>
+#include "NetServerContext.h"
 
 using namespace std;
 
 namespace ducky {
 namespace network {
 
+class IClientSession;
 ClientSessionBase::ClientSessionBase() :
-		sock(0), localPort(0), remotePort(0) {
+		sock(0), epfd(0), localPort(0), remotePort(0) {
 	// TODO Auto-generated constructor stub
 
 }
@@ -27,8 +29,8 @@ ClientSessionBase::~ClientSessionBase() {
 	// TODO Auto-generated destructor stub
 }
 
-void ClientSessionBase::init(int sock) {
-	//inet_ntoa(clientAddr.sin_addr)
+void ClientSessionBase::init(int sock, int epfd) {
+	this->epfd = epfd;
 	sockaddr_in svrAddr;
 	sockaddr_in clientAddr;
 	socklen_t svrLen = sizeof(svrAddr);
@@ -59,7 +61,21 @@ unsigned int ClientSessionBase::getRemotePort() {
 }
 
 int ClientSessionBase::send(const char* buf, int len) {
-	return ::send(this->sock, buf, len, 0);
+	//return ::send(this->sock, buf, len, 0);
+
+	_NetServerContext* context = new _NetServerContext;
+	context->sockFd = this->sock;
+	context->dataBuffer.setData(buf, len);
+	context->session = (IClientSession*)this;
+	context->state = CS_WRITE;
+
+	struct epoll_event ev;
+	ev.data.fd = this->sock;
+	ev.events = EPOLLOUT | EPOLLET | EPOLLONESHOT;
+	ev.data.ptr = context;
+	epoll_ctl(this->epfd, EPOLL_CTL_MOD, this->sock, &ev);
+
+	return 0;
 }
 
 int ClientSessionBase::send(const string& str) {

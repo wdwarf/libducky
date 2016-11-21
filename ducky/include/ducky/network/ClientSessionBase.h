@@ -30,10 +30,11 @@ public:
 	virtual void close();
 
 public:
-	virtual void init(int sock);
+	virtual void init(int sock, int epfd);
 
 private:
 	int sock;
+	int epfd;
 	string localIp;
 	unsigned int localPort;
 	string remoteIp;

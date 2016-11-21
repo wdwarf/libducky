@@ -23,7 +23,7 @@ public:
 	virtual void setPort(unsigned int port) throw(NetServerException);
 	virtual void setWorkThreadCount(int workThreadCount) throw(NetServerException);
 	virtual bool start() throw(NetServerException);
-	virtual bool stop();
+	virtual bool stop(bool joinServerThread = false);
 	virtual bool isRunning();
 	virtual void join();
 	virtual void onStart() {

@@ -28,7 +28,7 @@ public:
 	virtual void setPort(unsigned int port) throw(NetServerException) = 0;
 	virtual void setWorkThreadCount(int workThreadCount) throw(NetServerException) = 0;
 	virtual bool start() throw(NetServerException) = 0;
-	virtual bool stop() = 0;
+	virtual bool stop(bool joinServerThread = false) = 0;
 	virtual void join() = 0;
 	virtual bool isRunning() = 0;
 	virtual void onStart() = 0;
