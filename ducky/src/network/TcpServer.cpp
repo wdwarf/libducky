@@ -39,10 +39,11 @@ public:
 	_TcpServerImpl(_TcpServer* tcpServer);
 	virtual ~_TcpServerImpl();
 
-	virtual void setIp(const string& ip) throw(NetServerException);
-	virtual void setPort(unsigned int port) throw(NetServerException);
-	virtual void setWorkThreadCount(int workThreadCount) throw(NetServerException);
-	virtual bool start() throw(NetServerException);
+	virtual void setIp(const string& ip) throw (NetServerException);
+	virtual void setPort(unsigned int port) throw (NetServerException);
+	virtual void setWorkThreadCount(int workThreadCount)
+			throw (NetServerException);
+	virtual bool start() throw (NetServerException);
 	virtual bool stop(bool joinServerThread = false);
 	virtual bool isRunning();
 	virtual void onStart();
@@ -122,16 +123,17 @@ void _TcpServerWorkThread::run() {
 		if (context) {
 			switch (context->state) {
 			case CS_READ: {
-				//cout << "do read..." << endl;
 				ducky::buffer::Buffer buf = this->_server->doReceive(context);
 			}
 				break;
-			case CS_WRITE:{
+			case CS_WRITE: {
+				cout << "write......" << endl;
 				this->_server->doSend(context);
+				::sleep(100);
+				cout << "write...end..." << endl;
 				break;
 			}
 			case CS_DISCONNECTED: {
-				//cout << "do disconnected..." << endl;
 				context->session->onDisconnected();
 				this->_server->removeClientFd(context->sockFd);
 				close(context->sockFd);
@@ -155,6 +157,7 @@ _TcpServer::_TcpServerImpl::_TcpServerImpl(_TcpServer* tcpServer) :
 
 _TcpServer::_TcpServerImpl::~_TcpServerImpl() {
 	// TODO Auto-generated destructor stub
+	this->stop(true);
 }
 
 void _TcpServer::_TcpServerImpl::onCreateSession(IClientSession*& pSession) {
@@ -165,7 +168,8 @@ bool _TcpServer::_TcpServerImpl::isRunning() {
 	return this->sock > 0;
 }
 
-void _TcpServer::_TcpServerImpl::setWorkThreadCount(int workThreadCount) throw(NetServerException) {
+void _TcpServer::_TcpServerImpl::setWorkThreadCount(int workThreadCount)
+		throw (NetServerException) {
 	if (this->isRunning()) {
 		throw NetServerException("Server is running");
 	}
@@ -180,14 +184,16 @@ void _TcpServer::_TcpServerImpl::onStop() {
 	this->_tcpServer->onStop();
 }
 
-void _TcpServer::_TcpServerImpl::setIp(const string& ip) throw(NetServerException) {
+void _TcpServer::_TcpServerImpl::setIp(const string& ip)
+		throw (NetServerException) {
 	if (this->isRunning()) {
 		throw NetServerException("Server is running");
 	}
 	this->ip = ip;
 }
 
-void _TcpServer::_TcpServerImpl::setPort(unsigned int port) throw(NetServerException) {
+void _TcpServer::_TcpServerImpl::setPort(unsigned int port)
+		throw (NetServerException) {
 	if (this->isRunning()) {
 		throw NetServerException("Server is running");
 	}
@@ -204,6 +210,10 @@ bool _TcpServer::_TcpServerImpl::bind(unsigned int port, const string& ip) {
 	} else {
 		inet_aton(ip.c_str(), &addr.sin_addr);
 	}
+
+	int tmp = 1;
+	setsockopt(this->sock, SOL_SOCKET, SO_REUSEADDR, &tmp, sizeof(int));
+
 	return (0
 			== ::bind(this->sock, (struct sockaddr *) &addr,
 					sizeof(sockaddr_in)));
@@ -213,7 +223,7 @@ bool _TcpServer::_TcpServerImpl::listen(int n) {
 	return (0 == ::listen(this->sock, n));
 }
 
-bool _TcpServer::_TcpServerImpl::start() throw(NetServerException) {
+bool _TcpServer::_TcpServerImpl::start() throw (NetServerException) {
 	if (this->isRunning()) {
 		throw NetServerException("Server is running");
 	}
@@ -251,6 +261,10 @@ bool _TcpServer::_TcpServerImpl::start() throw(NetServerException) {
 }
 
 bool _TcpServer::_TcpServerImpl::stop(bool joinServerThread) {
+	if (!this->isRunning()) {
+		return true;
+	}
+
 	for (list<int>::iterator it = this->clientSockets.begin();
 			it != this->clientSockets.end(); ++it) {
 		shutdown(*it, SHUT_RDWR);
@@ -275,13 +289,24 @@ bool _TcpServer::_TcpServerImpl::stop(bool joinServerThread) {
 		delete workThread;
 	}
 
+	for (list<_NetServerContext*>::iterator it = this->contexts.begin();
+			it != this->contexts.end(); ++it) {
+		_NetServerContext* context = *it;
+		::close(context->sockFd);
+		context->session->onDisconnected();
+
+		delete context->session;
+		delete context;
+	}
+
+	this->contexts.clear();
 	this->clientSockets.clear();
 	this->workThreads.clear();
 
 	shutdown(this->sock, SHUT_RDWR);
 
 	int re = Thread::stop();
-	if(re && joinServerThread){
+	if (re && joinServerThread) {
 		this->join();
 	}
 	return re;
@@ -334,7 +359,11 @@ int _TcpServer::_TcpServerImpl::doAccept() {
 	ev.data.fd = clientFd;
 	ev.events = EPOLLIN | EPOLLET | EPOLLONESHOT;
 	ev.data.ptr = context;
-	epoll_ctl(this->epfd, EPOLL_CTL_ADD, clientFd, &ev);
+	if (-1 == epoll_ctl(this->epfd, EPOLL_CTL_ADD, clientFd, &ev)) {
+		pSession->onDisconnected();
+		delete pSession;
+		delete context;
+	}
 
 	return clientFd;
 }
@@ -380,8 +409,15 @@ ducky::buffer::Buffer _TcpServer::_TcpServerImpl::doReceive(
 		ev.data.fd = sock;
 		ev.data.ptr = context;
 		ev.events = EPOLLIN | EPOLLET | EPOLLONESHOT;
-		epoll_ctl(this->epfd, EPOLL_CTL_MOD, sock, &ev);
+		if (-1 == epoll_ctl(this->epfd, EPOLL_CTL_MOD, sock, &ev)) {
+			struct epoll_event ev;
+			ev.data.fd = sock;
+			ev.events = EPOLLIN | EPOLLET | EPOLLONESHOT;
+			epoll_ctl(this->epfd, EPOLL_CTL_DEL, sock, &ev);
 
+			context->state = CS_DISCONNECTED;
+			this->addContext(context);
+		}
 	} else {
 		struct epoll_event ev;
 		ev.data.fd = sock;
@@ -394,8 +430,9 @@ ducky::buffer::Buffer _TcpServer::_TcpServerImpl::doReceive(
 	return buffer;
 }
 
-void _TcpServer::_TcpServerImpl::doSend(_NetServerContext* context){
-	::send(context->sockFd, context->dataBuffer.getData(), context->dataBuffer.getSize(), 0);
+void _TcpServer::_TcpServerImpl::doSend(_NetServerContext* context) {
+	::send(context->sockFd, context->dataBuffer.getData(),
+			context->dataBuffer.getSize(), 0);
 	context->session->onSend(context->dataBuffer);
 	delete context;
 }
@@ -431,8 +468,10 @@ void _TcpServer::_TcpServerImpl::run() {
 					goto server_exit;
 				}
 			} else if (events[i].events & EPOLLIN) {
+				cout << "EPOLLIN" << endl;
 				this->addContext((_NetServerContext*) events[i].data.ptr);
 			} else if (events[i].events & EPOLLOUT) {
+				cout << "EPOLLOUT" << endl;
 				this->addContext((_NetServerContext*) events[i].data.ptr);
 			}
 		}
@@ -455,15 +494,15 @@ _TcpServer::~_TcpServer() {
 	delete this->impl;
 }
 
-void _TcpServer::setIp(const string& ip) throw(NetServerException) {
+void _TcpServer::setIp(const string& ip) throw (NetServerException) {
 	this->impl->setIp(ip);
 }
 
-void _TcpServer::setPort(unsigned int port) throw(NetServerException) {
+void _TcpServer::setPort(unsigned int port) throw (NetServerException) {
 	this->impl->setPort(port);
 }
 
-bool _TcpServer::start() throw(NetServerException) {
+bool _TcpServer::start() throw (NetServerException) {
 	return this->impl->start();
 }
 
@@ -479,7 +518,8 @@ bool _TcpServer::isRunning() {
 	return this->impl->isRunning();
 }
 
-void _TcpServer::setWorkThreadCount(int workThreadCount) throw(NetServerException) {
+void _TcpServer::setWorkThreadCount(int workThreadCount)
+		throw (NetServerException) {
 	this->impl->setWorkThreadCount(workThreadCount);
 }
 

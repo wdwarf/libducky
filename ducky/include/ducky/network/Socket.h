@@ -24,7 +24,7 @@ EXCEPTION_DEF(SocketException);
 EXCEPTION_DEF2(ConnectException, SocketException);
 EXCEPTION_DEF2(SocketBindException, SocketException);
 
-class Socket : public Object {
+class Socket: public Object {
 public:
 	Socket();
 	Socket(int sock_fd);
@@ -52,6 +52,13 @@ public:
 
 	int send(const char* buf, socklen_t bufLen);
 	int read(char* buf, socklen_t readBytes, int timeoutSec = -1);
+
+	int sendTo(const char* buf, socklen_t bufLen, const sockaddr_in& addr);
+	int sendTo(const char* buf, socklen_t bufLen, const string& ip, int port);
+	int recvFrom(char* buf, socklen_t readBytes, sockaddr_in& addr,
+			int timeoutSec = -1);
+	int recvFrom(char* buf, socklen_t readBytes, string& ip, int& port,
+				int timeoutSec = -1);
 
 private:
 	int sock_fd;
