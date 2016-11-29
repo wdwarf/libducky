@@ -24,7 +24,7 @@ using std::vector;
 namespace ducky {
 namespace system{
 
-class UserInfo: public Object {
+class UserInfo: virtual public Object {
 public:
 	UserInfo();
 	UserInfo(uid_t uid);

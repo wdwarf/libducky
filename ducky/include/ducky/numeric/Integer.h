@@ -18,7 +18,7 @@ using std::string;
 namespace ducky {
 namespace numeric {
 
-class Integer : public Object{
+class Integer : virtual public Object{
 public:
 	Integer();
 	Integer(int val);

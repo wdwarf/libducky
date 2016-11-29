@@ -10,13 +10,11 @@
 
 #include <string>
 
-using std::string;
-
 namespace ducky {
 
 class Object {
 public:
-	virtual string getClassName();
+	virtual std::string getClassName();
 
 protected:
 	Object();

@@ -14,17 +14,38 @@
 using std::string;
 
 namespace ducky {
+
+typedef std::string StdString;
+
 namespace string{
 
 class String: public Object {
 public:
 	String();
+	String(const StdString&);
 	virtual ~String();
 
-	static std::string& to_lower(std::string& str);
-	static std::string to_lower_copy(const std::string& str);
-	static std::string& to_upper(std::string& str);
-	static std::string to_upper_copy(const std::string& str);
+	operator StdString();
+	String& operator=(const StdString& str);
+	String trimLeft();
+	String trimRight();
+	String trim();
+	String toLower();
+	String toUpper();
+
+	static StdString& toLower(StdString& str);
+	static StdString toLowerCopy(const StdString& str);
+	static StdString& toUpper(StdString& str);
+	static StdString toUpperCopy(const StdString& str);
+	static StdString& trimLeft(StdString& str);
+	static StdString trimLeftCopy(const StdString& str);
+	static StdString& trimRight(StdString& str);
+	static StdString trimRightCopy(const StdString& str);
+	static StdString& trim(StdString& str);
+	static StdString trimCopy(const StdString& str);
+
+private:
+	StdString _str;
 };
 
 } /* namespace string */

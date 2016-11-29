@@ -11,7 +11,7 @@
 using namespace std;
 
 namespace ducky {
-namespace string{
+namespace string {
 
 String::String() {
 	// TODO Auto-generated constructor stub
@@ -22,28 +22,102 @@ String::~String() {
 	// TODO Auto-generated destructor stub
 }
 
-std::string& String::to_lower(std::string& str){
+String::String(const StdString& str) :
+		_str(str) {
+
+}
+
+String::operator StdString() {
+	return this->_str;
+}
+
+String& String::operator=(const StdString& str) {
+	this->_str = str;
+	return *this;
+}
+
+String String::trimLeft() {
+	StdString s = String::trimLeftCopy(this->_str);
+	return String(s);
+}
+
+String String::trimRight() {
+	StdString s = String::trimRightCopy(this->_str);
+	return String(s);
+}
+
+String String::trim() {
+	StdString s = String::trimCopy(this->_str);
+	return String(s);
+}
+
+String String::toLower() {
+	StdString s = String::toLowerCopy(this->_str);
+	return String(s);
+}
+
+String String::toUpper() {
+	StdString s = String::toUpperCopy(this->_str);
+	return String(s);
+}
+
+
+
+
+StdString& String::toLower(StdString& str) {
 	std::transform(str.begin(), str.end(), str.begin(), ::tolower);
 	return str;
 }
 
-std::string String::to_lower_copy(const std::string& str) {
-	std::string re = str;
-	String::to_lower(re);
+StdString String::toLowerCopy(const StdString& str) {
+	StdString re = str;
+	String::toLower(re);
 	return re;
 }
 
-
-std::string& String::to_upper(std::string& str) {
+StdString& String::toUpper(StdString& str) {
 	std::transform(str.begin(), str.end(), str.begin(), ::toupper);
 	return str;
 }
 
-std::string String::to_upper_copy(const std::string& str) {
-	std::string re = str;
-	String::to_upper(re);
+StdString String::toUpperCopy(const StdString& str) {
+	StdString re = str;
+	String::toUpper(re);
 	return re;
 }
 
-} /* namespace std::string */
+StdString& String::trimLeft(StdString& str) {
+	StdString::iterator p = find_if(str.begin(), str.end(),
+			not1(ptr_fun<int, int>(isspace)));
+	str.erase(str.begin(), p);
+	return str;
+}
+
+StdString String::trimLeftCopy(const StdString& str) {
+	StdString newStr = str;
+	return String::trimLeft(newStr);
+}
+
+StdString& String::trimRight(StdString& str) {
+	StdString::reverse_iterator p = find_if(str.rbegin(), str.rend(),
+			not1(ptr_fun<int, int>(isspace)));
+	str.erase(p.base(), str.end());
+	return str;
+}
+
+StdString String::trimRightCopy(const StdString& str) {
+	StdString newStr = str;
+	return String::trimRight(newStr);
+}
+
+StdString& String::trim(StdString& str) {
+	return trimRight(trimLeft(str));
+}
+
+StdString String::trimCopy(const StdString& str) {
+	StdString newStr = str;
+	return String::trim(newStr);
+}
+
+} /* namespace string */
 } /* namespace ducky */

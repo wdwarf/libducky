@@ -24,7 +24,7 @@ EXCEPTION_DEF(SocketException);
 EXCEPTION_DEF2(ConnectException, SocketException);
 EXCEPTION_DEF2(SocketBindException, SocketException);
 
-class Socket: public Object {
+class Socket: virtual public Object {
 public:
 	Socket();
 	Socket(int sock_fd);

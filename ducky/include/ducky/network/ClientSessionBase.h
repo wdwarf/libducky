@@ -16,7 +16,7 @@ using std::string;
 namespace ducky {
 namespace network {
 
-class ClientSessionBase: public Object {
+class ClientSessionBase: virtual public Object {
 public:
 	ClientSessionBase();
 	virtual ~ClientSessionBase();

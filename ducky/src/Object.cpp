@@ -22,9 +22,9 @@ Object::~Object() {
 	// TODO Auto-generated destructor stub
 }
 
-string Object::getClassName() {
-	string className;
-	string fullName = typeid(*this).name();
+std::string Object::getClassName() {
+	std::string className;
+	std::string fullName = typeid(*this).name();
 
 	if ('N' == fullName[0]) {
 		fullName = fullName.substr(1, fullName.length());
@@ -54,8 +54,12 @@ string Object::getClassName() {
 		int len = 0;
 		str >> len;
 
+		str.clear();
+		str.str("");
+		str << len;
+
 		if (len > 0)
-			className = fullName.substr(fullName.length() - len, len);
+			className = fullName.substr(str.str().length(), len);
 	}
 
 	return className;

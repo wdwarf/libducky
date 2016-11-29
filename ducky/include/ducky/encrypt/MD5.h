@@ -17,7 +17,7 @@ using std::stringstream;
 namespace ducky {
 namespace encrypt {
 
-class MD5: public Object {
+class MD5: virtual public Object {
 public:
 	struct MD5Result {
 		unsigned char result[16];

@@ -14,7 +14,7 @@
 namespace ducky {
 namespace thread {
 
-class Mutex : public Object {
+class Mutex : virtual public Object {
 public:
 	Mutex();
 	virtual ~Mutex();

@@ -24,7 +24,7 @@ namespace encrypt{
 //Java code authors: Raif S. Naffah, Paulo S. L. M. Barreto
 //This Implementation was tested against KAT test published by the authors of the method and the
 //results were identical.
-class CRijndael: public Object
+class CRijndael: virtual public Object
 {
 public:
 	//Operation Modes

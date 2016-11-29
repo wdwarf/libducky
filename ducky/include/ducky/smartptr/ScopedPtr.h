@@ -14,7 +14,7 @@ namespace ducky {
 namespace smartptr {
 
 template<class T>
-class ScopedPtr : public Object {
+class ScopedPtr : virtual public Object {
 public:
 	typedef T type;
 

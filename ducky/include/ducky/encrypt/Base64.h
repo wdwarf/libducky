@@ -17,7 +17,7 @@ using std::ostream;
 namespace ducky {
 namespace encrypt{
 
-	class Base64: public Object
+	class Base64: virtual public Object
 	{
 	public:
 		static string encrypt(string str);

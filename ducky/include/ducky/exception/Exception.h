@@ -15,7 +15,7 @@
 namespace ducky {
 namespace exception {
 
-class Exception: public std::exception, public Object {
+class Exception: public std::exception, virtual public Object {
 public:
 	Exception(const std::string& msg, int errNo = 0) _GLIBCXX_USE_NOEXCEPT;
 	virtual ~Exception() _GLIBCXX_USE_NOEXCEPT;
@@ -32,12 +32,14 @@ private:
 
 #define EXCEPTION_DEF(exceptionName) class exceptionName : public ducky::exception::Exception{\
 	public:\
-	exceptionName(const std::string& msg, int errNo = 0) : Exception(msg, errNo){}\
+	exceptionName(const std::string& msg, int errNo = 0) _GLIBCXX_USE_NOEXCEPT : Exception(msg, errNo){}\
+	virtual ~exceptionName() _GLIBCXX_USE_NOEXCEPT{}\
 };
 
 #define EXCEPTION_DEF2(exceptionName, parentClass) class exceptionName : public parentClass{\
 	public:\
-	exceptionName(const std::string& msg, int errNo = 0) : parentClass(msg, errNo){}\
+	exceptionName(const std::string& msg, int errNo = 0) _GLIBCXX_USE_NOEXCEPT : parentClass(msg, errNo){}\
+	virtual ~exceptionName() _GLIBCXX_USE_NOEXCEPT{}\
 };
 
 } /* namespace ducky */

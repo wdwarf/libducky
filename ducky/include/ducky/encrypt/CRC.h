@@ -13,7 +13,7 @@
 namespace ducky {
 namespace encrypt {
 
-class CRC: public Object {
+class CRC: virtual public Object {
 public:
 	static unsigned short CRC16(const unsigned char* ptr, unsigned int len);
 

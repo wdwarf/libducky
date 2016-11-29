@@ -19,7 +19,7 @@ namespace ducky
 namespace thread
 {
 
-class Semaphore: public Object
+class Semaphore: virtual public Object
 {
 public:
 	Semaphore();

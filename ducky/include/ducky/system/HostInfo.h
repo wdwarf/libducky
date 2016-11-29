@@ -18,7 +18,7 @@
 namespace ducky {
 namespace system{
 
-class HostInfo: public Object {
+class HostInfo: virtual public Object {
 public:
 	HostInfo();
 	virtual ~HostInfo();

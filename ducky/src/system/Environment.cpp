@@ -37,7 +37,7 @@ void Environment::refresh() {
 			if (pos >= 0) {
 				std::string envName = strEnv.substr(0, pos);
 				std::string envValue = strEnv.substr(pos + 1);
-				String::to_upper(envName);
+				String::toUpper(envName);
 				this->env.insert(make_pair(envName, envValue));
 			}
 			++env;
@@ -46,7 +46,7 @@ void Environment::refresh() {
 }
 
 std::string Environment::getEnv(std::string envName){
-	String::to_upper(envName);
+	String::toUpper(envName);
 	return this->env[envName];
 }
 

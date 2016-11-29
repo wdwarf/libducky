@@ -20,7 +20,7 @@ using namespace ducky::exception;
 
 EXCEPTION_DEF(NetServerException);
 
-class INetServer: public Object {
+class INetServer: virtual public Object {
 public:
 	virtual ~INetServer(){}
 

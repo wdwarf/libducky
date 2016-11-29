@@ -17,7 +17,7 @@ namespace singleton {
  * 这个单例会在第一次调用时初始化
  * */
 template<class T>
-class Singleton: public T, public Object {
+class Singleton: public T, virtual public Object {
 public:
 	static T* getInstance() {
 		static Singleton<T> instance;

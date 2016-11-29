@@ -23,7 +23,7 @@ typedef enum {
 
 string ToString(ThreadState state);
 
-class Thread: public Object {
+class Thread: virtual public Object {
 public:
 	Thread();
 	virtual ~Thread();

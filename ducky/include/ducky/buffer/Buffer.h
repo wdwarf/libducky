@@ -20,7 +20,7 @@ using std::stringstream;
 namespace ducky {
 namespace buffer {
 
-class Buffer: public Object {
+class Buffer: virtual public Object {
 public:
 	Buffer();
 	Buffer(unsigned int initSize);
