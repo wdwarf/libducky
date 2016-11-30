@@ -10,9 +10,7 @@
 
 #include <ducky/Object.h>
 #include <semaphore.h>
-#include <string>
-
-using std::string;
+#include <ducky/string/String.h>
 
 namespace ducky
 {
@@ -23,7 +21,7 @@ class Semaphore: virtual public Object
 {
 public:
 	Semaphore();
-	Semaphore(const string& name, int flag, ...);
+	Semaphore(const StdString& name, int flag, ...);
 
 	~Semaphore();
 
@@ -34,7 +32,7 @@ public:
 
 private:
 	sem_t* sem;
-	string name;
+	StdString name;
 	bool named;
 };
 

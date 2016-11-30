@@ -11,8 +11,8 @@
 namespace ducky {
 namespace thread {
 
-string ToString(ThreadState state) {
-	string stateName;
+StdString ToString(ThreadState state) {
+	StdString stateName;
 	switch (state) {
 	case TS_RUNNING:
 		stateName = "TS_RUNNING";
@@ -29,7 +29,7 @@ string ToString(ThreadState state) {
 	return stateName;
 }
 
-Thread::Thread() :
+Thread::Thread() : threadId(0),
 		threadState(TS_STOPPED) {
 }
 
@@ -61,7 +61,7 @@ bool Thread::start() {
 	if (TS_STOPPED != this->threadState)
 		return -1;
 
-	int re = pthread_create(&this->thread, NULL, (void* (*)(void*))Thread::ThreadFunc, this);
+	int re = pthread_create(&this->threadId, NULL, (void* (*)(void*))Thread::ThreadFunc, this);
 	return (-1 != re);
 }
 
@@ -79,6 +79,10 @@ ThreadState Thread::getState() const {
 	return this->threadState;
 }
 
+pthread_t Thread::getThreadId(){
+	return this->threadId;
+}
+
 bool Thread::isRunning() const {
 	return ((TS_RUNNING == this->threadState)
 			|| (TS_STOP_REQUIRING == this->threadState));
@@ -89,7 +93,7 @@ bool Thread::canStop() {
 }
 
 void Thread::join() {
-	pthread_join(this->thread, NULL);
+	pthread_join(this->threadId, NULL);
 }
 
 void Thread::sleep(unsigned int ms) {

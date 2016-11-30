@@ -10,6 +10,7 @@
 
 #include <ducky/network/INetServer.h>
 #include <ducky/network/IClientSession.h>
+#include <ducky/string/String.h>
 
 namespace ducky {
 namespace network {
@@ -19,7 +20,7 @@ public:
 	_TcpServer();
 	virtual ~_TcpServer();
 
-	virtual void setIp(const string& ip) throw(NetServerException);
+	virtual void setIp(const StdString& ip) throw(NetServerException);
 	virtual void setPort(unsigned int port) throw(NetServerException);
 	virtual void setWorkThreadCount(int workThreadCount) throw(NetServerException);
 	virtual bool start() throw(NetServerException);

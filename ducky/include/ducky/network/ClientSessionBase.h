@@ -9,9 +9,7 @@
 #define CLIENTSESSIONBASE_H_
 
 #include <ducky/Object.h>
-#include <string>
-
-using std::string;
+#include <ducky/string/String.h>
 
 namespace ducky {
 namespace network {
@@ -21,12 +19,12 @@ public:
 	ClientSessionBase();
 	virtual ~ClientSessionBase();
 
-	virtual string getLocalIp();
+	virtual StdString getLocalIp();
 	virtual unsigned int getLocalPort();
-	virtual string getRemoteIp();
+	virtual StdString getRemoteIp();
 	virtual unsigned int getRemotePort();
 	virtual int send(const char* buf, int len);
-	virtual int send(const string& str);
+	virtual int send(const StdString& str);
 	virtual void close();
 
 public:
@@ -35,9 +33,9 @@ public:
 private:
 	int sock;
 	int epfd;
-	string localIp;
+	StdString localIp;
 	unsigned int localPort;
-	string remoteIp;
+	StdString remoteIp;
 	unsigned int remotePort;
 };
 

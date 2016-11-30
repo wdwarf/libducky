@@ -8,9 +8,9 @@
 #ifndef DUCKY_BUFFER_BUFFER_H_
 #define DUCKY_BUFFER_BUFFER_H_
 
-#include <string>
 #include <sstream>
-#include "ducky/Object.h"
+#include <ducky/Object.h>
+#include <ducky/string/String.h>
 
 using std::string;
 using std::ostream;
@@ -41,7 +41,7 @@ public:
 	void clear();
 	bool isEmpty() const;
 
-	string toString() const;
+	StdString toString() const;
 	stringstream& getBufferStream();
 
 private:
@@ -54,7 +54,7 @@ private:
 
 ostream& operator<<(ostream& o, ducky::buffer::Buffer& buffer);
 ducky::buffer::Buffer& operator<<(ducky::buffer::Buffer& buffer, istream& i);
-ducky::buffer::Buffer& operator<<(ducky::buffer::Buffer& buffer, string& str);
+ducky::buffer::Buffer& operator<<(ducky::buffer::Buffer& buffer, ducky::StdString& str);
 ducky::buffer::Buffer& operator<<(ducky::buffer::Buffer& buffer,
 		const char* str);
 

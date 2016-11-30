@@ -39,7 +39,7 @@ public:
 	_TcpServerImpl(_TcpServer* tcpServer);
 	virtual ~_TcpServerImpl();
 
-	virtual void setIp(const string& ip) throw (NetServerException);
+	virtual void setIp(const StdString& ip) throw (NetServerException);
 	virtual void setPort(unsigned int port) throw (NetServerException);
 	virtual void setWorkThreadCount(int workThreadCount)
 			throw (NetServerException);
@@ -53,7 +53,7 @@ protected:
 	virtual void onCreateSession(IClientSession*& pSession);
 
 private:
-	virtual bool bind(unsigned int port, const string& ip);
+	virtual bool bind(unsigned int port, const StdString& ip);
 	virtual bool listen(int n);
 	virtual void run();
 	bool setNonBlocking(int sock);
@@ -66,7 +66,7 @@ private:
 	void removeClientFd(int clientFd);
 	int getClientCount();
 
-	string ip;
+	StdString ip;
 	unsigned int port;
 	int sock;
 	int epfd;
@@ -184,7 +184,7 @@ void _TcpServer::_TcpServerImpl::onStop() {
 	this->_tcpServer->onStop();
 }
 
-void _TcpServer::_TcpServerImpl::setIp(const string& ip)
+void _TcpServer::_TcpServerImpl::setIp(const StdString& ip)
 		throw (NetServerException) {
 	if (this->isRunning()) {
 		throw NetServerException("Server is running");
@@ -200,7 +200,7 @@ void _TcpServer::_TcpServerImpl::setPort(unsigned int port)
 	this->port = port;
 }
 
-bool _TcpServer::_TcpServerImpl::bind(unsigned int port, const string& ip) {
+bool _TcpServer::_TcpServerImpl::bind(unsigned int port, const StdString& ip) {
 	sockaddr_in addr;
 	memset(&addr, 0, sizeof(addr));
 	addr.sin_family = AF_INET;
@@ -457,7 +457,7 @@ void _TcpServer::_TcpServerImpl::run() {
 	this->onStart();
 
 	vector<struct epoll_event> events(this->eventCount);
-	string threadName;
+	StdString threadName;
 	while (!this->canStop()) {
 		int nfds = epoll_wait(epfd, &events[0], this->eventCount, -1);
 		for (int i = 0; i < nfds; ++i) {
@@ -494,7 +494,7 @@ _TcpServer::~_TcpServer() {
 	delete this->impl;
 }
 
-void _TcpServer::setIp(const string& ip) throw (NetServerException) {
+void _TcpServer::setIp(const StdString& ip) throw (NetServerException) {
 	this->impl->setIp(ip);
 }
 

@@ -10,9 +10,7 @@
 
 #include <ducky/Object.h>
 #include <pthread.h>
-#include <string>
-
-using std::string;
+#include <ducky/string/String.h>
 
 namespace ducky {
 namespace thread {
@@ -21,7 +19,7 @@ typedef enum {
 	TS_RUNNING, TS_STOP_REQUIRING, TS_STOPPED
 } ThreadState;
 
-string ToString(ThreadState state);
+StdString ToString(ThreadState state);
 
 class Thread: virtual public Object {
 public:
@@ -38,6 +36,7 @@ public:
 	}
 
 	virtual ThreadState getState() const;	//线程的状态
+	pthread_t getThreadId();
 
 	static void sleep(unsigned int ms);	//睡眠函数，单位为毫秒
 
@@ -46,7 +45,7 @@ protected:
 	virtual bool canStop();	//判断线程是否可以结束，当stop方法执行后，该方法返回true。
 
 private:
-	pthread_t thread;
+	pthread_t threadId;
 	ThreadState threadState;
 	static void* ThreadFunc(Thread* pThread);
 

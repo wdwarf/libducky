@@ -10,6 +10,7 @@
 
 #include <ducky/Object.h>
 #include <string>
+#include <ostream>
 
 using std::string;
 
@@ -22,11 +23,16 @@ namespace string{
 class String: public Object {
 public:
 	String();
-	String(const StdString&);
+	String(const StdString& str);
+	String(const char* str);
 	virtual ~String();
 
 	operator StdString();
+	StdString toStdString();
+	const char* c_str() const;
+	StdString* operator->();
 	String& operator=(const StdString& str);
+	String& operator=(const char* str);
 	String trimLeft();
 	String trimRight();
 	String trim();
@@ -50,5 +56,7 @@ private:
 
 } /* namespace string */
 } /* namespace ducky */
+
+std::ostream& operator<<(std::ostream& o, const ducky::string::String& s);
 
 #endif /* WSTRING_H_ */

@@ -9,7 +9,7 @@
 #define __INETSERVER_H_
 
 #include <ducky/thread/Thread.h>
-#include <string>
+#include <ducky/string/String.h>
 
 namespace ducky {
 namespace network {
@@ -20,7 +20,7 @@ class _INetServer: public ducky::thread::Thread {
 public:
 	virtual ~_INetServer(){}
 
-	virtual void setIp(const string& ip) = 0;
+	virtual void setIp(const StdString& ip) = 0;
 	virtual void setPort(unsigned int port) = 0;
 	virtual bool start() = 0;
 	virtual bool stop(bool joinServerThread = false) = 0;

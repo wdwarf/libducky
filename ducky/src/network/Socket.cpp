@@ -9,6 +9,7 @@
 #include <netdb.h>
 #include <sys/errno.h>
 #include <sstream>
+#include <cstring>
 
 using namespace std;
 
@@ -204,7 +205,7 @@ int Socket::recvFrom(char* buf, socklen_t readBytes, sockaddr_in& addr,
 		re = ::select(this->sock_fd + 1, &fs_read, 0, 0,
 				(-1 == timeoutSec ? 0 : &tv));
 		if (re > 0) {
-			sockaddr_in addr = { 0 };
+			memset(&addr, 0, sizeof(addr));
 			socklen_t addrSize = sizeof(addr);
 			re = ::recvfrom(this->sock_fd, buf, readBytes, 0, (sockaddr*) &addr,
 					&addrSize);
