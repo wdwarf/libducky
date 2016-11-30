@@ -38,7 +38,7 @@ public:
 	void clear();
 	bool isEmpty() const;
 
-	StdString toString();
+	string toString();
 	stringstream& getBufferStream();
 
 private:
@@ -185,7 +185,7 @@ bool Buffer::BufferImpl::isEmpty() const {
 	return (NULL == this->data);
 }
 
-StdString Buffer::BufferImpl::toString() {
+string Buffer::BufferImpl::toString() {
 	stringstream strBuf;
 	if (!this->isEmpty()) {
 		unsigned char* data = (unsigned char*) this->getData();
@@ -270,7 +270,7 @@ bool Buffer::isEmpty() const {
 	return this->impl->isEmpty();
 }
 
-StdString Buffer::toString() const {
+string Buffer::toString() const {
 	return this->impl->toString();
 }
 
@@ -299,7 +299,7 @@ ducky::buffer::Buffer& operator<<(ducky::buffer::Buffer& buffer, istream& i) {
 	return buffer;
 }
 
-ducky::buffer::Buffer& operator<<(ducky::buffer::Buffer& buffer, ducky::StdString& str) {
+ducky::buffer::Buffer& operator<<(ducky::buffer::Buffer& buffer, string& str) {
 	buffer.append(str.c_str(), str.length());
 	return buffer;
 }

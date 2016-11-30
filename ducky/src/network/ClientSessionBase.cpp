@@ -44,7 +44,7 @@ void ClientSessionBase::init(int sock, int epfd) {
 	this->sock = sock;
 }
 
-StdString ClientSessionBase::getLocalIp() {
+string ClientSessionBase::getLocalIp() {
 	return this->localIp;
 }
 
@@ -52,7 +52,7 @@ unsigned int ClientSessionBase::getLocalPort() {
 	return this->localPort;
 }
 
-StdString ClientSessionBase::getRemoteIp() {
+string ClientSessionBase::getRemoteIp() {
 	return this->remoteIp;
 }
 
@@ -78,7 +78,7 @@ int ClientSessionBase::send(const char* buf, int len) {
 	return 0;
 }
 
-int ClientSessionBase::send(const StdString& str) {
+int ClientSessionBase::send(const string& str) {
 	return this->send(str.c_str(), str.length());
 }
 

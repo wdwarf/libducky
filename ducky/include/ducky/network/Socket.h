@@ -9,16 +9,16 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <string>
-#include "ducky/Object.h"
-#include "ducky/exception/Exception.h"
-
-using std::string;
+#include <ducky/Object.h>
+#include <ducky/exception/Exception.h>
 
 #ifndef DUCKY_NETWORK_SOCKET_H_
 #define DUCKY_NETWORK_SOCKET_H_
 
 namespace ducky {
 namespace network {
+
+using std::string;
 
 EXCEPTION_DEF(SocketException);
 EXCEPTION_DEF2(ConnectException, SocketException);

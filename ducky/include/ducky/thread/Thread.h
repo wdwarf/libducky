@@ -8,18 +8,20 @@
 #ifndef DUCKY_THREAD_THREAD_H_
 #define DUCKY_THREAD_THREAD_H_
 
+#include <string>
 #include <ducky/Object.h>
 #include <pthread.h>
-#include <ducky/string/String.h>
 
 namespace ducky {
 namespace thread {
+
+using std::string;
 
 typedef enum {
 	TS_RUNNING, TS_STOP_REQUIRING, TS_STOPPED
 } ThreadState;
 
-StdString ToString(ThreadState state);
+string ToString(ThreadState state);
 
 class Thread: virtual public Object {
 public:
@@ -38,7 +40,7 @@ public:
 	virtual ThreadState getState() const;	//线程的状态
 	pthread_t getThreadId();
 
-	static void sleep(unsigned int ms);	//睡眠函数，单位为毫秒
+	static void Sleep(unsigned int ms);	//睡眠函数，单位为毫秒
 
 protected:
 	virtual void run() = 0;	//线程的执行函数，必须实现这个方法。

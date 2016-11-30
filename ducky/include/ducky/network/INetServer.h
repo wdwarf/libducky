@@ -8,8 +8,8 @@
 #ifndef INETSERVER_H_
 #define INETSERVER_H_
 
+#include <string>
 #include <ducky/Object.h>
-#include <ducky/string/String.h>
 #include <ducky/exception/Exception.h>
 
 namespace ducky {
@@ -24,7 +24,7 @@ class INetServer: virtual public Object {
 public:
 	virtual ~INetServer(){}
 
-	virtual void setIp(const StdString& ip) throw(NetServerException) = 0;
+	virtual void setIp(const string& ip) throw(NetServerException) = 0;
 	virtual void setPort(unsigned int port) throw(NetServerException) = 0;
 	virtual void setWorkThreadCount(int workThreadCount) throw(NetServerException) = 0;
 	virtual bool start() throw(NetServerException) = 0;

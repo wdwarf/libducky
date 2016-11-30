@@ -5,7 +5,7 @@
  *      Author: wdwarf
  */
 
-#include "ducky/network/Socket.h"
+#include <ducky/network/Socket.h>
 #include <netdb.h>
 #include <sys/errno.h>
 #include <sstream>

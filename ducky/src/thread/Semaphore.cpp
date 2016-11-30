@@ -18,7 +18,7 @@ Semaphore::Semaphore() : sem(new sem_t), named(false) {
 	sem_init(this->sem, 0, 0);
 }
 
-Semaphore::Semaphore(const StdString& name, int flag, ...) : named(true) {
+Semaphore::Semaphore(const string& name, int flag, ...) : named(true) {
 	va_list ap;
 	va_start(ap, flag);
 	this->sem = sem_open(name.c_str(), flag, ap);

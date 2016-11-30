@@ -8,15 +8,14 @@
 #ifndef DUCKY_NUMERIC_INTEGER_H_
 #define DUCKY_NUMERIC_INTEGER_H_
 
-#include "ducky/Object.h"
-#include <ostream>
 #include <string>
-
-using std::string;
-using std::string;
+#include <ducky/Object.h>
+#include <ostream>
 
 namespace ducky {
 namespace numeric {
+
+using std::string;
 
 class Integer : virtual public Object{
 public:

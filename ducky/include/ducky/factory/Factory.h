@@ -1,8 +1,8 @@
 #ifndef _DUCKY_Factory_H_
 #define _DUCKY_Factory_H_
 
-#include <ducky/Object.h>
 #include <string>
+#include <ducky/Object.h>
 #include <map>
 #include <ducky/exception/Exception.h>
 

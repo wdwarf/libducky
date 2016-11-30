@@ -8,20 +8,22 @@
 #ifndef SEMAPHORE_H_
 #define SEMAPHORE_H_
 
+#include <string>
 #include <ducky/Object.h>
 #include <semaphore.h>
-#include <ducky/string/String.h>
 
 namespace ducky
 {
 namespace thread
 {
 
+using std::string;
+
 class Semaphore: virtual public Object
 {
 public:
 	Semaphore();
-	Semaphore(const StdString& name, int flag, ...);
+	Semaphore(const string& name, int flag, ...);
 
 	~Semaphore();
 
@@ -32,7 +34,7 @@ public:
 
 private:
 	sem_t* sem;
-	StdString name;
+	string name;
 	bool named;
 };
 

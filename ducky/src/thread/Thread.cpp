@@ -11,8 +11,8 @@
 namespace ducky {
 namespace thread {
 
-StdString ToString(ThreadState state) {
-	StdString stateName;
+string ToString(ThreadState state) {
+	string stateName;
 	switch (state) {
 	case TS_RUNNING:
 		stateName = "TS_RUNNING";
@@ -96,7 +96,7 @@ void Thread::join() {
 	pthread_join(this->threadId, NULL);
 }
 
-void Thread::sleep(unsigned int ms) {
+void Thread::Sleep(unsigned int ms) {
 	usleep(ms * 1000);
 }
 

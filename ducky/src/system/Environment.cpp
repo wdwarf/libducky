@@ -5,7 +5,7 @@
  *      Author: ducky
  */
 
-#include <ducky/string/String.h>
+#include <ducky/algorithm/String.h>
 #include <ducky/system/Environment.h>
 #include <iostream>
 
@@ -15,8 +15,6 @@ extern char** environ;
 
 namespace ducky {
 namespace system{
-
-using ducky::string::String;
 
 Environment::Environment() {
 	// TODO Auto-generated constructor stub
@@ -37,7 +35,7 @@ void Environment::refresh() {
 			if (pos >= 0) {
 				std::string envName = strEnv.substr(0, pos);
 				std::string envValue = strEnv.substr(pos + 1);
-				String::toUpper(envName);
+				algorithm::ToUpper(envName);
 				this->env.insert(make_pair(envName, envValue));
 			}
 			++env;
@@ -46,7 +44,7 @@ void Environment::refresh() {
 }
 
 std::string Environment::getEnv(std::string envName){
-	String::toUpper(envName);
+	algorithm::ToUpper(envName);
 	return this->env[envName];
 }
 
