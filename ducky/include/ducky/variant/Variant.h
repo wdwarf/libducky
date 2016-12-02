@@ -20,14 +20,16 @@ namespace variant {
 enum VariantType {
 	VT_UNKNOWN = 0,
 	VT_BOOLEAN,
-	VT_UINT8,
-	VT_UINT16,
-	VT_UINT32,
-	VT_UINT64,
-	VT_INT8,
-	VT_INT16,
-	VT_INT32,
-	VT_INT64,
+	VT_UCHAR,
+	VT_USHORT,
+	VT_UINT,
+	VT_ULONG,
+	VT_ULONGLONG,
+	VT_CHAR,
+	VT_SHORT,
+	VT_INT,
+	VT_LONG,
+	VT_LONGLONG,
 	VT_CARRAY,
 	VT_STRING
 };
@@ -112,14 +114,16 @@ private:
 	typedef union {
 		void* valPtr;
 		bool valBool;
-		char valInt8;
-		short valInt16;
-		int valInt32;
-		long long valInt64;
-		unsigned char valUint8;
-		unsigned short valUint16;
-		unsigned int valUint32;
-		unsigned long long valUint64;
+		char valChar;
+		short valShort;
+		int valInt;
+		long valLong;
+		long long valLongLong;
+		unsigned char valUChar;
+		unsigned short valUShort;
+		unsigned int valUInt;
+		unsigned long valULong;
+		unsigned long long valULongLong;
 	} Value;
 	Value value;
 

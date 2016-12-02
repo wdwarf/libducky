@@ -28,63 +28,63 @@ Variant::Variant(bool v) {
 }
 
 Variant::Variant(char v) {
-	this->vt = VT_INT8;
+	this->vt = VT_CHAR;
 	this->size = TypeInfo(this->vt).size;
-	this->value.valInt8 = v;
+	this->value.valChar = v;
 }
 
 Variant::Variant(short v) {
-	this->vt = VT_INT16;
+	this->vt = VT_SHORT;
 	this->size = TypeInfo(this->vt).size;
-	this->value.valInt16 = v;
+	this->value.valShort = v;
 }
 
 Variant::Variant(int v) {
-	this->vt = VT_INT32;
+	this->vt = VT_INT;
 	this->size = TypeInfo(this->vt).size;
-	this->value.valInt32 = v;
+	this->value.valInt = v;
 }
 
 Variant::Variant(long v) {
-	this->vt = VT_INT32;
+	this->vt = VT_INT;
 	this->size = TypeInfo(this->vt).size;
-	this->value.valInt32 = v;
+	this->value.valInt = v;
 }
 
 Variant::Variant(long long v) {
-	this->vt = VT_INT64;
+	this->vt = VT_LONGLONG;
 	this->size = TypeInfo(this->vt).size;
-	this->value.valInt64 = v;
+	this->value.valLongLong = v;
 }
 
 Variant::Variant(unsigned char v) {
-	this->vt = VT_UINT8;
+	this->vt = VT_UCHAR;
 	this->size = TypeInfo(this->vt).size;
-	this->value.valUint8 = v;
+	this->value.valUChar = v;
 }
 
 Variant::Variant(unsigned short v) {
-	this->vt = VT_UINT16;
+	this->vt = VT_USHORT;
 	this->size = TypeInfo(this->vt).size;
-	this->value.valUint16 = v;
+	this->value.valUShort = v;
 }
 
 Variant::Variant(unsigned int v) {
-	this->vt = VT_UINT32;
+	this->vt = VT_UINT;
 	this->size = TypeInfo(this->vt).size;
-	this->value.valUint32 = v;
+	this->value.valUInt = v;
 }
 
 Variant::Variant(unsigned long v) {
-	this->vt = VT_UINT32;
+	this->vt = VT_UINT;
 	this->size = TypeInfo(this->vt).size;
-	this->value.valUint32 = v;
+	this->value.valUInt = v;
 }
 
 Variant::Variant(unsigned long long v) {
-	this->vt = VT_UINT64;
+	this->vt = VT_LONGLONG;
 	this->size = TypeInfo(this->vt).size;
-	this->value.valUint64 = v;
+	this->value.valULongLong = v;
 }
 
 Variant::Variant(const char* v) {
@@ -143,37 +143,32 @@ VariantTypeInfo Variant::TypeInfoFromString(const string& typeName) {
 	algorithm::Trim(type);
 	algorithm::ToLower(type);
 	if ("boolean" == type || "bool" == type) {
-		typeInfo.type = VT_BOOLEAN;
-		typeInfo.size = 1;
-	} else if ("uint8" == type) {
-		typeInfo.type = VT_UINT8;
-		typeInfo.size = 1;
-	} else if ("uint16" == type) {
-		typeInfo.type = VT_UINT16;
-		typeInfo.size = 2;
-	} else if ("uint32" == type) {
-		typeInfo.type = VT_UINT32;
-		typeInfo.size = 4;
-	} else if ("uint64" == type) {
-		typeInfo.type = VT_UINT64;
-		typeInfo.size = 8;
-	} else if ("int8" == type) {
-		typeInfo.type = VT_INT8;
-		typeInfo.size = 1;
-	} else if ("int16" == type) {
-		typeInfo.type = VT_INT16;
-		typeInfo.size = 2;
-	} else if ("int32" == type) {
-		typeInfo.type = VT_INT32;
-		typeInfo.size = 4;
-	} else if ("int64" == type) {
-		typeInfo.type = VT_INT64;
-		typeInfo.size = 8;
+		return TypeInfo(VT_BOOLEAN);
+	} else if ("uchar" == type || "unsigned char" == type) {
+		return TypeInfo(VT_UCHAR);
+	} else if ("ushort" == type || "unsigned short" == type) {
+		return TypeInfo(VT_USHORT);
+	} else if ("uint" == type || "unsigned" == type || "unsigned int" == type) {
+		return TypeInfo(VT_UINT);
+	} else if ("ulong" == type || "unsigned long" == type) {
+		return TypeInfo(VT_ULONG);
+	} else if ("ulonglong" == type || "unsigned long long" == type
+			|| "unsigned longlong" == type) {
+		return TypeInfo(VT_ULONGLONG);
+	} else if ("char" == type) {
+		return TypeInfo(VT_CHAR);
+	} else if ("short" == type) {
+		return TypeInfo(VT_SHORT);
+	} else if ("int" == type) {
+		return TypeInfo(VT_INT);
+	} else if ("long" == type) {
+		return TypeInfo(VT_LONG);
+	} else if ("long long" == type || "longlong" == type) {
+		return TypeInfo(VT_LONGLONG);
 	} else if ("string" == type) {
 		typeInfo.type = VT_STRING;
 		typeInfo.size = 0;
-	} else if ((0 == type.find("char["))
-			&& (']' == type[type.length() - 1])) {
+	} else if ((0 == type.find("char[")) && (']' == type[type.length() - 1])) {
 		typeInfo.type = VT_CARRAY;
 		stringstream strLen;
 		strLen << type.substr(5, type.length() - 6);
@@ -189,39 +184,47 @@ VariantTypeInfo Variant::TypeInfo(VariantType type) {
 	typeInfo.type = type;
 	switch (type) {
 	case VT_BOOLEAN: {
-		typeInfo.size = 1;
+		typeInfo.size = sizeof(bool);
 		break;
 	}
-	case VT_UINT8: {
-		typeInfo.size = 1;
+	case VT_UCHAR: {
+		typeInfo.size = sizeof(unsigned char);
 		break;
 	}
-	case VT_UINT16: {
-		typeInfo.size = 2;
+	case VT_USHORT: {
+		typeInfo.size = sizeof(unsigned short);
 		break;
 	}
-	case VT_UINT32: {
-		typeInfo.size = 4;
+	case VT_UINT: {
+		typeInfo.size = sizeof(unsigned int);
 		break;
 	}
-	case VT_UINT64: {
-		typeInfo.size = 8;
+	case VT_ULONG: {
+		typeInfo.size = sizeof(unsigned long);
 		break;
 	}
-	case VT_INT8: {
-		typeInfo.size = 1;
+	case VT_ULONGLONG: {
+		typeInfo.size = sizeof(unsigned long long);
 		break;
 	}
-	case VT_INT16: {
-		typeInfo.size = 2;
+	case VT_CHAR: {
+		typeInfo.size = sizeof(char);
 		break;
 	}
-	case VT_INT32: {
-		typeInfo.size = 4;
+	case VT_SHORT: {
+		typeInfo.size = sizeof(short);
 		break;
 	}
-	case VT_INT64: {
-		typeInfo.size = 8;
+	case VT_INT: {
+		typeInfo.size = sizeof(int);
+		break;
+	}
+	case VT_LONG: {
+		typeInfo.size = sizeof(long);
+		break;
+	}
+	case VT_LONGLONG: {
+		typeInfo.size = sizeof(long long);
 		break;
 	}
 	default:
@@ -241,36 +244,44 @@ string Variant::toString() const {
 		val << this->value.valBool;
 		break;
 	}
-	case VT_UINT8: {
-		val << (int) this->value.valUint8;
+	case VT_UCHAR: {
+		val << (int) this->value.valUChar;
 		break;
 	}
-	case VT_UINT16: {
-		val << this->value.valUint16;
+	case VT_USHORT: {
+		val << this->value.valUShort;
 		break;
 	}
-	case VT_UINT32: {
-		val << this->value.valUint32;
+	case VT_UINT: {
+		val << this->value.valUInt;
 		break;
 	}
-	case VT_UINT64: {
-		val << this->value.valUint64;
+	case VT_ULONG: {
+		val << this->value.valULong;
 		break;
 	}
-	case VT_INT8: {
-		val << (int) this->value.valInt8;
+	case VT_ULONGLONG: {
+		val << this->value.valULongLong;
 		break;
 	}
-	case VT_INT16: {
-		val << this->value.valInt16;
+	case VT_CHAR: {
+		val << (int) this->value.valChar;
 		break;
 	}
-	case VT_INT32: {
-		val << this->value.valInt32;
+	case VT_SHORT: {
+		val << this->value.valShort;
 		break;
 	}
-	case VT_INT64: {
-		val << this->value.valInt64;
+	case VT_INT: {
+		val << this->value.valInt;
+		break;
+	}
+	case VT_LONG: {
+		val << this->value.valLong;
+		break;
+	}
+	case VT_LONGLONG: {
+		val << this->value.valLongLong;
 		break;
 	}
 	case VT_CARRAY:
@@ -279,7 +290,7 @@ string Variant::toString() const {
 		break;
 	}
 	}
-	return val.str();
+	return val.str().c_str();
 }
 
 buffer::Buffer Variant::toBuffer() const {
@@ -291,36 +302,44 @@ buffer::Buffer Variant::toBuffer() const {
 		val << this->value.valBool;
 		break;
 	}
-	case VT_UINT8: {
-		val << this->value.valUint8;
+	case VT_UCHAR: {
+		val << this->value.valUChar;
 		break;
 	}
-	case VT_UINT16: {
-		val << this->value.valUint16;
+	case VT_USHORT: {
+		val << this->value.valUShort;
 		break;
 	}
-	case VT_UINT32: {
-		val << this->value.valUint32;
+	case VT_UINT: {
+		val << this->value.valUInt;
 		break;
 	}
-	case VT_UINT64: {
-		val << this->value.valUint64;
+	case VT_ULONG: {
+		val << this->value.valULong;
 		break;
 	}
-	case VT_INT8: {
-		val << this->value.valInt8;
+	case VT_ULONGLONG: {
+		val << this->value.valULongLong;
 		break;
 	}
-	case VT_INT16: {
-		val << this->value.valInt16;
+	case VT_CHAR: {
+		val << this->value.valChar;
 		break;
 	}
-	case VT_INT32: {
-		val << this->value.valInt32;
+	case VT_SHORT: {
+		val << this->value.valShort;
 		break;
 	}
-	case VT_INT64: {
-		val << this->value.valInt64;
+	case VT_INT: {
+		val << this->value.valInt;
+		break;
+	}
+	case VT_LONG: {
+		val << this->value.valLong;
+		break;
+	}
+	case VT_LONGLONG: {
+		val << this->value.valLongLong;
 		break;
 	}
 	case VT_CARRAY:
@@ -341,28 +360,34 @@ void Variant::clear() {
 	case VT_BOOLEAN: {
 		break;
 	}
-	case VT_UINT8: {
+	case VT_UCHAR: {
 		break;
 	}
-	case VT_UINT16: {
+	case VT_USHORT: {
 		break;
 	}
-	case VT_UINT32: {
+	case VT_UINT: {
 		break;
 	}
-	case VT_UINT64: {
+	case VT_ULONG: {
 		break;
 	}
-	case VT_INT8: {
+	case VT_ULONGLONG: {
 		break;
 	}
-	case VT_INT16: {
+	case VT_CHAR: {
 		break;
 	}
-	case VT_INT32: {
+	case VT_SHORT: {
 		break;
 	}
-	case VT_INT64: {
+	case VT_INT: {
+		break;
+	}
+	case VT_LONG: {
+		break;
+	}
+	case VT_LONGLONG: {
 		break;
 	}
 	case VT_CARRAY:
@@ -388,75 +413,81 @@ Variant& Variant::operator=(bool v) {
 
 Variant& Variant::operator=(char v) {
 	this->clear();
-	this->vt = VT_INT8;
+	this->vt = VT_CHAR;
 	this->size = TypeInfo(this->vt).size;
-	this->value.valInt8 = v;
+	this->value.valChar = v;
 	return *this;
 }
 
 Variant& Variant::operator=(short v) {
 	this->clear();
-	this->vt = VT_INT16;
+	this->vt = VT_SHORT;
 	this->size = TypeInfo(this->vt).size;
-	this->value.valInt16 = v;
+	this->value.valShort = v;
 	return *this;
 }
 
 Variant& Variant::operator=(int v) {
 	this->clear();
-	this->vt = VT_INT32;
+	this->vt = VT_INT;
 	this->size = TypeInfo(this->vt).size;
-	this->value.valInt32 = v;
+	this->value.valInt = v;
 	return *this;
 }
 
 Variant& Variant::operator=(long v) {
-	this->operator =((int) v);
+	this->clear();
+	this->vt = VT_LONG;
+	this->size = TypeInfo(this->vt).size;
+	this->value.valLong = v;
 	return *this;
 }
 
 Variant& Variant::operator=(long long v) {
 	this->clear();
-	this->vt = VT_INT64;
+	this->vt = VT_LONGLONG;
 	this->size = TypeInfo(this->vt).size;
-	this->value.valInt64 = v;
+	this->value.valLongLong = v;
 	return *this;
 }
 
 Variant& Variant::operator=(unsigned char v) {
 	this->clear();
-	this->vt = VT_UINT8;
+	this->vt = VT_UCHAR;
 	this->size = TypeInfo(this->vt).size;
-	this->value.valUint8 = v;
+	this->value.valUChar = v;
 	return *this;
 }
 
 Variant& Variant::operator=(unsigned short v) {
 	this->clear();
-	this->vt = VT_UINT16;
+	this->vt = VT_USHORT;
 	this->size = TypeInfo(this->vt).size;
-	this->value.valUint16 = v;
+	this->value.valUShort = v;
 	return *this;
 }
 
 Variant& Variant::operator=(unsigned int v) {
 	this->clear();
-	this->vt = VT_UINT32;
+	this->vt = VT_UINT;
 	this->size = TypeInfo(this->vt).size;
-	this->value.valUint32 = v;
+	this->value.valUInt = v;
 	return *this;
 }
 
 Variant& Variant::operator=(unsigned long v) {
-	this->operator=((unsigned int) v);
+	this->clear();
+	this->vt = VT_ULONG;
+	this->size = TypeInfo(this->vt).size;
+	this->value.valULong = v;
 	return *this;
 }
 
 Variant& Variant::operator=(unsigned long long v) {
 	this->clear();
-	this->vt = VT_UINT64;
+	this->vt = VT_ULONGLONG;
 	this->size = TypeInfo(this->vt).size;
-	this->value.valUint64 = v;
+	this->value.valULongLong = v;
 	return *this;
 }
 
@@ -521,36 +552,44 @@ void Variant::setValue(const void* v) {
 		memcpy(&this->value.valBool, v, this->size);
 		break;
 	}
-	case VT_UINT8: {
-		memcpy(&this->value.valUint8, v, this->size);
+	case VT_UCHAR: {
+		memcpy(&this->value.valUChar, v, this->size);
 		break;
 	}
-	case VT_UINT16: {
-		memcpy(&this->value.valUint16, v, this->size);
+	case VT_USHORT: {
+		memcpy(&this->value.valUShort, v, this->size);
 		break;
 	}
-	case VT_UINT32: {
-		memcpy(&this->value.valUint32, v, this->size);
+	case VT_UINT: {
+		memcpy(&this->value.valUInt, v, this->size);
 		break;
 	}
-	case VT_UINT64: {
-		memcpy(&this->value.valUint64, v, this->size);
+	case VT_ULONG: {
+		memcpy(&this->value.valULong, v, this->size);
 		break;
 	}
-	case VT_INT8: {
-		memcpy(&this->value.valInt8, v, this->size);
+	case VT_ULONGLONG: {
+		memcpy(&this->value.valULongLong, v, this->size);
 		break;
 	}
-	case VT_INT16: {
-		memcpy(&this->value.valInt16, v, this->size);
+	case VT_CHAR: {
+		memcpy(&this->value.valChar, v, this->size);
 		break;
 	}
-	case VT_INT32: {
-		memcpy(&this->value.valInt32, v, this->size);
+	case VT_SHORT: {
+		memcpy(&this->value.valShort, v, this->size);
 		break;
 	}
-	case VT_INT64: {
-		memcpy(&this->value.valInt64, v, this->size);
+	case VT_INT: {
+		memcpy(&this->value.valInt, v, this->size);
+		break;
+	}
+	case VT_LONG: {
+		memcpy(&this->value.valLong, v, this->size);
+		break;
+	}
+	case VT_LONGLONG: {
+		memcpy(&this->value.valLongLong, v, this->size);
 		break;
 	}
 	case VT_CARRAY: {
@@ -589,36 +628,44 @@ T Variant::toValue() const {
 		val = this->value.valBool;
 		break;
 	}
-	case VT_UINT8: {
-		val = this->value.valUint8;
+	case VT_UCHAR: {
+		val = this->value.valUChar;
 		break;
 	}
-	case VT_UINT16: {
-		val = this->value.valUint16;
+	case VT_USHORT: {
+		val = this->value.valUShort;
 		break;
 	}
-	case VT_UINT32: {
-		val = this->value.valUint32;
+	case VT_UINT: {
+		val = this->value.valUInt;
 		break;
 	}
-	case VT_UINT64: {
-		val = this->value.valUint64;
+	case VT_ULONG: {
+		val = this->value.valULong;
 		break;
 	}
-	case VT_INT8: {
-		val = this->value.valInt8;
+	case VT_ULONGLONG: {
+		val = this->value.valULongLong;
 		break;
 	}
-	case VT_INT16: {
-		val = this->value.valInt16;
+	case VT_CHAR: {
+		val = this->value.valChar;
 		break;
 	}
-	case VT_INT32: {
-		val = this->value.valInt32;
+	case VT_SHORT: {
+		val = this->value.valShort;
 		break;
 	}
-	case VT_INT64: {
-		val = this->value.valInt64;
+	case VT_INT: {
+		val = this->value.valInt;
+		break;
+	}
+	case VT_LONG: {
+		val = this->value.valLong;
+		break;
+	}
+	case VT_LONGLONG: {
+		val = this->value.valLongLong;
 		break;
 	}
 	case VT_CARRAY: {
@@ -644,29 +691,36 @@ Variant::operator bool() const {
 	case VT_BOOLEAN: {
 		return this->value.valBool;
 	}
-	case VT_UINT8: {
-		return (0 != this->value.valUint8);
+	case VT_UCHAR: {
+		return (0 != this->value.valUChar);
 	}
-	case VT_UINT16: {
-		return (0 != this->value.valUint16);
+	case VT_USHORT: {
+		return (0 != this->value.valUShort);
 	}
-	case VT_UINT32: {
-		return (0 != this->value.valUint32);
+	case VT_UINT: {
+		return (0 != this->value.valUInt);
 	}
-	case VT_UINT64: {
-		return (0 != this->value.valUint64);
+
+	case VT_ULONG: {
+		return (0 != this->value.valULong);
 	}
-	case VT_INT8: {
-		return (0 != this->value.valInt8);
+	case VT_ULONGLONG: {
+		return (0 != this->value.valULongLong);
 	}
-	case VT_INT16: {
-		return (0 != this->value.valInt16);
+	case VT_CHAR: {
+		return (0 != this->value.valChar);
 	}
-	case VT_INT32: {
-		return (0 != this->value.valInt32);
+	case VT_SHORT: {
+		return (0 != this->value.valShort);
 	}
-	case VT_INT64: {
-		return (0 != this->value.valInt64);
+	case VT_INT: {
+		return (0 != this->value.valInt);
+	}
+	case VT_LONG: {
+		return (0 != this->value.valLong);
+	}
+	case VT_LONGLONG: {
+		return (0 != this->value.valLongLong);
 	}
 	case VT_CARRAY:
 	case VT_STRING: {
