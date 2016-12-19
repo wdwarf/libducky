@@ -13,6 +13,14 @@ using namespace std;
 namespace ducky {
 namespace algorithm {
 
+inline int _isspace_(int c){
+	int re = isspace(c);
+	if(0 == re){
+		re = ('\0' == c);
+	}
+	return re;
+}
+
 string& ToLower(string& str) {
 	std::transform(str.begin(), str.end(), str.begin(), ::tolower);
 	return str;
@@ -37,7 +45,7 @@ string ToUpperCopy(const string& str) {
 
 string& TrimLeft(string& str) {
 	string::iterator p = find_if(str.begin(), str.end(),
-			not1(ptr_fun<int, int>(isspace)));
+			not1(ptr_fun<int, int>(_isspace_)));
 	str.erase(str.begin(), p);
 	return str;
 }
@@ -49,7 +57,7 @@ string TrimLeftCopy(const string& str) {
 
 string& TrimRight(string& str) {
 	string::reverse_iterator p = find_if(str.rbegin(), str.rend(),
-			not1(ptr_fun<int, int>(isspace)));
+			not1(ptr_fun<int, int>(_isspace_)));
 	str.erase(p.base(), str.end());
 	return str;
 }

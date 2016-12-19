@@ -174,6 +174,48 @@ int Socket::sendTo(const char* buf, socklen_t bufLen, const sockaddr_in& addr) {
 			sizeof(sockaddr));
 }
 
+bool Socket::isConnected() {
+	return (this->getRemotePort() > 0);
+}
+
+string Socket::getLocalAddress() {
+	sockaddr_in addr;
+	socklen_t addrLen = sizeof(addr);
+	::getsockname(this->sock_fd, (sockaddr*) &addr, &addrLen);
+	return inet_ntoa(addr.sin_addr);
+}
+
+int Socket::getLocalPort() {
+	sockaddr_in addr;
+	socklen_t addrLen = sizeof(addr);
+	::getsockname(this->sock_fd, (sockaddr*) &addr, &addrLen);
+	return ntohs(addr.sin_port);
+}
+
+string Socket::getRemoteAddress() {
+	sockaddr_in addr;
+	socklen_t addrLen = sizeof(addr);
+	::getpeername(this->sock_fd, (sockaddr*) &addr, &addrLen);
+	return inet_ntoa(addr.sin_addr);
+}
+
+int Socket::getRemotePort() {
+	sockaddr_in addr;
+	socklen_t addrLen = sizeof(addr);
+	::getpeername(this->sock_fd, (sockaddr*) &addr, &addrLen);
+	return ntohs(addr.sin_port);
+}
+
+int Socket::getSocketType() {
+	if (this->sock_fd <= 0) {
+		return -1;
+	}
+	int type = -1;
+	unsigned int len = sizeof(type);
+	::getsockopt(this->sock_fd, SOL_SOCKET, SO_TYPE, &type, &len);
+	return type;
+}
+
 int Socket::sendTo(const char* buf, socklen_t bufLen, const string& ip,
 		int port) {
 	if (ip.empty() || port <= 0) {
