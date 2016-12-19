@@ -108,7 +108,11 @@ int Socket::bind(string ip, int port) {
 		sockaddr_in addr;
 		addr.sin_family = AF_INET;
 		addr.sin_port = htons(port);
-		inet_aton(ip.c_str(), &addr.sin_addr);
+		if(!ip.empty()){
+			inet_aton(ip.c_str(), &addr.sin_addr);
+		}else{
+			addr.sin_addr.s_addr = 0;
+		}
 		re = ::bind(this->sock_fd, (sockaddr*) &addr, sizeof(sockaddr_in));
 		if (re < 0) {
 			throw SocketBindException("bind socket failed.", errno);
