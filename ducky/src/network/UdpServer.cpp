@@ -64,6 +64,7 @@ public:
 	virtual ~UdpServerImpl();
 
 	virtual void setListenPort(int port);
+	virtual int getListenPort() const;
 	virtual bool start();
 	virtual bool stop();
 	virtual void onStart() {
@@ -200,7 +201,10 @@ UdpServerImpl::~UdpServerImpl() {
 
 void UdpServerImpl::setListenPort(int port) {
 	this->listenPort = port;
-	cout << this->listenPort << endl;
+}
+
+int UdpServerImpl::getListenPort() const{
+	return this->listenPort;
 }
 
 string UdpServerImpl::WrapSessionId(const string& ip, int port) {
@@ -212,9 +216,6 @@ string UdpServerImpl::WrapSessionId(const string& ip, int port) {
 void UdpServerImpl::send(const string& sessionId, const char* buf, int len) {
 	SharedPtr<IUdpClientSession> session = getSession(sessionId);
 	if (session) {
-		/*this->sock->sendTo(buf, len, session->getRemoteIp(),
-		 session->getRemotePort());
-		 session->onSend(buf, len);*/
 		this->sendThread->send(session, buf, len);
 	}
 }
@@ -291,12 +292,9 @@ void UdpServerImpl::run() {
 				if (NULL != pSession) {
 					pSession->init(ip, port, this->sock->getLocalAddress(),
 							this->sock->getLocalPort(), this);
-					try {
-						pSession->onConnected();
-					} catch (...) {
-					}
 					this->addSession(pSession);
 					try {
+						pSession->onConnected();
 						pSession->onReceive(buf, len);
 					} catch (...) {
 					}

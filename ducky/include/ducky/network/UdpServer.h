@@ -51,6 +51,7 @@ private:
 class IUdpServer: virtual public Object {
 public:
 	virtual void setListenPort(int port) = 0;
+	virtual int getListenPort() const = 0;
 	virtual void start() = 0;
 	virtual void stop() = 0;
 	virtual void join() = 0;
@@ -62,6 +63,7 @@ public:
 	virtual ~_UdpServer();
 
 	virtual void setListenPort(int port);
+	virtual int getListenPort() const;
 	virtual void start();
 	virtual void stop();
 	virtual void join();
