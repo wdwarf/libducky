@@ -35,6 +35,7 @@ public:
 	int createUdp();
 	int getHandle();
 	int close();
+	int shutdown(int type = SHUT_RDWR);
 	bool attach(int sock_fd);
 	int dettach();
 

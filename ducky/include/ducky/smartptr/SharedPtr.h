@@ -17,7 +17,7 @@ namespace smartptr {
 template<class T>
 class DefaultDeleter : virtual public Object{
 public:
-	void operator()(T* ptr){ delete ptr; }
+	void operator()(T* ptr){ if(ptr) delete ptr; }
 };
 
 template<class T>
@@ -106,6 +106,10 @@ public:
 	}
 
 	SharedPtr& operator=(const SharedPtr& sp) {
+		if(this == &sp){
+			return *this;
+		}
+		sh->release();
 		sh = sp.sh;
 		sh->incRef();
 		return *this;
@@ -122,15 +126,15 @@ public:
 		sh = new SPHolder<T, DT >(p, dt);
 	}
 
-	T* operator->(){
+	T* operator->() const{
 		return sh->get();
 	}
 
-	T* get() {
+	T* get() const {
 		return sh->get();
 	}
 
-	operator bool() {
+	operator bool() const {
 		return sh->isSet();
 	}
 

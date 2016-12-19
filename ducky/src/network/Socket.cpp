@@ -58,9 +58,17 @@ int Socket::getHandle() {
 	return this->sock_fd;
 }
 
+int Socket::shutdown(int type){
+	if(this->sock_fd > 0){
+		return ::shutdown(this->sock_fd, type);
+	}
+	return 0;
+}
+
 int Socket::close() {
 	int re = 0;
 	if (this->sock_fd > 0) {
+		this->shutdown();
 		re = ::close(this->sock_fd);
 		this->sock_fd = 0;
 	}
