@@ -15,6 +15,7 @@
 EXCEPTION_DEF(NetworkException);
 EXCEPTION_DEF2(TcpServerException, NetworkException);
 EXCEPTION_DEF2(UdpServerException, NetworkException);
+EXCEPTION_DEF2(UdpClientException, NetworkException);
 
 
 #endif /* DUCKY_NETWORK_NETWORKEXCEPTION_H_ */

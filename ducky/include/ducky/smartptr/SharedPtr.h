@@ -15,9 +15,12 @@ namespace ducky {
 namespace smartptr {
 
 template<class T>
-class DefaultDeleter : virtual public Object{
+class DefaultDeleter: virtual public Object {
 public:
-	void operator()(T* ptr){ if(ptr) delete ptr; }
+	void operator()(T* ptr) {
+		if (ptr)
+			delete ptr;
+	}
 };
 
 template<class T>
@@ -106,13 +109,53 @@ public:
 	}
 
 	SharedPtr& operator=(const SharedPtr& sp) {
-		if(this == &sp){
+		if (this == &sp) {
 			return *this;
 		}
 		sh->release();
 		sh = sp.sh;
 		sh->incRef();
 		return *this;
+	}
+
+	bool operator==(const SharedPtr& sp) const {
+		return this->get() == sp.get();
+	}
+
+	bool operator==(const T* p) const {
+		return this->get() == p;
+	}
+
+	bool operator>(const SharedPtr& sp) const {
+		return this->get() > sp.get();
+	}
+
+	bool operator>(const T* p) const {
+		return this->get() > p;
+	}
+
+	bool operator>=(const SharedPtr& sp) const {
+		return this->get() >= sp.get();
+	}
+
+	bool operator>=(const T* p) const {
+		return this->get() >= p;
+	}
+
+	bool operator<(const SharedPtr& sp) const {
+		return this->get() < sp.get();
+	}
+
+	bool operator<(const T* p) const {
+		return this->get() < p;
+	}
+
+	bool operator<=(const SharedPtr& sp) const {
+		return this->get() <= sp.get();
+	}
+
+	bool operator<=(const T* p) const {
+		return this->get() <= p;
 	}
 
 	void reset(T* p = 0) {
@@ -123,10 +166,10 @@ public:
 	template<typename DT>
 	void reset(T* p, DT dt) {
 		sh->release();
-		sh = new SPHolder<T, DT >(p, dt);
+		sh = new SPHolder<T, DT>(p, dt);
 	}
 
-	T* operator->() const{
+	T* operator->() const {
 		return sh->get();
 	}
 

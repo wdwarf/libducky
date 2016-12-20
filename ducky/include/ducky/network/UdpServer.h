@@ -9,8 +9,11 @@
 #define DUCKY_NETWORK_UDPSERVER_H_
 
 #include <ducky/thread/Thread.h>
+#include <ducky/buffer/Buffer.h>
+#include <ducky/thread/Mutex.h>
 #include <ducky/network/NetworkException.h>
 #include <string>
+#include <list>
 
 namespace ducky {
 namespace network {
@@ -18,17 +21,15 @@ namespace network {
 class UdpServerImpl;
 class IUdpClientSession: virtual public Object {
 public:
-	IUdpClientSession() {
-	}
-	virtual ~IUdpClientSession() {
-	}
+	IUdpClientSession();
+	virtual ~IUdpClientSession();
 
 	//must implements these methods
 	virtual void onReceive(const char* buf, int len) = 0;
-	virtual void onSend(const char* buf, int len) = 0;
-	virtual void onConnected(){};
-	virtual void onDisconnected(){};
 
+	virtual void onSend(const char* buf, int len){}
+	virtual void onConnected(){}
+	virtual void onDisconnected(){}
 
 	virtual std::string getRemoteIp() const;
 	virtual int getRemotePort() const;
@@ -44,14 +45,24 @@ private:
 
 	friend class UdpServerImpl;
 	UdpServerImpl* server;
+	bool handling;
+	std::list<buffer::Buffer> dataBuffers;
+	thread::Mutex mutex;
+
 	void init(const std::string& remoteIp, int remotePort,
 			const std::string& localIp, int localPort, UdpServerImpl* svr);
+
+	bool isHandling() const;
+	void setHandling(bool handling);
+	size_t getBufferSize();
+	void addBuffer(const buffer::Buffer& buf);
+	buffer::Buffer getBuffer();
 };
 
 class IUdpServer: virtual public Object {
 public:
 	virtual void setListenPort(int port) = 0;
-	virtual int getListenPort() const = 0;
+	virtual void setWorkThreadCount(int workThreadCount) = 0;
 	virtual void start() = 0;
 	virtual void stop() = 0;
 	virtual void join() = 0;
@@ -63,7 +74,7 @@ public:
 	virtual ~_UdpServer();
 
 	virtual void setListenPort(int port);
-	virtual int getListenPort() const;
+	virtual void setWorkThreadCount(int workThreadCount);
 	virtual void start();
 	virtual void stop();
 	virtual void join();

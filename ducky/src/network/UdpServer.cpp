@@ -58,13 +58,16 @@ private:
 	Buffer data;
 };
 
+//======================================================
+//======================================================
+
 class UdpServerImpl: public thread::Thread {
 public:
 	UdpServerImpl(_UdpServer* svr);
 	virtual ~UdpServerImpl();
 
 	virtual void setListenPort(int port);
-	virtual int getListenPort() const;
+	virtual void setWorkThreadCount(int workThreadCount);
 	virtual bool start();
 	virtual bool stop();
 	virtual void onStart() {
@@ -83,6 +86,7 @@ private:
 	virtual void run();
 	void addSession(IUdpClientSession* pSession);
 	SharedPtr<IUdpClientSession> getSession(string sessionId);
+	SharedPtr<IUdpClientSession> getBusySession();
 
 	friend class SendThread;
 	class SendThread: public Thread {
@@ -142,18 +146,56 @@ private:
 		UdpServerImpl* parent;
 	};
 
+	friend class WorkThread;
+	class WorkThread: public Thread {
+	public:
+		WorkThread(UdpServerImpl* parent) {
+			this->parent = parent;
+		}
+	private:
+		void run() {
+			while (!this->canStop()) {
+				SharedPtr<IUdpClientSession> session =
+						this->parent->getBusySession();
+				if (session.get()) {
+					buffer::Buffer buffer = session->getBuffer();
+					session->onReceive(buffer.getData(), buffer.getSize());
+					session->setHandling(false);
+				}
+			}
+		}
+
+		UdpServerImpl* parent;
+	};
+
 	ScopedPtr<SendThread> sendThread;
+	list<SharedPtr<WorkThread> > workThreads;
 
 	typedef map<string, SharedPtr<IUdpClientSession> > SessionsMap;
+	int workThreadCount;
 	int listenPort;
 	SharedPtr<Socket> sock;
 	SessionsMap sessions;
+	Semaphore semWorkThread;
 	Mutex mutex;
 	_UdpServer* server;
 };
 
 //======================================================
 //======================================================
+IUdpClientSession::IUdpClientSession() : handling(false) {
+}
+
+IUdpClientSession::~IUdpClientSession() {
+}
+
+bool IUdpClientSession::isHandling() const {
+	return handling;
+}
+
+void IUdpClientSession::setHandling(bool handling) {
+	this->handling = handling;
+}
 
 void IUdpClientSession::init(const std::string& remoteIp, int remotePort,
 		const std::string& localIp, int localPort, UdpServerImpl* svr) {
@@ -186,12 +228,33 @@ void IUdpClientSession::send(const char* buf, int len) {
 			len);
 }
 
+void IUdpClientSession::addBuffer(const buffer::Buffer& buf) {
+	MutexLocker lk(this->mutex);
+	this->dataBuffers.push_back(buf);
+}
+
+size_t IUdpClientSession::getBufferSize(){
+	MutexLocker lk(this->mutex);
+	return this->dataBuffers.size();
+}
+
+Buffer IUdpClientSession::getBuffer() {
+	MutexLocker lk(this->mutex);
+	Buffer buffer;
+	if(!this->dataBuffers.empty()){
+		buffer = this->dataBuffers.front();
+		this->dataBuffers.pop_front();
+	}
+
+	return buffer;
+}
+
 //======================================================
 //======================================================
 
 UdpServerImpl::UdpServerImpl(_UdpServer* svr) :
-		sendThread(new SendThread(this)), listenPort(0), sock(new Socket), server(
-				svr) {
+		workThreadCount(10), sendThread(new SendThread(this)), listenPort(0), sock(
+				new Socket), server(svr) {
 
 }
 
@@ -203,8 +266,8 @@ void UdpServerImpl::setListenPort(int port) {
 	this->listenPort = port;
 }
 
-int UdpServerImpl::getListenPort() const{
-	return this->listenPort;
+void UdpServerImpl::setWorkThreadCount(int workThreadCount) {
+	this->workThreadCount = workThreadCount;
 }
 
 string UdpServerImpl::WrapSessionId(const string& ip, int port) {
@@ -213,9 +276,29 @@ string UdpServerImpl::WrapSessionId(const string& ip, int port) {
 	return sId.str();
 }
 
+SharedPtr<IUdpClientSession> UdpServerImpl::getBusySession() {
+	this->semWorkThread.wait();
+	MutexLocker lk(this->mutex);
+	SharedPtr<IUdpClientSession> session;
+	if (!this->sessions.empty()) {
+		for(SessionsMap::iterator it = this->sessions.begin(); it != this->sessions.end(); ++it){
+			if(!it->second->isHandling() && (it->second->getBufferSize() > 0)){
+				session = it->second;
+				session->setHandling(true);
+				break;
+			}
+		}
+	}
+
+	return session;
+}
+
 void UdpServerImpl::send(const string& sessionId, const char* buf, int len) {
 	SharedPtr<IUdpClientSession> session = getSession(sessionId);
 	if (session) {
+		/*this->sock->sendTo(buf, len, session->getRemoteIp(),
+		 session->getRemotePort());
+		 session->onSend(buf, len);*/
 		this->sendThread->send(session, buf, len);
 	}
 }
@@ -248,6 +331,7 @@ bool UdpServerImpl::start() {
 	}
 
 	if (!this->sendThread->start()) {
+		this->sock->close();
 		throw UdpServerException("Send thread start failed.", errno);
 	}
 
@@ -255,6 +339,21 @@ bool UdpServerImpl::start() {
 		this->sendThread->stop();
 		this->sendThread->join();
 		throw UdpServerException("Server thread start failed.", errno);
+	}
+
+	for (int i = 0; i < this->workThreadCount; ++i) {
+		SharedPtr<UdpServerImpl::WorkThread> workThread(new WorkThread(this));
+		if (!workThread->start()) {
+			for (list<SharedPtr<UdpServerImpl::WorkThread> >::iterator it =
+					this->workThreads.begin(); it != this->workThreads.end();
+					++it) {
+				(*it)->stop();
+				this->semWorkThread.release();
+				(*it)->join();
+			}
+			throw UdpServerException("work thread start failed.", errno);
+		}
+		this->workThreads.push_back(workThread);
 	}
 
 	return true;
@@ -278,26 +377,27 @@ void UdpServerImpl::run() {
 		string ip;
 		int port = 0;
 
-		if (this->sock->recvFrom(buf, len, ip, port) > 0) {
+		int recvBytes = this->sock->recvFrom(buf, len, ip, port);
+		if (recvBytes > 0) {
 			string sId = this->WrapSessionId(ip, port);
 			SharedPtr<IUdpClientSession> session = this->getSession(sId);
 			if (session.get()) {
-				try {
-					session->onReceive(buf, len);
-				} catch (...) {
-				}
+				MutexLocker lk(this->mutex);
+				session->addBuffer(Buffer(buf, recvBytes));
+				this->semWorkThread.release();
 			} else {
 				IUdpClientSession* pSession = NULL;
 				this->server->onCreateSession(&pSession);
 				if (NULL != pSession) {
 					pSession->init(ip, port, this->sock->getLocalAddress(),
 							this->sock->getLocalPort(), this);
-					this->addSession(pSession);
 					try {
 						pSession->onConnected();
-						pSession->onReceive(buf, len);
 					} catch (...) {
 					}
+					this->addSession(pSession);
+					pSession->addBuffer(Buffer(buf, recvBytes));
+					this->semWorkThread.release();
 				}
 			}
 		} else {
@@ -313,6 +413,9 @@ void UdpServerImpl::run() {
 
 	this->onStop();
 }
+
+//======================================================
+//======================================================
 
 _UdpServer::_UdpServer() :
 		impl(new UdpServerImpl(this)) {
@@ -338,6 +441,10 @@ void _UdpServer::stop() {
 
 void _UdpServer::join() {
 	this->impl->join();
+}
+
+void _UdpServer::setWorkThreadCount(int workThreadCount) {
+	this->impl->setWorkThreadCount(workThreadCount);
 }
 
 } /* namespace network */
