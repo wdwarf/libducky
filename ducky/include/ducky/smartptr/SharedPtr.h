@@ -10,6 +10,9 @@
 
 #include <ducky/Object.h>
 #include <ducky/thread/Mutex.h>
+#include <iostream>
+
+using namespace std;
 
 namespace ducky {
 namespace smartptr {
@@ -26,6 +29,9 @@ public:
 template<class T>
 class ISPHolder: virtual public Object {
 public:
+	virtual ~ISPHolder() {
+	}
+
 	typedef T type;
 
 	virtual T* get() = 0;
@@ -45,9 +51,12 @@ public:
 
 	SPHolder(T* p, deleter dt) :
 			ptr(p), _deleter(dt) {
-		if (p) {
-			refCount = 1;
-		}
+		refCount = 1;
+	}
+
+	virtual ~SPHolder() {
+		if (ptr)
+			_deleter(ptr);
 	}
 
 	T* get() {
@@ -64,7 +73,6 @@ public:
 		ducky::thread::MutexLocker lk(mutex);
 		refCount -= 1;
 		if (0 == refCount) {
-			_deleter(ptr);
 			delete this;
 		}
 	}

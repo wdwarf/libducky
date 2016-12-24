@@ -71,6 +71,13 @@ void UdpClient::setBufferSize(int bufferSize) {
 	this->bufferSize = bufferSize;
 }
 
+void UdpClient::setBroadcast(bool isBroadcast) {
+	if (this->sock.getHandle() > 0) {
+		::setsockopt(this->sock.getHandle(), SOL_SOCKET, SO_BROADCAST,
+				(const char*) &isBroadcast, sizeof(isBroadcast));
+	}
+}
+
 bool UdpClient::start() {
 	try {
 		this->sock.close();
@@ -79,6 +86,8 @@ bool UdpClient::start() {
 		if (!this->localIp.empty() && (this->localPort > 0)) {
 			this->sock.bind(this->localIp, this->localPort);
 		}
+
+		this->setBroadcast(true);
 	} catch (exception::Exception& e) {
 		throw UdpClientException(e.what(), errno);
 	}
@@ -137,10 +146,8 @@ void UdpClient::run() {
 
 }
 
-void UdpClient::send(const char* buf, int len,
-		const string& ip, int port) {
-	this->sendThread->send(buf, len,
-			(ip.empty() ? this->serverIp : ip),
+void UdpClient::send(const char* buf, int len, const string& ip, int port) {
+	this->sendThread->send(buf, len, (ip.empty() ? this->serverIp : ip),
 			(port <= 0 ? this->serverPort : port));
 }
 

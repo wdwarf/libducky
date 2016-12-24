@@ -74,6 +74,7 @@ public:
 	void setSock(const Socket& sock);
 	int getBufferSize() const;
 	void setBufferSize(int bufferSize);
+	void setBroadcast(bool isBroadcast);
 
 	bool start();
 	bool stop();

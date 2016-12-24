@@ -86,7 +86,12 @@ private:
 	virtual void run();
 	void addSession(IUdpClientSession* pSession);
 	SharedPtr<IUdpClientSession> getSession(string sessionId);
-	SharedPtr<IUdpClientSession> getBusySession();
+	void pushIdelSession(const SharedPtr<IUdpClientSession>& session);
+	SharedPtr<IUdpClientSession> popIdelSession();
+	void pushReadySession(const SharedPtr<IUdpClientSession>& session);
+	SharedPtr<IUdpClientSession> popReadySession();
+	void pushBusySession(const SharedPtr<IUdpClientSession>& session);
+	SharedPtr<IUdpClientSession> popBusySession();
 
 	friend class SendThread;
 	class SendThread: public Thread {
@@ -156,11 +161,15 @@ private:
 		void run() {
 			while (!this->canStop()) {
 				SharedPtr<IUdpClientSession> session =
-						this->parent->getBusySession();
+						this->parent->popReadySession();
 				if (session.get()) {
 					buffer::Buffer buffer = session->getBuffer();
 					session->onReceive(buffer.getData(), buffer.getSize());
-					session->setHandling(false);
+					if (session->getBufferSize() > 0) {
+						this->parent->pushReadySession(session);
+					} else {
+						this->parent->pushIdelSession(session);
+					}
 				}
 			}
 		}
@@ -175,15 +184,18 @@ private:
 	int workThreadCount;
 	int listenPort;
 	SharedPtr<Socket> sock;
-	SessionsMap sessions;
+	SessionsMap idelSessions;
+	SessionsMap readySessions;
+	SessionsMap busySessions;
 	Semaphore semWorkThread;
+	Semaphore semReadySession;
 	Mutex mutex;
 	_UdpServer* server;
 };
 
 //======================================================
 //======================================================
-IUdpClientSession::IUdpClientSession() : handling(false) {
+IUdpClientSession::IUdpClientSession() {
 }
 
 IUdpClientSession::~IUdpClientSession() {
@@ -233,7 +245,7 @@ void IUdpClientSession::addBuffer(const buffer::Buffer& buf) {
 	this->dataBuffers.push_back(buf);
 }
 
-size_t IUdpClientSession::getBufferSize(){
+size_t IUdpClientSession::getBufferSize() {
 	MutexLocker lk(this->mutex);
 	return this->dataBuffers.size();
 }
@@ -241,7 +253,7 @@ size_t IUdpClientSession::getBufferSize(){
 Buffer IUdpClientSession::getBuffer() {
 	MutexLocker lk(this->mutex);
 	Buffer buffer;
-	if(!this->dataBuffers.empty()){
+	if (!this->dataBuffers.empty()) {
 		buffer = this->dataBuffers.front();
 		this->dataBuffers.pop_front();
 	}
@@ -276,48 +288,132 @@ string UdpServerImpl::WrapSessionId(const string& ip, int port) {
 	return sId.str();
 }
 
-SharedPtr<IUdpClientSession> UdpServerImpl::getBusySession() {
-	this->semWorkThread.wait();
+void UdpServerImpl::pushIdelSession(
+		const SharedPtr<IUdpClientSession>& session) {
 	MutexLocker lk(this->mutex);
-	SharedPtr<IUdpClientSession> session;
-	if (!this->sessions.empty()) {
-		for(SessionsMap::iterator it = this->sessions.begin(); it != this->sessions.end(); ++it){
-			if(!it->second->isHandling() && (it->second->getBufferSize() > 0)){
-				session = it->second;
-				session->setHandling(true);
-				break;
-			}
-		}
+	string sId = this->WrapSessionId(session->getRemoteIp(),
+			session->getRemotePort());
+	this->idelSessions.insert(make_pair(sId, session));
+	SessionsMap::iterator it = this->readySessions.find(sId);
+	if (it != this->readySessions.end()) {
+		this->readySessions.erase(it);
 	}
 
+	it = this->busySessions.find(sId);
+	if (it != this->busySessions.end()) {
+		this->busySessions.erase(it);
+	}
+}
+
+SharedPtr<IUdpClientSession> UdpServerImpl::popIdelSession() {
+	SharedPtr<IUdpClientSession> session;
+	MutexLocker lk(this->mutex);
+	if (!this->idelSessions.empty()) {
+		SessionsMap::iterator it = this->idelSessions.begin();
+		session = it->second;
+		this->readySessions.insert(*it);
+		this->idelSessions.erase(it);
+	}
+	return session;
+}
+
+void UdpServerImpl::pushReadySession(
+		const SharedPtr<IUdpClientSession>& session) {
+	MutexLocker lk(this->mutex);
+	string sId = this->WrapSessionId(session->getRemoteIp(),
+			session->getRemotePort());
+
+	SessionsMap::iterator it = this->readySessions.find(sId);
+	if (it != this->readySessions.end()) {
+		return;
+	}
+	this->readySessions.insert(make_pair(sId, session));
+
+	it = this->idelSessions.find(sId);
+	if (it != this->idelSessions.end()) {
+		this->idelSessions.erase(it);
+	}
+
+	it = this->busySessions.find(sId);
+	if (it != this->busySessions.end()) {
+		this->busySessions.erase(it);
+	}
+
+	this->semReadySession.release();
+}
+
+SharedPtr<IUdpClientSession> UdpServerImpl::popReadySession() {
+	this->semReadySession.wait();
+	SharedPtr<IUdpClientSession> session;
+	MutexLocker lk(this->mutex);
+	if (!this->readySessions.empty()) {
+		SessionsMap::iterator it = this->readySessions.begin();
+		session = it->second;
+		this->busySessions.insert(*it);
+		this->readySessions.erase(it);
+	}
+	return session;
+}
+
+void UdpServerImpl::pushBusySession(
+		const SharedPtr<IUdpClientSession>& session) {
+	MutexLocker lk(this->mutex);
+	string sId = this->WrapSessionId(session->getRemoteIp(),
+			session->getRemotePort());
+	this->busySessions.insert(make_pair(sId, session));
+
+	SessionsMap::iterator it = this->idelSessions.find(sId);
+	if (it != this->idelSessions.end()) {
+		this->idelSessions.erase(it);
+	}
+
+	it = this->readySessions.find(sId);
+	if (it != this->readySessions.end()) {
+		this->readySessions.erase(it);
+	}
+}
+
+SharedPtr<IUdpClientSession> UdpServerImpl::popBusySession() {
+	SharedPtr<IUdpClientSession> session;
+	MutexLocker lk(this->mutex);
+	if (!this->busySessions.empty()) {
+		SessionsMap::iterator it = this->busySessions.begin();
+		session = it->second;
+		this->busySessions.erase(it);
+		this->idelSessions.insert(*it);
+	}
 	return session;
 }
 
 void UdpServerImpl::send(const string& sessionId, const char* buf, int len) {
 	SharedPtr<IUdpClientSession> session = getSession(sessionId);
 	if (session) {
-		/*this->sock->sendTo(buf, len, session->getRemoteIp(),
-		 session->getRemotePort());
-		 session->onSend(buf, len);*/
 		this->sendThread->send(session, buf, len);
 	}
 }
 
 void UdpServerImpl::addSession(IUdpClientSession* pSession) {
-	MutexLocker lk(this->mutex);
 	SharedPtr<IUdpClientSession> session(pSession);
-	this->sessions.insert(
-			make_pair(
-					this->WrapSessionId(pSession->getRemoteIp(),
-							pSession->getRemotePort()), session));
+	this->pushReadySession(session);
 }
 
 SharedPtr<IUdpClientSession> UdpServerImpl::getSession(string sessionId) {
 	MutexLocker lk(this->mutex);
-	SessionsMap::iterator it = this->sessions.find(sessionId);
-	if (it != this->sessions.end()) {
+	SessionsMap::iterator it = this->idelSessions.find(sessionId);
+	if (it != this->idelSessions.end()) {
 		return it->second;
 	}
+
+	it = this->readySessions.find(sessionId);
+	if (it != this->readySessions.end()) {
+		return it->second;
+	}
+
+	it = this->busySessions.find(sessionId);
+	if (it != this->busySessions.end()) {
+		return it->second;
+	}
+
 	return SharedPtr<IUdpClientSession>();
 }
 
@@ -382,9 +478,15 @@ void UdpServerImpl::run() {
 			string sId = this->WrapSessionId(ip, port);
 			SharedPtr<IUdpClientSession> session = this->getSession(sId);
 			if (session.get()) {
-				MutexLocker lk(this->mutex);
+				this->mutex.lock();
 				session->addBuffer(Buffer(buf, recvBytes));
-				this->semWorkThread.release();
+				if (this->idelSessions.find(sId) != this->idelSessions.end()) {
+					this->mutex.unlock();
+					this->pushReadySession(session);
+				}
+				else{
+					this->mutex.unlock();
+				}
 			} else {
 				IUdpClientSession* pSession = NULL;
 				this->server->onCreateSession(&pSession);
@@ -395,9 +497,8 @@ void UdpServerImpl::run() {
 						pSession->onConnected();
 					} catch (...) {
 					}
-					this->addSession(pSession);
 					pSession->addBuffer(Buffer(buf, recvBytes));
-					this->semWorkThread.release();
+					this->addSession(pSession);
 				}
 			}
 		} else {
@@ -406,10 +507,24 @@ void UdpServerImpl::run() {
 	}
 	this->sock->close();
 
-	for (SessionsMap::iterator it = this->sessions.begin();
-			it != this->sessions.end(); ++it) {
+	for (SessionsMap::iterator it = this->idelSessions.begin();
+			it != this->idelSessions.end(); ++it) {
 		it->second->onDisconnected();
 	}
+
+	for (SessionsMap::iterator it = this->readySessions.begin();
+			it != this->readySessions.end(); ++it) {
+		it->second->onDisconnected();
+	}
+
+	for (SessionsMap::iterator it = this->busySessions.begin();
+			it != this->busySessions.end(); ++it) {
+		it->second->onDisconnected();
+	}
+
+	this->idelSessions.clear();
+	this->readySessions.clear();
+	this->busySessions.clear();
 
 	this->onStop();
 }
