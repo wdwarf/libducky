@@ -14,6 +14,44 @@
 #include <ducky/network/NetworkException.h>
 #include <string>
 #include <list>
+#include <ctime>
+
+/**
+ * Sample:
+ * ================================================
+ *
+ * //Client Session
+ * class MyUdpClientSession : public IUdpClientSession{
+ * public:
+ * 	virtual void onReceive(const char* buf, int len){
+ * 		this->send(buf, len);
+ * 	}
+ *
+ * 	virtual void onSend(const char* buf, int len) {
+ * 	}
+ *
+ * 	virtual void onConnected() {
+ * 	}
+ *
+ * 	virtual void onDisconnected() {
+ * 	}
+ * }; //class MyUdpClientSession
+ *
+ *
+ * int main(){
+ * 	//UDP Server
+ * 	typedef UdpServer<MyUdpClientSession> MyUdpServer;
+ *
+ * 	IUdpServer* myServer = new MyUdpServer;
+ * 	myServer->setListenPort(12345);
+ * 	myServer->setWorkThreadCount(100);
+ * 	myServer->start();
+ * 	myServer->join();	//block until the server stopped
+ * 	delete myServer;
+ * }
+ *
+ * ================================================
+ */
 
 namespace ducky {
 namespace network {
@@ -27,9 +65,12 @@ public:
 	//must implements these methods
 	virtual void onReceive(const char* buf, int len) = 0;
 
-	virtual void onSend(const char* buf, int len){}
-	virtual void onConnected(){}
-	virtual void onDisconnected(){}
+	virtual void onSend(const char* buf, int len) {
+	}
+	virtual void onConnected() {
+	}
+	virtual void onDisconnected() {
+	}
 
 	virtual std::string getRemoteIp() const;
 	virtual int getRemotePort() const;
@@ -37,26 +78,35 @@ public:
 	virtual int getLocalPort() const;
 	virtual void send(const char* buf, int len);
 
+	const string& getClientId() const;
+	void setSessionTimeout(int sec);
+	int getSessionTimeout() const;
+	void setSessionExpired(bool sessionExpired);
+	bool isSessionExpired() const;
+
 private:
 	std::string remoteIp;
 	int remotePort;
 	std::string localIp;
 	int localPort;
+	string clientId;
+	time_t lastCommTime;
+	int sessionTimeout;
+	bool sessionExpired;
 
 	friend class UdpServerImpl;
 	UdpServerImpl* server;
-	bool handling;
 	std::list<buffer::Buffer> dataBuffers;
 	thread::Mutex mutex;
 
 	void init(const std::string& remoteIp, int remotePort,
 			const std::string& localIp, int localPort, UdpServerImpl* svr);
 
-	bool isHandling() const;
-	void setHandling(bool handling);
 	size_t getBufferSize();
 	void addBuffer(const buffer::Buffer& buf);
 	buffer::Buffer getBuffer();
+	time_t getLastCommTime() const;
+	void updateLastCommTime();
 };
 
 class IUdpServer: virtual public Object {
@@ -75,7 +125,7 @@ public:
 
 	virtual void setListenPort(int port);
 	virtual void setWorkThreadCount(int workThreadCount);
-	virtual void start();
+	virtual void start() throw (UdpServerException);
 	virtual void stop();
 	virtual void join();
 	virtual void onStart() {
@@ -92,8 +142,8 @@ private:
 };
 
 template<class S>
-class UdpServer : public _UdpServer{
-	void onCreateSession(IUdpClientSession** session){
+class UdpServer: public _UdpServer {
+	void onCreateSession(IUdpClientSession** session) {
 		*session = new S;
 	}
 };

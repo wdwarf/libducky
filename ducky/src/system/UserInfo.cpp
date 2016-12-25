@@ -91,7 +91,7 @@ string UserInfo::UserInfoImpl::getCurrentLogin() {
 
 vector<UserInfo> UserInfo::UserInfoImpl::listAllUserInfo() {
 	vector<UserInfo> re;
-	passwd* pwd = nullptr;
+	passwd* pwd = NULL;
 	while ((pwd = getpwent())) {
 		re.push_back(UserInfo(pwd));
 	}

@@ -8,6 +8,7 @@
 #include <ducky/system/HostInfo.h>
 #include <sys/utsname.h>
 #include <unistd.h>
+#include <errno.h>
 #include <ducky/exception/Exception.h>
 
 namespace ducky {
