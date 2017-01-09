@@ -39,6 +39,8 @@ public:
 
 	virtual ThreadState getState() const;	//线程的状态
 	pthread_t getThreadId();
+	bool isFreeOnTerminated() const;
+	void setFreeOnTerminated(bool freeOnTerminated);
 
 	static void Sleep(unsigned int ms);	//睡眠函数，单位为毫秒
 
@@ -49,6 +51,7 @@ protected:
 private:
 	pthread_t threadId;
 	ThreadState threadState;
+	bool freeOnTerminated;
 	static void* ThreadFunc(Thread* pThread);
 
 	Thread(const Thread&);

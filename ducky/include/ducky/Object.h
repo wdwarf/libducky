@@ -14,11 +14,16 @@ namespace ducky {
 
 class Object {
 public:
-	virtual std::string getClassName();
+	virtual std::string getClassName() const;
+
+	virtual bool isOnHeap() const;
+
+	void* operator new(std::size_t size);
+	void operator delete(void* ptr);
 
 protected:
 	Object();
-	virtual ~Object();
+	virtual ~Object() = 0;
 };
 
 } /* namespace ducky */

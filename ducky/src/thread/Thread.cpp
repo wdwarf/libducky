@@ -29,8 +29,8 @@ string ToString(ThreadState state) {
 	return stateName;
 }
 
-Thread::Thread() : threadId(0),
-		threadState(TS_STOPPED) {
+Thread::Thread() :
+		threadId(0), threadState(TS_STOPPED), freeOnTerminated(false) {
 }
 
 Thread::~Thread() {
@@ -53,6 +53,9 @@ void* Thread::ThreadFunc(Thread* pThread) {
 	}
 
 	pThread->threadState = TS_STOPPED;
+	if(pThread->freeOnTerminated && pThread->isOnHeap()){
+		delete pThread;
+	}
 
 	return NULL;
 }
@@ -61,7 +64,8 @@ bool Thread::start() {
 	if (TS_STOPPED != this->threadState)
 		return -1;
 
-	int re = pthread_create(&this->threadId, NULL, (void* (*)(void*))Thread::ThreadFunc, this);
+	int re = pthread_create(&this->threadId, NULL,
+			(void* (*)(void*))Thread::ThreadFunc, this);
 	return (-1 != re);
 }
 
@@ -79,7 +83,7 @@ ThreadState Thread::getState() const {
 	return this->threadState;
 }
 
-pthread_t Thread::getThreadId(){
+pthread_t Thread::getThreadId() {
 	return this->threadId;
 }
 
@@ -100,5 +104,14 @@ void Thread::Sleep(unsigned int ms) {
 	usleep(ms * 1000);
 }
 
+bool Thread::isFreeOnTerminated() const {
+	return freeOnTerminated;
+}
+
+void Thread::setFreeOnTerminated(bool freeOnTerminated) {
+	this->freeOnTerminated = freeOnTerminated;
+}
+
 } /* namespace ducky */
 } /* namespace thread */
+
