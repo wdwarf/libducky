@@ -90,6 +90,10 @@ Variant::Variant(unsigned long long v) {
 Variant::Variant(const char* v) {
 	this->vt = VT_STRING;
 	this->size = strlen(v);
+	if (this->size <= 0) {
+		memset(&this->value, 0, sizeof(this->value));
+		return;
+	}
 	this->value.valPtr = new char[this->size];
 	memcpy(this->value.valPtr, v, this->size);
 }
@@ -97,6 +101,10 @@ Variant::Variant(const char* v) {
 Variant::Variant(const string& v) {
 	this->vt = VT_STRING;
 	this->size = v.length();
+	if (this->size <= 0) {
+		memset(&this->value, 0, sizeof(this->value));
+		return;
+	}
 	this->value.valPtr = new char[this->size];
 	memcpy(this->value.valPtr, v.c_str(), this->size);
 }
@@ -107,6 +115,9 @@ Variant::Variant(const buffer::Buffer& v) {
 		this->size = v.getSize();
 		this->value.valPtr = new char[this->size];
 		memcpy(this->value.valPtr, v.getData(), this->size);
+	}else{
+		this->size = 0;
+		memset(&this->value, 0, sizeof(this->value));
 	}
 }
 
@@ -495,6 +506,9 @@ Variant& Variant::operator=(const char* v) {
 	this->clear();
 	this->vt = VT_STRING;
 	this->size = strlen(v);
+	if(this->size <= 0){
+		return *this;
+	}
 	this->value.valPtr = new char[this->size];
 	memcpy(this->value.valPtr, v, this->size);
 	return *this;
@@ -527,6 +541,9 @@ void Variant::setSize(unsigned long size) {
 		this->clear();
 		this->vt = t;
 		this->size = size;
+		if(this->size <= 0){
+			return;
+		}
 		this->value.valPtr = new char[this->size];
 		memset(this->value.valPtr, 0, this->size);
 	}
