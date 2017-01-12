@@ -559,6 +559,16 @@ bool UdpServerImpl::stop() {
 	this->sendThread->stop();
 	this->sendThread->join();
 
+	for(list<SharedPtr<WorkThread> >::iterator it = this->workThreads.begin(); it != this->workThreads.end(); ++it){
+		(*it)->stop();
+	}
+	for(list<SharedPtr<WorkThread> >::iterator it = this->workThreads.begin(); it != this->workThreads.end(); ++it){
+		this->semWorkThread.release();
+	}
+	for(list<SharedPtr<WorkThread> >::iterator it = this->workThreads.begin(); it != this->workThreads.end(); ++it){
+		(*it)->join();
+	}
+
 	Thread::stop();
 	this->sock->shutdown();
 

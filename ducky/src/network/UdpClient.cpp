@@ -115,6 +115,7 @@ bool UdpClient::stop() {
 	this->sendThread->stop();
 	Thread::stop();
 	this->sock.shutdown();
+	this->sock.close();
 	return true;
 }
 
@@ -132,11 +133,12 @@ void UdpClient::run() {
 		if (re > 0) {
 			this->readThread->recv(buf, re, ip, port);
 		} else {
-			break;
+			if(0 != errno){
+				break;
+			}
 		}
 	}
 
-	this->sock.close();
 	delete[] buf;
 
 	try {
