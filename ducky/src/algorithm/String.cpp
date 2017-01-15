@@ -76,6 +76,42 @@ string TrimCopy(const string& str) {
 	return Trim(newStr);
 }
 
+string& Replease(string& src, const string& find,
+                 const string& replease){
+    string::size_type pos = src.find_first_of(find);
+    if(pos != string::npos){
+        src.replace(pos, find.length(), replease);
+    }
+    return src;
+}
+
+string RepleaseCopy(const string& src, const string& find,
+                 const string& replease){
+	string str = str;
+	return Replease(str, find, replease);
+}
+
+string& RepleaseAll(string& src, const string& find,
+                 const string& replease){
+    string::size_type pos = 0;
+    do{
+        pos = src.find(find, pos);
+        if(pos != string::npos){
+            src.replace(pos, find.length(), replease);
+        }else{
+            break;
+        }
+        pos += replease.length();
+    }while(true);
+    return src;
+}
+
+string RepleaseAllCopy(const string& src, const string& find,
+                 const string& replease){
+	string str = src;
+	return RepleaseAll(str, find, replease);
+}
+
 } /* namespace string */
 } /* namespace ducky */
 

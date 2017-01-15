@@ -53,6 +53,7 @@ void* Thread::ThreadFunc(Thread* pThread) {
 	}
 
 	pThread->threadState = TS_STOPPED;
+	pThread->threadId = 0;
 	if(pThread->freeOnTerminated && pThread->isOnHeap()){
 		delete pThread;
 	}
@@ -97,7 +98,9 @@ bool Thread::canStop() {
 }
 
 void Thread::join() {
-	pthread_join(this->threadId, NULL);
+	if(0 != this->threadId){
+		pthread_join(this->threadId, NULL);
+	}
 }
 
 void Thread::Sleep(unsigned int ms) {
