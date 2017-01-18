@@ -58,8 +58,8 @@ int Socket::getHandle() {
 	return this->sock_fd;
 }
 
-int Socket::shutdown(int type){
-	if(this->sock_fd > 0){
+int Socket::shutdown(int type) {
+	if (this->sock_fd > 0) {
 		return ::shutdown(this->sock_fd, type);
 	}
 	return 0;
@@ -108,9 +108,9 @@ int Socket::bind(string ip, int port) {
 		sockaddr_in addr;
 		addr.sin_family = AF_INET;
 		addr.sin_port = htons(port);
-		if(!ip.empty()){
+		if (!ip.empty()) {
 			inet_aton(ip.c_str(), &addr.sin_addr);
-		}else{
+		} else {
 			addr.sin_addr.s_addr = 0;
 		}
 		re = ::bind(this->sock_fd, (sockaddr*) &addr, sizeof(sockaddr_in));
@@ -148,7 +148,7 @@ int Socket::send(const char* buf, socklen_t bufLen) {
 		FD_ZERO(&fs_send);
 		FD_SET(this->sock_fd, &fs_send);
 		re = ::select(this->sock_fd + 1, 0, &fs_send, 0, &tv);
-		if (re > 0) {
+		if ((re > 0) && (FD_ISSET(this->sock_fd, &fs_send))) {
 			re = ::send(this->sock_fd, buf, bufLen, 0);
 		}
 	}
@@ -166,7 +166,7 @@ int Socket::read(char* buf, socklen_t readBytes, int timeoutSec) {
 		FD_SET(this->sock_fd, &fs_read);
 		re = ::select(this->sock_fd + 1, &fs_read, 0, 0,
 				(-1 == timeoutSec ? 0 : &tv));
-		if (re > 0) {
+		if ((re > 0) && FD_ISSET(this->sock_fd, &fs_read)) {
 			re = ::read(this->sock_fd, buf, readBytes);
 		}
 	}
@@ -174,8 +174,21 @@ int Socket::read(char* buf, socklen_t readBytes, int timeoutSec) {
 }
 
 int Socket::sendTo(const char* buf, socklen_t bufLen, const sockaddr_in& addr) {
-	return ::sendto(this->sock_fd, buf, bufLen, 0, (sockaddr*) &addr,
-			sizeof(sockaddr));
+	int re = -1;
+	if (this->sock_fd > 0) {
+		fd_set fs_send;
+		timeval tv;
+		tv.tv_sec = 5;
+		tv.tv_usec = 0;
+		FD_ZERO(&fs_send);
+		FD_SET(this->sock_fd, &fs_send);
+		re = ::select(this->sock_fd + 1, 0, &fs_send, 0, &tv);
+		if ((re > 0) && (FD_ISSET(this->sock_fd, &fs_send))) {
+			re = ::sendto(this->sock_fd, buf, bufLen, 0, (sockaddr*) &addr,
+					sizeof(sockaddr));
+		}
+	}
+	return re;
 }
 
 bool Socket::isConnected() {
@@ -258,7 +271,7 @@ int Socket::recvFrom(char* buf, socklen_t readBytes, sockaddr_in& addr,
 		FD_SET(this->sock_fd, &fs_read);
 		re = ::select(this->sock_fd + 1, &fs_read, 0, 0,
 				(-1 == timeoutSec ? 0 : &tv));
-		if (re > 0) {
+		if ((re > 0) && FD_ISSET(this->sock_fd, &fs_read)) {
 			memset(&addr, 0, sizeof(addr));
 			socklen_t addrSize = sizeof(addr);
 			re = ::recvfrom(this->sock_fd, buf, readBytes, 0, (sockaddr*) &addr,
