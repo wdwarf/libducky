@@ -11,6 +11,7 @@
 #include <string>
 #include <sstream>
 #include <ducky/Object.h>
+#include <ducky/exception/Exception.h>
 
 using std::string;
 using std::ostream;
@@ -19,6 +20,8 @@ using std::stringstream;
 
 namespace ducky {
 namespace buffer {
+
+EXCEPTION_DEF(BufferException)
 
 class Buffer: virtual public Object {
 public:
@@ -40,6 +43,8 @@ public:
 	unsigned int getSize() const;
 	void clear();
 	bool isEmpty() const;
+	Buffer& reverse();
+	void alloc(int size);
 
 	string toString() const;
 	stringstream& getBufferStream();
@@ -52,6 +57,7 @@ private:
 } /* namespace buffer */
 } /* namespace ducky */
 
+ostream& operator<<(ostream& o, const ducky::buffer::Buffer& buffer);
 ostream& operator<<(ostream& o, ducky::buffer::Buffer& buffer);
 ducky::buffer::Buffer& operator<<(ducky::buffer::Buffer& buffer, istream& i);
 ducky::buffer::Buffer& operator<<(ducky::buffer::Buffer& buffer, string& str);
@@ -60,7 +66,7 @@ ducky::buffer::Buffer& operator<<(ducky::buffer::Buffer& buffer,
 
 template<class T>
 ducky::buffer::Buffer& operator<<(ducky::buffer::Buffer& buffer, T& t) {
-	buffer.append((const char*) &t, sizeof(T));
+	buffer.append((const char*) &t, (unsigned int)sizeof(T));
 	return buffer;
 }
 

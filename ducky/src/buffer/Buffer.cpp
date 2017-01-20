@@ -37,6 +37,8 @@ public:
 	unsigned int getSize() const;
 	void clear();
 	bool isEmpty() const;
+	void reverse();
+	void alloc(int size);
 
 	string toString();
 	stringstream& getBufferStream();
@@ -127,6 +129,38 @@ void Buffer::BufferImpl::append(const BufferImpl& buffer) {
 
 	this->data = newData;
 	this->size += buffer.getSize();
+}
+
+void Buffer::BufferImpl::reverse(){
+	if(this->isEmpty()){
+		return;
+	}
+
+	char* pH = this->data;
+	char* pE = this->data + this->size - 1;
+	while(pH != pE){
+		char c = *pH;
+		*pH = *pE;
+		*pE = c;
+		++pH;
+		--pE;
+	}
+}
+
+void Buffer::BufferImpl::alloc(int size){
+	this->clear();
+
+	if(size <= 0){
+		return;
+	}
+
+	this->size = size;
+	this->data = new char[this->size];
+	if(!this->data){
+		this->size = 0;
+		throw BufferException("Alloc buffer failed", size);
+	}
+	memset(this->data, 0, this->size);
 }
 
 char& Buffer::BufferImpl::operator[](unsigned index) {
@@ -278,8 +312,22 @@ stringstream& Buffer::getBufferStream() {
 	return this->impl->getBufferStream();
 }
 
+Buffer& Buffer::reverse(){
+	this->impl->reverse();
+	return *this;
+}
+
+void Buffer::alloc(int size){
+	this->impl->alloc(size);
+}
+
 } /* namespace buffer */
 } /* namespace ducky */
+
+ostream& operator<<(ostream& o, const ducky::buffer::Buffer& buffer) {
+	o << buffer.toString();
+	return o;
+}
 
 ostream& operator<<(ostream& o, ducky::buffer::Buffer& buffer) {
 	o << buffer.toString();
