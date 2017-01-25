@@ -8,6 +8,7 @@
 #ifndef DUCKY_OBJECT_H_
 #define DUCKY_OBJECT_H_
 
+#include <ducky/ducky_config.h>
 #include <string>
 
 namespace ducky {
@@ -20,6 +21,7 @@ public:
 
 	void* operator new(std::size_t size);
 	void operator delete(void* ptr);
+	void deleteThis();
 
 protected:
 	Object();

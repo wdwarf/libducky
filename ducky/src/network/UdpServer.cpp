@@ -67,10 +67,16 @@ public:
 	UdpServerImpl(_UdpServer* svr);
 	virtual ~UdpServerImpl();
 
-	virtual void setListenPort(int port);
-	virtual void setWorkThreadCount(int workThreadCount);
-	virtual bool start() throw (UdpServerException);
-	virtual bool stop();
+	virtual void setIp(const string& ip) throw (NetServerException);
+	virtual string getIp() const;
+	virtual void setPort(unsigned int port) throw (NetServerException);
+	virtual unsigned int getPort() const;
+	virtual void setWorkThreadCount(int workThreadCount)
+			throw (NetServerException);
+	virtual int getWorkThreadCount() const;
+	virtual bool start() throw (NetServerException);
+	virtual bool stop(bool joinServerThread = false);
+	virtual bool isRunning();
 	virtual void onStart() {
 		this->server->onStart();
 	}
@@ -248,7 +254,8 @@ private:
 	ScopedPtr<TimeoutThread> timeoutThread;
 
 	int workThreadCount;
-	int listenPort;
+	string ip;
+	unsigned int listenPort;
 	SharedPtr<Socket> sock;
 	SessionList idelSessions;
 	SessionList readySessions;
@@ -369,12 +376,33 @@ UdpServerImpl::~UdpServerImpl() {
 
 }
 
-void UdpServerImpl::setListenPort(int port) {
+void UdpServerImpl::setIp(const string& ip) throw(NetServerException){
+	this->ip = ip;
+}
+
+string UdpServerImpl::getIp() const{
+	return this->ip;
+}
+
+void UdpServerImpl::setPort(unsigned int port) throw (NetServerException) {
 	this->listenPort = port;
 }
 
-void UdpServerImpl::setWorkThreadCount(int workThreadCount) {
+unsigned int UdpServerImpl::getPort() const{
+	return this->listenPort;
+}
+
+void UdpServerImpl::setWorkThreadCount(int workThreadCount)
+		throw (NetServerException) {
 	this->workThreadCount = workThreadCount;
+}
+
+int UdpServerImpl::getWorkThreadCount() const{
+	return this->workThreadCount;
+}
+
+bool UdpServerImpl::isRunning(){
+	return (0 != this->sock->getHandle());
 }
 
 string UdpServerImpl::WrapSessionId(const string& ip, int port) {
@@ -512,11 +540,11 @@ SharedPtr<IUdpClientSession> UdpServerImpl::getSession(string sessionId) {
 	return SharedPtr<IUdpClientSession>();
 }
 
-bool UdpServerImpl::start() throw (UdpServerException) {
+bool UdpServerImpl::start() throw (NetServerException) {
 	try {
 		this->sock->close();
 		this->sock->createUdp();
-		this->sock->bind("", this->listenPort);
+		this->sock->bind(this->ip, this->listenPort);
 	} catch (exception::Exception& e) {
 		throw UdpServerException(e.what(), errno);
 	}
@@ -555,17 +583,20 @@ bool UdpServerImpl::start() throw (UdpServerException) {
 	return true;
 }
 
-bool UdpServerImpl::stop() {
+bool UdpServerImpl::stop(bool joinServerThread) {
 	this->sendThread->stop();
 	this->sendThread->join();
 
-	for(list<SharedPtr<WorkThread> >::iterator it = this->workThreads.begin(); it != this->workThreads.end(); ++it){
+	for (list<SharedPtr<WorkThread> >::iterator it = this->workThreads.begin();
+			it != this->workThreads.end(); ++it) {
 		(*it)->stop();
 	}
-	for(list<SharedPtr<WorkThread> >::iterator it = this->workThreads.begin(); it != this->workThreads.end(); ++it){
+	for (list<SharedPtr<WorkThread> >::iterator it = this->workThreads.begin();
+			it != this->workThreads.end(); ++it) {
 		this->semWorkThread.release();
 	}
-	for(list<SharedPtr<WorkThread> >::iterator it = this->workThreads.begin(); it != this->workThreads.end(); ++it){
+	for (list<SharedPtr<WorkThread> >::iterator it = this->workThreads.begin();
+			it != this->workThreads.end(); ++it) {
 		(*it)->join();
 	}
 
@@ -655,24 +686,46 @@ _UdpServer::~_UdpServer() {
 	// TODO Auto-generated destructor stub
 	delete this->impl;
 }
-void _UdpServer::setListenPort(int port) {
-	this->impl->setListenPort(port);
+
+void _UdpServer::setIp(const string& ip) throw(NetServerException){
+	this->impl->setIp(ip);
 }
 
-void _UdpServer::start() throw (UdpServerException) {
-	this->impl->start();
+string _UdpServer::getIp() const{
+	return this->impl->getIp();
 }
 
-void _UdpServer::stop() {
-	this->impl->stop();
+void _UdpServer::setPort(unsigned int port) throw (NetServerException) {
+	this->impl->setPort(port);
+}
+
+unsigned int _UdpServer::getPort() const{
+	return this->impl->getPort();
+}
+
+bool _UdpServer::start() throw (NetServerException) {
+	return this->impl->start();
+}
+
+bool _UdpServer::stop(bool joinServerThread) {
+	return this->impl->stop(joinServerThread);
 }
 
 void _UdpServer::join() {
 	this->impl->join();
 }
 
-void _UdpServer::setWorkThreadCount(int workThreadCount) {
+bool _UdpServer::isRunning(){
+	return this->impl->isRunning();
+}
+
+void _UdpServer::setWorkThreadCount(int workThreadCount)
+		throw (NetServerException) {
 	this->impl->setWorkThreadCount(workThreadCount);
+}
+
+int _UdpServer::getWorkThreadCount() const{
+	return this->impl->getWorkThreadCount();
 }
 
 } /* namespace network */

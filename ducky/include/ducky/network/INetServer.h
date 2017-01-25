@@ -25,8 +25,11 @@ public:
 	virtual ~INetServer(){}
 
 	virtual void setIp(const string& ip) throw(NetServerException) = 0;
+	virtual string getIp() const = 0;
 	virtual void setPort(unsigned int port) throw(NetServerException) = 0;
+	virtual unsigned int getPort() const = 0;
 	virtual void setWorkThreadCount(int workThreadCount) throw(NetServerException) = 0;
+	virtual int getWorkThreadCount() const = 0;
 	virtual bool start() throw(NetServerException) = 0;
 	virtual bool stop(bool joinServerThread = false) = 0;
 	virtual void join() = 0;

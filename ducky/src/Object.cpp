@@ -111,4 +111,13 @@ void Object::operator delete(void* ptr) {
 	pthread_mutex_unlock(&__obj_onheap_mutex__);
 	::operator delete(ptr);
 }
+
+void Object::deleteThis(){
+	if(!this->isOnHeap()){
+		return;
+	}
+
+	delete this;
+}
+
 } /* namespace ducky */

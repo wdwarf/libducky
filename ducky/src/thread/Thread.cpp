@@ -54,8 +54,8 @@ void* Thread::ThreadFunc(Thread* pThread) {
 
 	pThread->threadState = TS_STOPPED;
 	pThread->threadId = 0;
-	if(pThread->freeOnTerminated && pThread->isOnHeap()){
-		delete pThread;
+	if(pThread->freeOnTerminated){
+		pThread->deleteThis();
 	}
 
 	return NULL;

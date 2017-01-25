@@ -158,16 +158,19 @@ int Socket::send(const char* buf, socklen_t bufLen) {
 int Socket::read(char* buf, socklen_t readBytes, int timeoutSec) {
 	int re = -1;
 	if (this->sock_fd > 0) {
-		fd_set fs_read;
-		timeval tv;
-		tv.tv_sec = timeoutSec;
-		tv.tv_usec = 0;
-		FD_ZERO(&fs_read);
-		FD_SET(this->sock_fd, &fs_read);
-		re = ::select(this->sock_fd + 1, &fs_read, 0, 0,
-				(-1 == timeoutSec ? 0 : &tv));
-		if ((re > 0) && FD_ISSET(this->sock_fd, &fs_read)) {
+		if (timeoutSec < 0) {
 			re = ::read(this->sock_fd, buf, readBytes);
+		} else {
+			fd_set fs_read;
+			timeval tv;
+			tv.tv_sec = timeoutSec;
+			tv.tv_usec = 0;
+			FD_ZERO(&fs_read);
+			FD_SET(this->sock_fd, &fs_read);
+			re = ::select(this->sock_fd + 1, &fs_read, 0, 0, &tv);
+			if ((re > 0) && FD_ISSET(this->sock_fd, &fs_read)) {
+				re = ::read(this->sock_fd, buf, readBytes);
+			}
 		}
 	}
 	return re;
@@ -188,6 +191,74 @@ int Socket::sendTo(const char* buf, socklen_t bufLen, const sockaddr_in& addr) {
 					sizeof(sockaddr));
 		}
 	}
+	return re;
+}
+
+int Socket::sendTo(const char* buf, socklen_t bufLen, const string& ip,
+		int port) {
+	if (ip.empty() || port <= 0) {
+		return -1;
+	}
+
+	string realIp;
+	sockaddr_in addr;
+	addr.sin_family = AF_INET;
+	addr.sin_port = htons(port);
+	hostent* he = gethostbyname(realIp.c_str());
+	if (he && (he->h_length > 0)) {
+		unsigned char* pAddr = (unsigned char*) he->h_addr_list[0];
+		if (pAddr) {
+			stringstream str;
+			str << (unsigned int) pAddr[0] << "." << (unsigned int) pAddr[1]
+					<< "." << (unsigned int) pAddr[2] << "."
+					<< (unsigned int) pAddr[3];
+			realIp = str.str();
+		}
+	}
+	addr.sin_addr.s_addr = inet_addr(ip.c_str());
+
+	return this->sendTo(buf, bufLen, addr);
+}
+
+int Socket::recvFrom(char* buf, socklen_t readBytes, sockaddr_in& addr,
+		int timeoutSec) {
+	int re = -1;
+	if (this->sock_fd > 0) {
+		memset(&addr, 0, sizeof(addr));
+		socklen_t addrSize = sizeof(addr);
+
+		if (timeoutSec < 0) {
+			re = ::recvfrom(this->sock_fd, buf, readBytes, 0, (sockaddr*) &addr,
+					&addrSize);
+		} else {
+			fd_set fs_read;
+			timeval tv;
+			tv.tv_sec = timeoutSec;
+			tv.tv_usec = 0;
+			FD_ZERO(&fs_read);
+			FD_SET(this->sock_fd, &fs_read);
+			re = ::select(this->sock_fd + 1, &fs_read, 0, 0, &tv);
+			if ((re > 0) && FD_ISSET(this->sock_fd, &fs_read)) {
+				re = ::recvfrom(this->sock_fd, buf, readBytes, 0,
+						(sockaddr*) &addr, &addrSize);
+			}
+		}
+	}
+	return re;
+}
+
+int Socket::recvFrom(char* buf, socklen_t readBytes, string& ip, int& port,
+		int timeoutSec) {
+	ip = "";
+	port = 0;
+
+	sockaddr_in addr = { 0 };
+	int re = this->recvFrom(buf, readBytes, addr, timeoutSec);
+	if (re > 0) {
+		ip = inet_ntoa(addr.sin_addr);
+		port = ntohs(addr.sin_port);
+	}
+
 	return re;
 }
 
@@ -231,69 +302,6 @@ int Socket::getSocketType() {
 	unsigned int len = sizeof(type);
 	::getsockopt(this->sock_fd, SOL_SOCKET, SO_TYPE, &type, &len);
 	return type;
-}
-
-int Socket::sendTo(const char* buf, socklen_t bufLen, const string& ip,
-		int port) {
-	if (ip.empty() || port <= 0) {
-		return -1;
-	}
-
-	string realIp;
-	sockaddr_in addr;
-	addr.sin_family = AF_INET;
-	addr.sin_port = htons(port);
-	hostent* he = gethostbyname(realIp.c_str());
-	if (he && (he->h_length > 0)) {
-		unsigned char* pAddr = (unsigned char*) he->h_addr_list[0];
-		if (pAddr) {
-			stringstream str;
-			str << (unsigned int) pAddr[0] << "." << (unsigned int) pAddr[1]
-					<< "." << (unsigned int) pAddr[2] << "."
-					<< (unsigned int) pAddr[3];
-			realIp = str.str();
-		}
-	}
-	addr.sin_addr.s_addr = inet_addr(ip.c_str());
-
-	return this->sendTo(buf, bufLen, addr);
-}
-
-int Socket::recvFrom(char* buf, socklen_t readBytes, sockaddr_in& addr,
-		int timeoutSec) {
-	int re = -1;
-	if (this->sock_fd > 0) {
-		fd_set fs_read;
-		timeval tv;
-		tv.tv_sec = timeoutSec;
-		tv.tv_usec = 0;
-		FD_ZERO(&fs_read);
-		FD_SET(this->sock_fd, &fs_read);
-		re = ::select(this->sock_fd + 1, &fs_read, 0, 0,
-				(-1 == timeoutSec ? 0 : &tv));
-		if ((re > 0) && FD_ISSET(this->sock_fd, &fs_read)) {
-			memset(&addr, 0, sizeof(addr));
-			socklen_t addrSize = sizeof(addr);
-			re = ::recvfrom(this->sock_fd, buf, readBytes, 0, (sockaddr*) &addr,
-					&addrSize);
-		}
-	}
-	return re;
-}
-
-int Socket::recvFrom(char* buf, socklen_t readBytes, string& ip, int& port,
-		int timeoutSec) {
-	ip = "";
-	port = 0;
-
-	sockaddr_in addr = { 0 };
-	int re = this->recvFrom(buf, readBytes, addr, timeoutSec);
-	if (re > 0) {
-		ip = inet_ntoa(addr.sin_addr);
-		port = ntohs(addr.sin_port);
-	}
-
-	return re;
 }
 
 } /* namespace network */

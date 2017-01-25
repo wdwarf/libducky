@@ -12,6 +12,7 @@
 #include <ducky/buffer/Buffer.h>
 #include <ducky/thread/Mutex.h>
 #include <ducky/network/NetworkException.h>
+#include <ducky/network/INetServer.h>
 #include <string>
 #include <list>
 #include <ctime>
@@ -109,25 +110,21 @@ private:
 	void updateLastCommTime();
 };
 
-class IUdpServer: virtual public Object {
-public:
-	virtual void setListenPort(int port) = 0;
-	virtual void setWorkThreadCount(int workThreadCount) = 0;
-	virtual void start() = 0;
-	virtual void stop() = 0;
-	virtual void join() = 0;
-};
-
-class _UdpServer: public IUdpServer {
+class _UdpServer: public INetServer {
 public:
 	_UdpServer();
 	virtual ~_UdpServer();
 
-	virtual void setListenPort(int port);
-	virtual void setWorkThreadCount(int workThreadCount);
-	virtual void start() throw (UdpServerException);
-	virtual void stop();
+	virtual void setIp(const string& ip) throw(NetServerException);
+	virtual string getIp() const;
+	virtual void setPort(unsigned int port) throw(NetServerException);
+	virtual unsigned int getPort() const;
+	virtual void setWorkThreadCount(int workThreadCount)throw(NetServerException);
+	virtual int getWorkThreadCount() const;
+	virtual bool start() throw (NetServerException);
+	virtual bool stop(bool joinServerThread = false);
 	virtual void join();
+	virtual bool isRunning();
 	virtual void onStart() {
 	}
 	virtual void onStop() {
