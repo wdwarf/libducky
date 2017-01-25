@@ -8,8 +8,7 @@
 #ifndef DUCKY_FUNCTION_FUNCTION_H_
 #define DUCKY_FUNCTION_FUNCTION_H_
 
-#include <iostream>
-using namespace std;
+#include <ducky/function/FunctionException.h>
 
 namespace ducky {
 namespace function {
@@ -664,6 +663,10 @@ public:
 	typedef IFunction0<R> IFuncType;
 	typedef Function0<R> ThisType;
 
+	Function0() :
+			pfunc(0) {
+	}
+
 	Function0(const ThisType& f) {
 		this->pfunc = f.pfunc->clone();
 	}
@@ -675,15 +678,21 @@ public:
 		pfunc = new FunctionBaseM0<R, C>(Func, c);
 	}
 	virtual ~Function0() {
-		delete pfunc;
+		if (pfunc)
+			delete pfunc;
 	}
 
 	R operator()() {
+		if (!pfunc) {
+			throw FunctionException("function not defined");
+		}
 		return (*pfunc)();
 	}
 
 	ThisType& operator=(const ThisType& f) {
-		delete this->pfunc;
+		if (this->pfunc) {
+			delete this->pfunc;
+		}
 		this->pfunc = f.pfunc->clone();
 		return *this;
 	}
@@ -698,6 +707,10 @@ public:
 	typedef IFunction1<R, P1> IFuncType;
 	typedef Function1<R, P1> ThisType;
 
+	Function1() :
+			pfunc(0) {
+	}
+
 	Function1(const ThisType& f) {
 		this->pfunc = f.pfunc->clone();
 	}
@@ -709,15 +722,21 @@ public:
 		pfunc = new FunctionBaseM1<R, C, P1>(Func, c);
 	}
 	virtual ~Function1() {
-		delete pfunc;
+		if (pfunc)
+			delete pfunc;
 	}
 
 	R operator()(P1 p1) {
+		if (!pfunc) {
+			throw FunctionException("function not defined");
+		}
 		return (*pfunc)(p1);
 	}
 
 	ThisType& operator=(const ThisType& f) {
-		delete this->pfunc;
+		if (this->pfunc) {
+			delete this->pfunc;
+		}
 		this->pfunc = f.pfunc->clone();
 		return *this;
 	}
@@ -732,6 +751,10 @@ public:
 	typedef IFunction2<R, P1, P2> IFuncType;
 	typedef Function2<R, P1, P2> ThisType;
 
+	Function2() :
+			pfunc(0) {
+	}
+
 	Function2(const ThisType& f) {
 		this->pfunc = f.pfunc->clone();
 	}
@@ -743,15 +766,21 @@ public:
 		pfunc = new FunctionBaseM2<R, C, P1, P2>(Func, c);
 	}
 	virtual ~Function2() {
-		delete pfunc;
+		if (pfunc)
+			delete pfunc;
 	}
 
 	R operator()(P1 p1, P2 p2) {
+		if (!pfunc) {
+			throw FunctionException("function not defined");
+		}
 		return (*pfunc)(p1, p2);
 	}
 
 	ThisType& operator=(const ThisType& f) {
-		delete this->pfunc;
+		if (this->pfunc) {
+			delete this->pfunc;
+		}
 		this->pfunc = f.pfunc->clone();
 		return *this;
 	}
@@ -766,6 +795,10 @@ public:
 	typedef IFunction3<R, P1, P2, P3> IFuncType;
 	typedef Function3<R, P1, P2, P3> ThisType;
 
+	Function3() :
+			pfunc(0) {
+	}
+
 	Function3(const ThisType& f) {
 		this->pfunc = f.pfunc->clone();
 	}
@@ -777,15 +810,21 @@ public:
 		pfunc = new FunctionBaseM3<R, C, P1, P2, P3>(Func, c);
 	}
 	virtual ~Function3() {
-		delete pfunc;
+		if (pfunc)
+			delete pfunc;
 	}
 
 	R operator()(P1 p1, P2 p2, P3 p3) {
+		if (!pfunc) {
+			throw FunctionException("function not defined");
+		}
 		return (*pfunc)(p1, p2, p3);
 	}
 
 	ThisType& operator=(const ThisType& f) {
-		delete this->pfunc;
+		if (this->pfunc) {
+			delete this->pfunc;
+		}
 		this->pfunc = f.pfunc->clone();
 		return *this;
 	}
@@ -800,6 +839,10 @@ public:
 	typedef IFunction4<R, P1, P2, P3, P4> IFuncType;
 	typedef Function4<R, P1, P2, P3, P4> ThisType;
 
+	Function4() :
+			pfunc(0) {
+	}
+
 	Function4(const ThisType& f) {
 		this->pfunc = f.pfunc->clone();
 	}
@@ -811,15 +854,21 @@ public:
 		pfunc = new FunctionBaseM4<R, C, P1, P2, P3, P4>(Func, c);
 	}
 	virtual ~Function4() {
-		delete pfunc;
+		if (pfunc)
+			delete pfunc;
 	}
 
 	R operator()(P1 p1, P2 p2, P3 p3, P4 p4) {
+		if (!pfunc) {
+			throw FunctionException("function not defined");
+		}
 		return (*pfunc)(p1, p2, p3, p4);
 	}
 
 	ThisType& operator=(const ThisType& f) {
-		delete this->pfunc;
+		if (this->pfunc) {
+			delete this->pfunc;
+		}
 		this->pfunc = f.pfunc->clone();
 		return *this;
 	}
@@ -834,6 +883,10 @@ public:
 	typedef IFunction5<R, P1, P2, P3, P4, P5> IFuncType;
 	typedef Function5<R, P1, P2, P3, P4, P5> ThisType;
 
+	Function5() :
+			pfunc(0) {
+	}
+
 	Function5(const ThisType& f) {
 		this->pfunc = f.pfunc->clone();
 	}
@@ -845,15 +898,21 @@ public:
 		pfunc = new FunctionBaseM5<R, C, P1, P2, P3, P4, P5>(Func, c);
 	}
 	virtual ~Function5() {
-		delete pfunc;
+		if (pfunc)
+			delete pfunc;
 	}
 
 	R operator()(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5) {
+		if (!pfunc) {
+			throw FunctionException("function not defined");
+		}
 		return (*pfunc)(p1, p2, p3, p4, p5);
 	}
 
 	ThisType& operator=(const ThisType& f) {
-		delete this->pfunc;
+		if (this->pfunc) {
+			delete this->pfunc;
+		}
 		this->pfunc = f.pfunc->clone();
 		return *this;
 	}
@@ -868,6 +927,10 @@ public:
 	typedef IFunction6<R, P1, P2, P3, P4, P5, P6> IFuncType;
 	typedef Function6<R, P1, P2, P3, P4, P5, P6> ThisType;
 
+	Function6() :
+			pfunc(0) {
+	}
+
 	Function6(const ThisType& f) {
 		this->pfunc = f.pfunc->clone();
 	}
@@ -879,15 +942,21 @@ public:
 		pfunc = new FunctionBaseM6<R, C, P1, P2, P3, P4, P5, P6>(Func, c);
 	}
 	virtual ~Function6() {
-		delete pfunc;
+		if (pfunc)
+			delete pfunc;
 	}
 
 	R operator()(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6) {
+		if (!pfunc) {
+			throw FunctionException("function not defined");
+		}
 		return (*pfunc)(p1, p2, p3, p4, p5, p6);
 	}
 
 	ThisType& operator=(const ThisType& f) {
-		delete this->pfunc;
+		if (this->pfunc) {
+			delete this->pfunc;
+		}
 		this->pfunc = f.pfunc->clone();
 		return *this;
 	}
@@ -903,6 +972,10 @@ public:
 	typedef IFunction7<R, P1, P2, P3, P4, P5, P6, P7> IFuncType;
 	typedef Function7<R, P1, P2, P3, P4, P5, P6, P7> ThisType;
 
+	Function7() :
+			pfunc(0) {
+	}
+
 	Function7(const ThisType& f) {
 		this->pfunc = f.pfunc->clone();
 	}
@@ -915,15 +988,21 @@ public:
 		pfunc = new FunctionBaseM7<R, C, P1, P2, P3, P4, P5, P6, P7>(Func, c);
 	}
 	virtual ~Function7() {
-		delete pfunc;
+		if (pfunc)
+			delete pfunc;
 	}
 
 	R operator()(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7) {
+		if (!pfunc) {
+			throw FunctionException("function not defined");
+		}
 		return (*pfunc)(p1, p2, p3, p4, p5, p6, p7);
 	}
 
 	ThisType& operator=(const ThisType& f) {
-		delete this->pfunc;
+		if (this->pfunc) {
+			delete this->pfunc;
+		}
 		this->pfunc = f.pfunc->clone();
 		return *this;
 	}
@@ -939,6 +1018,10 @@ public:
 	typedef IFunction8<R, P1, P2, P3, P4, P5, P6, P7, P8> IFuncType;
 	typedef Function8<R, P1, P2, P3, P4, P5, P6, P7, P8> ThisType;
 
+	Function8() :
+			pfunc(0) {
+	}
+
 	Function8(const ThisType& f) {
 		this->pfunc = f.pfunc->clone();
 	}
@@ -952,15 +1035,21 @@ public:
 				c);
 	}
 	virtual ~Function8() {
-		delete pfunc;
+		if (pfunc)
+			delete pfunc;
 	}
 
 	R operator()(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7, P8 p8) {
+		if (!pfunc) {
+			throw FunctionException("function not defined");
+		}
 		return (*pfunc)(p1, p2, p3, p4, p5, p6, p7, p8);
 	}
 
 	ThisType& operator=(const ThisType& f) {
-		delete this->pfunc;
+		if (this->pfunc) {
+			delete this->pfunc;
+		}
 		this->pfunc = f.pfunc->clone();
 		return *this;
 	}
@@ -976,6 +1065,10 @@ public:
 	typedef IFunction9<R, P1, P2, P3, P4, P5, P6, P7, P8, P9> IFuncType;
 	typedef Function9<R, P1, P2, P3, P4, P5, P6, P7, P8, P9> ThisType;
 
+	Function9() :
+			pfunc(0) {
+	}
+
 	Function9(const ThisType& f) {
 		this->pfunc = f.pfunc->clone();
 	}
@@ -989,16 +1082,22 @@ public:
 				Func, c);
 	}
 	virtual ~Function9() {
-		delete pfunc;
+		if (pfunc)
+			delete pfunc;
 	}
 
 	R operator()(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7, P8 p8,
 			P9 p9) {
+		if (!pfunc) {
+			throw FunctionException("function not defined");
+		}
 		return (*pfunc)(p1, p2, p3, p4, p5, p6, p7, p8, p9);
 	}
 
 	ThisType& operator=(const ThisType& f) {
-		delete this->pfunc;
+		if (this->pfunc) {
+			delete this->pfunc;
+		}
 		this->pfunc = f.pfunc->clone();
 		return *this;
 	}

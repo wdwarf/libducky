@@ -40,7 +40,6 @@ public:
 
 private:
 	_TcpServerImpl* impl;
-	void run(){}
 
 };
 
