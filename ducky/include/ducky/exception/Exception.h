@@ -15,6 +15,10 @@
 namespace ducky {
 namespace exception {
 
+#ifndef _GLIBCXX_USE_NOEXCEPT
+#define _GLIBCXX_USE_NOEXCEPT throw()
+#endif
+
 class Exception: public std::exception, virtual public Object {
 public:
 	Exception(const std::string& msg, int errNo = 0) _GLIBCXX_USE_NOEXCEPT;
