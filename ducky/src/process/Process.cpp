@@ -7,6 +7,7 @@
 
 #include <ducky/process/Process.h>
 #include <unistd.h>
+#include <sys/wait.h>
 
 namespace ducky {
 namespace process {
@@ -20,21 +21,23 @@ Process::~Process() {
 	// TODO Auto-generated destructor stub
 }
 
-int Process::GetPid(){
+int Process::GetPid() {
 	return getpid();
 }
 
-int Process::GetPPid(){
+int Process::GetPPid() {
 	return getppid();
 }
 
-int Process::Exec(const std::string& command, bool wait){
-	if(wait){
-		return execlp(command.c_str(), command.c_str(), NULL);
+int Process::Exec(const std::string& command, bool wait) {
+	int pid = vfork();
+	if (0 == pid) {
+		execlp(command.c_str(), command.c_str(), NULL);
+		exit(0);
 	}else{
-		if(0 == fork()){
-			execlp(command.c_str(), command.c_str(), NULL);
-			exit(1);
+		if(wait){
+			int status = 0;
+			waitpid(pid, &status, 0);
 		}
 	}
 	return 0;

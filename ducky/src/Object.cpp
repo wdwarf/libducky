@@ -87,7 +87,33 @@ bool Object::isOnHeap() const {
 	return isOnHeap;
 }
 
-void* Object::operator new(std::size_t size) {
+void* Object::operator new(std::size_t size) throw (std::bad_alloc) {
+	if (!__obj_onheap_mutex_inited__) {
+		__obj_onheap_mutex_inited__ = true;
+		pthread_mutex_init(&__obj_onheap_mutex__, NULL);
+	}
+
+	void* p = ::operator new(size);
+	pthread_mutex_lock(&__obj_onheap_mutex__);
+	__heabObjs__.insert(p);
+	pthread_mutex_unlock(&__obj_onheap_mutex__);
+	return p;
+}
+
+void* Object::operator new(size_t size, const std::nothrow_t&) throw () {
+	if (!__obj_onheap_mutex_inited__) {
+		__obj_onheap_mutex_inited__ = true;
+		pthread_mutex_init(&__obj_onheap_mutex__, NULL);
+	}
+
+	void* p = ::operator new(size);
+	pthread_mutex_lock(&__obj_onheap_mutex__);
+	__heabObjs__.insert(p);
+	pthread_mutex_unlock(&__obj_onheap_mutex__);
+	return p;
+}
+
+void* Object::operator new(std::size_t size, void *ptr) throw () {
 	if (!__obj_onheap_mutex_inited__) {
 		__obj_onheap_mutex_inited__ = true;
 		pthread_mutex_init(&__obj_onheap_mutex__, NULL);
@@ -112,8 +138,8 @@ void Object::operator delete(void* ptr) {
 	::operator delete(ptr);
 }
 
-void Object::deleteThis(){
-	if(!this->isOnHeap()){
+void Object::deleteThis() {
+	if (!this->isOnHeap()) {
 		return;
 	}
 
