@@ -9,17 +9,12 @@
 #define DUCKY_PIPE_NAMEDPIPE_H_
 
 #include <ducky/Object.h>
+#include <ducky/pipe/PipeType.h>
 #include <ducky/pipe/PipeException.h>
 #include <string>
 
 namespace ducky {
 namespace pipe {
-
-enum PipeType{
-	PT_UNKNOWN = 0,
-	PT_READ,
-	PT_WRITE
-};
 
 class NamedPipe: public Object {
 public:
@@ -31,7 +26,8 @@ public:
 	void close();
 	bool isOpen() const;
 	int read(char* buf, int size, int timeoutMs = -1) throw (PipeException);
-	int write(const char* buf, int size) throw (PipeException);
+	int write(const char* buf, int size, int timeoutMs = -1) throw (PipeException);
+	int getHandle() const;
 
 private:
 	class NamedPipeImpl;

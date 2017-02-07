@@ -6,6 +6,7 @@
  */
 
 #include <ducky/pipe/NamedPipe.h>
+#include <ducky/algorithm/String.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
@@ -15,6 +16,7 @@
 #include <string>
 
 using namespace std;
+using namespace ducky::algorithm;
 
 namespace ducky {
 namespace pipe {
@@ -28,7 +30,9 @@ public:
 	bool isOpen() const;
 	void close();
 	int read(char* buf, int size, int timeoutMs = -1) throw (PipeException);
-	int write(const char* buf, int size) throw (PipeException);
+	int write(const char* buf, int size, int timeoutMs = -1)
+			throw (PipeException);
+	int getHandle() const;
 
 private:
 	string name;
@@ -53,6 +57,10 @@ bool NamedPipe::NamedPipeImpl::isOpen() const {
 	return (this->pipeFd > 0);
 }
 
+int NamedPipe::NamedPipeImpl::getHandle() const{
+	return this->pipeFd;
+}
+
 void NamedPipe::NamedPipeImpl::open(const string& name, PipeType pipeType)
 		throw (PipeException) {
 	if (this->isOpen()) {
@@ -68,7 +76,7 @@ void NamedPipe::NamedPipeImpl::open(const string& name, PipeType pipeType)
 	int openMode = 0;
 	switch (pipeType) {
 	case PT_READ:
-		openMode = O_RDONLY | O_NONBLOCK;
+		openMode = O_RDWR | O_NONBLOCK;
 		break;
 	case PT_WRITE:
 		openMode = O_WRONLY;
@@ -111,7 +119,7 @@ int NamedPipe::NamedPipeImpl::read(char* buf, int size, int timeoutMs)
 	FD_ZERO(&fs_read);
 	FD_SET(this->pipeFd, &fs_read);
 	if (timeoutMs < 0) {
-		if (::select(this->pipeFd + 1, &fs_read, 0, 0, NULL) > 0) {
+		if (::select(this->pipeFd + 1, &fs_read, NULL, NULL, NULL) > 0) {
 			readBytes = ::read(this->pipeFd, buf, size);
 		} else {
 			throw PipeException("Pipe read error.", errno);
@@ -120,7 +128,7 @@ int NamedPipe::NamedPipeImpl::read(char* buf, int size, int timeoutMs)
 		timeval tv;
 		tv.tv_sec = timeoutMs / 1000;
 		tv.tv_usec = timeoutMs - (timeoutMs / 1000);
-		if (::select(this->pipeFd + 1, &fs_read, 0, 0, &tv) > 0) {
+		if (::select(this->pipeFd + 1, &fs_read, NULL, NULL, &tv) > 0) {
 			readBytes = ::read(this->pipeFd, buf, size);
 		} else {
 			throw PipeException("Pipe read timeout.", errno);
@@ -134,9 +142,9 @@ int NamedPipe::NamedPipeImpl::read(char* buf, int size, int timeoutMs)
 	return readBytes;
 }
 
-int NamedPipe::NamedPipeImpl::write(const char* buf, int size)
+int NamedPipe::NamedPipeImpl::write(const char* buf, int size, int timeoutMs)
 		throw (PipeException) {
-	int readBytes = 0;
+	int writeBytes = 0;
 
 	if (!this->isOpen()) {
 		throw PipeException("Pipe not opened.");
@@ -146,12 +154,31 @@ int NamedPipe::NamedPipeImpl::write(const char* buf, int size)
 		throw PipeException("Not a write pipe..");
 	}
 
-	readBytes = ::write(this->pipeFd, buf, size);
-	if (readBytes < 0) {
+	fd_set fs_write;
+	FD_ZERO(&fs_write);
+	FD_SET(this->pipeFd, &fs_write);
+	if (timeoutMs < 0) {
+		if (::select(this->pipeFd + 1, NULL, &fs_write, NULL, NULL) > 0) {
+			writeBytes = ::write(this->pipeFd, buf, size);
+		} else {
+			throw PipeException("Pipe write error.", errno);
+		}
+	} else {
+		timeval tv;
+		tv.tv_sec = timeoutMs / 1000;
+		tv.tv_usec = timeoutMs - (timeoutMs / 1000);
+		if (::select(this->pipeFd + 1, NULL, &fs_write, NULL, &tv) > 0) {
+			writeBytes = ::write(this->pipeFd, buf, size);
+		} else {
+			throw PipeException("Pipe write timeout.", errno);
+		}
+	}
+
+	if (writeBytes < 0) {
 		throw PipeException("Pipe write error.", errno);
 	}
 
-	return readBytes;
+	return writeBytes;
 }
 
 NamedPipe::NamedPipe() :
@@ -171,6 +198,10 @@ string NamedPipe::getName() const {
 	return this->impl->getName();
 }
 
+int NamedPipe::getHandle() const{
+	return this->impl->getHandle();
+}
+
 void NamedPipe::open(const std::string& name, PipeType pipeType)
 		throw (PipeException) {
 	this->impl->open(name, pipeType);
@@ -188,8 +219,9 @@ int NamedPipe::read(char* buf, int size, int timeoutMs) throw (PipeException) {
 	return this->impl->read(buf, size, timeoutMs);
 }
 
-int NamedPipe::write(const char* buf, int size) throw (PipeException) {
-	return this->impl->write(buf, size);
+int NamedPipe::write(const char* buf, int size, int timeoutMs)
+		throw (PipeException) {
+	return this->impl->write(buf, size, timeoutMs);
 }
 
 } /* namespace pipe */
