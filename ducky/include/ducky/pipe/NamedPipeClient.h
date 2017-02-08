@@ -1,12 +1,12 @@
 /*
- * NamedPipeServer.h
+ * NamedPipeClient.h
  *
  *  Created on: Feb 7, 2017
  *      Author: ducky
  */
 
-#ifndef DUCKY_PIPE_NAMEDPIPESERVER_H_
-#define DUCKY_PIPE_NAMEDPIPESERVER_H_
+#ifndef DUCKY_PIPE_NamedPipeClient_H_
+#define DUCKY_PIPE_NamedPipeClient_H_
 
 #include <ducky/Object.h>
 #include <ducky/pipe/PipeException.h>
@@ -15,10 +15,10 @@
 namespace ducky {
 namespace pipe {
 
-class NamedPipeServer: public Object {
+class NamedPipeClient: public Object {
 public:
-	NamedPipeServer();
-	virtual ~NamedPipeServer();
+	NamedPipeClient();
+	virtual ~NamedPipeClient();
 
 	std::string getName() const;
 	void start(const std::string& name) throw (PipeException);
@@ -33,11 +33,11 @@ public:
 	virtual void onStop(){}
 
 private:
-	class NamedPipeServerImpl;
-	NamedPipeServerImpl* impl;
+	class NamedPipeClientImpl;
+	NamedPipeClientImpl* impl;
 };
 
 } /* namespace pipe */
 } /* namespace ducky */
 
-#endif /* DUCKY_PIPE_NAMEDPIPESERVER_H_ */
+#endif /* DUCKY_PIPE_NamedPipeClient_H_ */

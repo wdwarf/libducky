@@ -1,11 +1,11 @@
 /*
- * NamedPipeServer.cpp
+ * NamedPipeClient.cpp
  *
  *  Created on: Feb 7, 2017
  *      Author: ducky
  */
 
-#include <ducky/pipe/NamedPipeServer.h>
+#include <ducky/pipe/NamedPipeClient.h>
 #include <ducky/pipe/NamedPipe.h>
 #include <ducky/thread/Thread.h>
 #include <ducky/thread/Mutex.h>
@@ -26,10 +26,10 @@ using namespace std;
 namespace ducky {
 namespace pipe {
 
-class NamedPipeServer::NamedPipeServerImpl: public Object {
+class NamedPipeClient::NamedPipeClientImpl: public Object {
 public:
-	NamedPipeServerImpl(NamedPipeServer* parent);
-	virtual ~NamedPipeServerImpl();
+	NamedPipeClientImpl(NamedPipeClient* parent);
+	virtual ~NamedPipeClientImpl();
 
 	string getName() const;
 	void start(const std::string& name) throw (PipeException);
@@ -43,12 +43,12 @@ public:
 private:
 	class ReadThread: public Thread {
 	public:
-		ReadThread(NamedPipeServerImpl* svr) {
+		ReadThread(NamedPipeClientImpl* svr) {
 			this->svr = svr;
 		}
 
 		void setPipeName(const string& pipeName) {
-			this->pipeName = pipeName + "_ducky_pipe_out";
+			this->pipeName = pipeName + "_ducky_pipe_in";
 		}
 
 		void run() {
@@ -78,19 +78,19 @@ private:
 		}
 
 	private:
-		NamedPipeServerImpl* svr;
+		NamedPipeClientImpl* svr;
 		string pipeName;
 		NamedPipe pipe;
 	};
 
 	class SendThread: public Thread {
 	public:
-		SendThread(NamedPipeServerImpl* svr) {
+		SendThread(NamedPipeClientImpl* svr) {
 			this->svr = svr;
 		}
 
 		void setPipeName(const string& pipeName) {
-			this->pipeName = pipeName + "_ducky_pipe_in";
+			this->pipeName = pipeName + "_ducky_pipe_out";
 		}
 
 		void run() {
@@ -134,7 +134,7 @@ private:
 		}
 
 	private:
-		NamedPipeServerImpl* svr;
+		NamedPipeClientImpl* svr;
 		string pipeName;
 		NamedPipe pipe;
 		list<Buffer> buffers;
@@ -143,94 +143,95 @@ private:
 	};
 
 private:
-	NamedPipeServer* parent;
+	NamedPipeClient* parent;
 	string pipeName;
 	ScopedPtr<ReadThread> readThread;
 	ScopedPtr<SendThread> sendThread;
 };
 
-NamedPipeServer::NamedPipeServerImpl::NamedPipeServerImpl(
-		NamedPipeServer* parent) :
+NamedPipeClient::NamedPipeClientImpl::NamedPipeClientImpl(
+		NamedPipeClient* parent) :
 		readThread(new ReadThread(this)), sendThread(new SendThread(this)) {
 	this->parent = parent;
 }
 
-NamedPipeServer::NamedPipeServerImpl::~NamedPipeServerImpl() {
+NamedPipeClient::NamedPipeClientImpl::~NamedPipeClientImpl() {
 	//
 }
 
-void NamedPipeServer::NamedPipeServerImpl::start(const std::string& name)
+void NamedPipeClient::NamedPipeClientImpl::start(const std::string& name)
 		throw (PipeException) {
 	this->pipeName = name;
 	this->readThread->setPipeName(this->pipeName);
 	this->sendThread->setPipeName(this->pipeName);
 	this->readThread->start();
 	this->sendThread->start();
+	this->parent->onStart();
 }
 
-string NamedPipeServer::NamedPipeServerImpl::getName() const {
+string NamedPipeClient::NamedPipeClientImpl::getName() const {
 	return this->pipeName;
 }
 
-bool NamedPipeServer::NamedPipeServerImpl::stop() {
+bool NamedPipeClient::NamedPipeClientImpl::stop() {
 	this->readThread->stop();
 	this->sendThread->stop();
 	return true;
 }
 
-void NamedPipeServer::NamedPipeServerImpl::send(const char* buf, int size) {
+void NamedPipeClient::NamedPipeClientImpl::send(const char* buf, int size) {
 	Buffer buffer(buf, size);
 	this->sendThread->send(buffer);
 }
 
-void NamedPipeServer::NamedPipeServerImpl::join() {
+void NamedPipeClient::NamedPipeClientImpl::join() {
 	this->readThread->join();
 }
 
-bool NamedPipeServer::NamedPipeServerImpl::isRunning() const {
+bool NamedPipeClient::NamedPipeClientImpl::isRunning() const {
 	return this->readThread->isRunning();
 }
 
-void NamedPipeServer::NamedPipeServerImpl::onRead(char* buf, int size) {
+void NamedPipeClient::NamedPipeClientImpl::onRead(char* buf, int size) {
 	this->parent->onRead(buf, size);
 }
 
-void NamedPipeServer::NamedPipeServerImpl::onSend(char* buf, int size) {
+void NamedPipeClient::NamedPipeClientImpl::onSend(char* buf, int size) {
 	this->parent->onSend(buf, size);
 }
 
-NamedPipeServer::NamedPipeServer() :
-		impl(new NamedPipeServerImpl(this)) {
+NamedPipeClient::NamedPipeClient() :
+		impl(new NamedPipeClientImpl(this)) {
 // TODO Auto-generated constructor stub
 
 }
 
-NamedPipeServer::~NamedPipeServer() {
+NamedPipeClient::~NamedPipeClient() {
 // TODO Auto-generated destructor stub
 	if (this->impl) {
 		delete this->impl;
 	}
 }
-std::string NamedPipeServer::getName() const {
+std::string NamedPipeClient::getName() const {
 	return this->impl->getName();
 }
-void NamedPipeServer::start(const std::string& name) throw (PipeException) {
+void NamedPipeClient::start(const std::string& name) throw (PipeException) {
 	this->impl->start(name);
 }
 
-void NamedPipeServer::stop() {
+void NamedPipeClient::stop() {
 	this->impl->stop();
 }
 
-void NamedPipeServer::join() {
+void NamedPipeClient::join() {
 	this->impl->join();
 }
 
-bool NamedPipeServer::isRunning() const {
+bool NamedPipeClient::isRunning() const {
 	return this->impl->isRunning();
 }
 
-void NamedPipeServer::send(const char* buf, int size){
+void NamedPipeClient::send(const char* buf, int size){
 	this->impl->send(buf, size);
 }
 
