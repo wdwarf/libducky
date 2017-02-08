@@ -7,13 +7,22 @@
 
 #include "ducky/exception/Exception.h"
 
+#include <iostream>
+
+using namespace std;
+
 namespace ducky {
 namespace exception {
 
-Exception::Exception(const std::string& msg, int errNo) _GLIBCXX_USE_NOEXCEPT {
+Exception::Exception(const std::string& msg, int errNo, int lineNumber,
+		const std::string& functionName, const std::string& fileName) _GLIBCXX_USE_NOEXCEPT {
 	// TODO Auto-generated constructor stub
 	this->msg = msg;
 	this->errNo = errNo;
+	this->lineNumber = lineNumber;
+	this->functionName = functionName;
+	this->fileName = fileName;
+	cout << functionName << endl;
 }
 
 Exception::~Exception() _GLIBCXX_USE_NOEXCEPT {
@@ -28,5 +37,17 @@ int Exception::getErrNo() const {
 	return this->errNo;
 }
 
+const std::string& Exception::getFileName() const {
+	return fileName;
+}
+
+const std::string& Exception::getFunctionName() const {
+	return functionName;
+}
+
+int Exception::getLineNumber() const {
+	return lineNumber;
+}
 } /* namespace exception */
 } /* namespace ducky */
+

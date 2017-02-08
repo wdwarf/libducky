@@ -4,10 +4,8 @@
  *  Created on: Dec 23, 2013
  *      Author: wdwarf
  */
-#include <unistd.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
-#include <arpa/inet.h>
 #include <string>
 #include <ducky/Object.h>
 #include <ducky/exception/Exception.h>

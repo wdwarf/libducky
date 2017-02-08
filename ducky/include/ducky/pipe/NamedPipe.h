@@ -26,7 +26,8 @@ public:
 	void close();
 	bool isOpen() const;
 	int read(char* buf, int size, int timeoutMs = -1) throw (PipeException);
-	int write(const char* buf, int size, int timeoutMs = -1) throw (PipeException);
+	int write(const char* buf, int size, int timeoutMs = -1)
+			throw (PipeException);
 	int getHandle() const;
 
 private:

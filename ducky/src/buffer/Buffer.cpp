@@ -158,7 +158,7 @@ void Buffer::BufferImpl::alloc(int size){
 	this->data = new char[this->size];
 	if(!this->data){
 		this->size = 0;
-		throw BufferException("Alloc buffer failed", size);
+		throw MK_EXCEPTION(BufferException, "Alloc buffer failed", size);
 	}
 	memset(this->data, 0, this->size);
 }

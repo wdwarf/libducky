@@ -6,7 +6,9 @@
  */
 
 #include <ducky/network/Socket.h>
+#include <unistd.h>
 #include <netdb.h>
+#include <arpa/inet.h>
 #include <sys/errno.h>
 #include <sstream>
 #include <cstring>
@@ -111,7 +113,7 @@ int Socket::bind(string ip, int port) {
 		if (!ip.empty()) {
 			inet_aton(ip.c_str(), &addr.sin_addr);
 		} else {
-			addr.sin_addr.s_addr = 0;
+			addr.sin_addr.s_addr = INADDR_ANY;
 		}
 		re = ::bind(this->sock_fd, (sockaddr*) &addr, sizeof(sockaddr_in));
 		if (re < 0) {

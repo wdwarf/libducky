@@ -240,7 +240,7 @@ private:
 						++it) {
 					this->removeSession(*it);
 				}
-				sleep(1);
+				Thread::Sleep(1000);
 			}
 		}
 

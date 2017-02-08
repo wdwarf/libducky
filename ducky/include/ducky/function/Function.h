@@ -684,7 +684,7 @@ public:
 
 	R operator()() {
 		if (!pfunc) {
-			throw FunctionException("function not defined");
+			throw MK_EXCEPTION(FunctionException, "function not defined", 0);
 		}
 		return (*pfunc)();
 	}
@@ -728,7 +728,7 @@ public:
 
 	R operator()(P1 p1) {
 		if (!pfunc) {
-			throw FunctionException("function not defined");
+			throw MK_EXCEPTION(FunctionException, "function not defined", 0);
 		}
 		return (*pfunc)(p1);
 	}
@@ -772,7 +772,7 @@ public:
 
 	R operator()(P1 p1, P2 p2) {
 		if (!pfunc) {
-			throw FunctionException("function not defined");
+			throw MK_EXCEPTION(FunctionException, "function not defined", 0);
 		}
 		return (*pfunc)(p1, p2);
 	}
@@ -816,7 +816,7 @@ public:
 
 	R operator()(P1 p1, P2 p2, P3 p3) {
 		if (!pfunc) {
-			throw FunctionException("function not defined");
+			throw MK_EXCEPTION(FunctionException, "function not defined", 0);
 		}
 		return (*pfunc)(p1, p2, p3);
 	}
@@ -860,7 +860,7 @@ public:
 
 	R operator()(P1 p1, P2 p2, P3 p3, P4 p4) {
 		if (!pfunc) {
-			throw FunctionException("function not defined");
+			throw MK_EXCEPTION(FunctionException, "function not defined", 0);
 		}
 		return (*pfunc)(p1, p2, p3, p4);
 	}
@@ -904,7 +904,7 @@ public:
 
 	R operator()(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5) {
 		if (!pfunc) {
-			throw FunctionException("function not defined");
+			throw MK_EXCEPTION(FunctionException, "function not defined", 0);
 		}
 		return (*pfunc)(p1, p2, p3, p4, p5);
 	}
@@ -948,7 +948,7 @@ public:
 
 	R operator()(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6) {
 		if (!pfunc) {
-			throw FunctionException("function not defined");
+			throw MK_EXCEPTION(FunctionException, "function not defined", 0);
 		}
 		return (*pfunc)(p1, p2, p3, p4, p5, p6);
 	}
@@ -994,7 +994,7 @@ public:
 
 	R operator()(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7) {
 		if (!pfunc) {
-			throw FunctionException("function not defined");
+			throw MK_EXCEPTION(FunctionException, "function not defined", 0);
 		}
 		return (*pfunc)(p1, p2, p3, p4, p5, p6, p7);
 	}
@@ -1041,7 +1041,7 @@ public:
 
 	R operator()(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7, P8 p8) {
 		if (!pfunc) {
-			throw FunctionException("function not defined");
+			throw MK_EXCEPTION(FunctionException, "function not defined", 0);
 		}
 		return (*pfunc)(p1, p2, p3, p4, p5, p6, p7, p8);
 	}
@@ -1089,7 +1089,7 @@ public:
 	R operator()(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7, P8 p8,
 			P9 p9) {
 		if (!pfunc) {
-			throw FunctionException("function not defined");
+			throw MK_EXCEPTION(FunctionException, "function not defined", 0);
 		}
 		return (*pfunc)(p1, p2, p3, p4, p5, p6, p7, p8, p9);
 	}

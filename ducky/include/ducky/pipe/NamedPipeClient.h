@@ -27,8 +27,8 @@ public:
 	bool isRunning() const;
 	void send(const char* buf, int size);
 
-	virtual void onRead(char* buf, int size) = 0;
-	virtual void onSend(char* buf, int size) = 0;
+	virtual void onRead(const char* buf, int size) = 0;
+	virtual void onSend(const char* buf, int size) = 0;
 	virtual void onStart(){}
 	virtual void onStop(){}
 
