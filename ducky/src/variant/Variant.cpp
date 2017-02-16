@@ -561,6 +561,13 @@ void Variant::setVt(VariantType vt) {
 	this->size = Variant::TypeInfo(this->vt).size;
 }
 
+void Variant::setVt(const string& typeName){
+	this->clear();
+	VariantTypeInfo typeInfo = TypeInfoFromString(typeName);
+	this->vt = typeInfo.type;
+	this->size = typeInfo.size;
+}
+
 void Variant::setValue(const void* v) {
 	switch (this->vt) {
 	case VT_UNKNOWN:

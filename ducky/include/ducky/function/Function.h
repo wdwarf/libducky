@@ -157,6 +157,10 @@ public:
 		return new ThisType(this->f);
 	}
 
+	virtual bool compare(FunctionBase0* f){
+		return (this->f == f->f);
+	}
+
 private:
 	Func f;
 };
