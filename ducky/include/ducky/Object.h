@@ -28,7 +28,7 @@ public:
 
 protected:
 	Object();
-	virtual ~Object() = 0;
+	virtual ~Object();
 };
 
 } /* namespace ducky */

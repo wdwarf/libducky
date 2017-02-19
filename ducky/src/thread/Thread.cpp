@@ -7,6 +7,8 @@
 
 #include "ducky/thread/Thread.h"
 #include <unistd.h>
+#include <errno.h>
+#include <cstring>
 
 namespace ducky {
 namespace thread {
@@ -30,11 +32,16 @@ string ToString(ThreadState state) {
 }
 
 Thread::Thread() :
-		threadId(0), threadState(TS_STOPPED), freeOnTerminated(false) {
+		threadState(TS_STOPPED), freeOnTerminated(false) {
+	memset(&this->threadId, 0, sizeof(this->threadId));
 }
 
 Thread::~Thread() {
-	this->join();
+	try {
+		this->cancel();
+		this->join();
+	} catch (...) {
+	}
 }
 
 void* Thread::ThreadFunc(Thread* pThread) {
@@ -42,10 +49,14 @@ void* Thread::ThreadFunc(Thread* pThread) {
 		return NULL;
 
 	pThread->threadState = TS_RUNNING;
-	try {
-		pThread->run();
-	} catch (...) {
-	}
+	pthread_cleanup_push((void (*)(void*))Thread::ThreadCancelFunc, pThread);
+		try {
+			pThread->run();
+		} catch (std::exception& e) {
+		} catch (...) {
+			throw;
+		}
+		pthread_cleanup_pop(0);
 
 	try {
 		pThread->onTerminated();
@@ -53,31 +64,65 @@ void* Thread::ThreadFunc(Thread* pThread) {
 	}
 
 	pThread->threadState = TS_STOPPED;
-	pThread->threadId = 0;
-	if(pThread->freeOnTerminated){
+	memset(&pThread->threadId, 0, sizeof(pThread->threadId));
+	if (pThread->freeOnTerminated) {
 		pThread->deleteThis();
 	}
 
 	return NULL;
 }
 
-bool Thread::start() {
-	if (TS_STOPPED != this->threadState)
-		return -1;
+void Thread::ThreadCancelFunc(Thread* pThread) {
+	try {
+		pThread->onCanceled();
+		pThread->onTerminated();
+	} catch (...) {
+	}
+
+	pThread->threadState = TS_STOPPED;
+	memset(&pThread->threadId, 0, sizeof(pThread->threadId));
+	if (pThread->freeOnTerminated) {
+		pThread->deleteThis();
+	}
+}
+
+void Thread::start() {
+	if (TS_STOPPED != this->threadState) {
+		_THROW(ThreadException, "thread is running.", 0);
+	}
 
 	int re = pthread_create(&this->threadId, NULL,
 			(void* (*)(void*))Thread::ThreadFunc, this);
-	return (-1 != re);
+	if (0 != re) {
+		_THROW(ThreadException, "thread create failed..", errno);
+	}
 }
 
-bool Thread::stop() {
+void Thread::stop() {
 	if (!this->isRunning())
-		return true;
+		return;
 
 	this->threadState = TS_STOP_REQUIRING;
-	//this->join();
+}
 
-	return true;
+void Thread::detach() {
+	if (!this->isRunning()) {
+		_THROW(ThreadException, "thread is not running..", 0);
+	}
+
+	if (0 != pthread_detach(this->threadId)) {
+		_THROW(ThreadException, "thread detach failed..", errno);
+	}
+}
+
+void Thread::cancel() {
+	if (!this->isRunning()) {
+		_THROW(ThreadException, "thread is not running..", 0);
+	}
+
+	if (0 != pthread_cancel(this->threadId)) {
+		_THROW(ThreadException, "thread cancel failed..", errno);
+	}
 }
 
 ThreadState Thread::getState() const {
@@ -98,13 +143,21 @@ bool Thread::canStop() {
 }
 
 void Thread::join() {
-	if(0 != this->threadId){
-		pthread_join(this->threadId, NULL);
+	if (!this->isRunning()) {
+		return;
+	}
+
+	if (0 != pthread_join(this->threadId, NULL)) {
+		_THROW(ThreadException, "thread join failed..", errno);
 	}
 }
 
 void Thread::Sleep(unsigned int ms) {
 	usleep(ms * 1000);
+}
+
+void Thread::testcancel(){
+	pthread_testcancel();
 }
 
 bool Thread::isFreeOnTerminated() const {
@@ -113,6 +166,10 @@ bool Thread::isFreeOnTerminated() const {
 
 void Thread::setFreeOnTerminated(bool freeOnTerminated) {
 	this->freeOnTerminated = freeOnTerminated;
+}
+
+bool Thread::operator==(const Thread& t) const{
+	return pthread_equal(this->threadId, t.threadId);
 }
 
 } /* namespace ducky */
