@@ -53,6 +53,8 @@ public:
 template<typename T>
 class _SingletonCreator: public _ICreator {
 public:
+	_SingletonCreator() : obj(NULL){}
+
 	virtual void* createObject() {
 		if (!obj) {
 			obj = new T();
@@ -70,7 +72,7 @@ public:
 	}
 
 private:
-	T* obj = 0;
+	T* obj;
 };
 
 // 工厂类接口

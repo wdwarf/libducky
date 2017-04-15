@@ -11,6 +11,7 @@
 #include <cstring>
 
 using namespace std;
+using namespace ducky::algorithm;
 
 namespace ducky {
 namespace variant {
@@ -115,7 +116,7 @@ Variant::Variant(const buffer::Buffer& v) {
 		this->size = v.getSize();
 		this->value.valPtr = new char[this->size];
 		memcpy(this->value.valPtr, v.getData(), this->size);
-	}else{
+	} else {
 		this->size = 0;
 		memset(&this->value, 0, sizeof(this->value));
 	}
@@ -297,7 +298,9 @@ string Variant::toString() const {
 	}
 	case VT_CARRAY:
 	case VT_STRING: {
-		val.write((const char*) this->value.valPtr, this->size);
+		if (this->value.valPtr && this->size > 0) {
+			val.write((const char*) this->value.valPtr, this->size);
+		}
 		break;
 	}
 	}
@@ -355,7 +358,7 @@ buffer::Buffer Variant::toBuffer() const {
 	}
 	case VT_CARRAY:
 	case VT_STRING: {
-		if (this->size > 0) {
+		if (this->value.valPtr && this->size > 0) {
 			val.setData((const char*) this->value.valPtr, this->size);
 		}
 		break;
@@ -506,7 +509,7 @@ Variant& Variant::operator=(const char* v) {
 	this->clear();
 	this->vt = VT_STRING;
 	this->size = strlen(v);
-	if(this->size <= 0){
+	if (this->size <= 0) {
 		return *this;
 	}
 	this->value.valPtr = new char[this->size];
@@ -541,7 +544,7 @@ void Variant::setSize(unsigned long size) {
 		this->clear();
 		this->vt = t;
 		this->size = size;
-		if(this->size <= 0){
+		if (this->size <= 0) {
 			return;
 		}
 		this->value.valPtr = new char[this->size];
@@ -561,7 +564,7 @@ void Variant::setVt(VariantType vt) {
 	this->size = Variant::TypeInfo(this->vt).size;
 }
 
-void Variant::setVt(const string& typeName){
+void Variant::setVt(const string& typeName) {
 	this->clear();
 	VariantTypeInfo typeInfo = TypeInfoFromString(typeName);
 	this->vt = typeInfo.type;
@@ -699,9 +702,27 @@ T Variant::toValue() const {
 		break;
 	}
 	case VT_STRING: {
-		stringstream str;
-		str.write((const char*) this->value.valPtr, this->size);
-		str >> val;
+		if (this->value.valPtr && this->size > 0) {
+			stringstream str;
+			str.write((const char*) this->value.valPtr, this->size);
+			string valStr = ToLowerCopy(TrimCopy(str.str()));
+			if(!valStr.empty()){
+				if('+' == valStr[0] || '-' == valStr[0]){
+					valStr = valStr.substr(1);
+				}
+
+				if(valStr.length() > 1){
+					if('0' == valStr[0]){
+						if('x' == valStr[1]){
+							str >> hex;
+						}else{
+							str >> oct;
+						}
+					}
+				}
+			}
+			str >> val;
+		}
 		break;
 	}
 	}
