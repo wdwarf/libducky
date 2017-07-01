@@ -14,6 +14,7 @@ namespace task {
 
 EXCEPTION_DEF(TaskException);
 
+class TaskService;
 class ITask {
 public:
 	ITask();
@@ -25,6 +26,9 @@ public:
 	int getTimeout() const;
 	void setFreeAfterExecute(bool freeAfterExecute);
 	bool isFreeAfterExecute() const;
+	void setRepeat(bool repeatTask);
+	bool isRepeat() const;
+	TaskService* getTaskService() const;
 
 private:
 	void setStartTime(unsigned long long startTime);
@@ -42,6 +46,8 @@ public:
 	virtual ~TaskService();
 
 	void addTask(ITask* task);
+	void cancelTask(ITask* task);
+	bool hasTask() const;
 	void setWorkThreadPoolSize(int workThreadPoolSize) throw (TaskException);
 	int getWorkThreadPoolSize() const;
 	void start();
