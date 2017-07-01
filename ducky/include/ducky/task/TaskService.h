@@ -1,0 +1,59 @@
+#ifndef TIMER_H
+#define TIMER_H
+
+#include <list>
+#include <ctime>
+
+#include <ducky/thread/Thread.h>
+#include <ducky/thread/Mutex.h>
+#include <ducky/thread/Semaphore.h>
+#include <ducky/exception/Exception.h>
+
+namespace ducky {
+namespace task {
+
+EXCEPTION_DEF(TaskException);
+
+class ITask {
+public:
+	ITask();
+	virtual ~ITask();
+
+	virtual void execute() = 0;
+
+	void setTimeout(int timeoutMSec = -1);
+	int getTimeout() const;
+	void setFreeAfterExecute(bool freeAfterExecute);
+	bool isFreeAfterExecute() const;
+
+private:
+	void setStartTime(unsigned long long startTime);
+	unsigned long long getStartTime() const;
+
+	class ITaskImpl;
+	ITaskImpl* impl;
+
+	friend class TaskService;
+};
+
+class TaskService {
+public:
+	TaskService();
+	virtual ~TaskService();
+
+	void addTask(ITask* task);
+	void setWorkThreadPoolSize(int workThreadPoolSize) throw (TaskException);
+	int getWorkThreadPoolSize() const;
+	void start();
+	void stop();
+	void join();
+
+private:
+	class TaskServiceImpl;
+	TaskServiceImpl* impl;
+};
+
+}
+}
+
+#endif // TIMER_H

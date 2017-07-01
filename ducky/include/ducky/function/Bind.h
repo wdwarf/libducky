@@ -23,6 +23,11 @@ Function0<R> Bind(R (C::*Func)(), C* c) {
 	return Function0<R>(Func, c);
 }
 
+template<class R, class C>
+Function0<R> Bind(R (C::*Func)()const, C* c) {
+	return Function0<R>(Func, c);
+}
+
 template<class R, class P1>
 Function1<R, P1> Bind(R (*Func)(P1)) {
 	return Function1<R, P1>(Func);
