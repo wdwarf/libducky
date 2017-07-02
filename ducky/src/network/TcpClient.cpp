@@ -29,7 +29,7 @@ public:
 	virtual void setServerPort(int serverPort);
 	virtual int getServerPort() const;
 	/*启动\停止*/
-	virtual bool start();
+	virtual void start();
 	virtual void stop();
 
 private:
@@ -105,10 +105,9 @@ public:
 		this->sem.release();
 	}
 
-	bool stop() {
+	void stop() {
 		Thread::stop();
 		this->sem.release();
-		return true;
 	}
 
 private:
@@ -149,7 +148,7 @@ private:
 };
 
 TcpClient::TcpClientImpl::TcpClientImpl(TcpClient* client) :
-		readThread(new TcpClientReadThread(this)), sendThread(
+		serverPort(0), readThread(new TcpClientReadThread(this)), sendThread(
 				new TcpClientSendThread(this)) {
 	this->client = client;
 }
@@ -168,24 +167,14 @@ void TcpClient::TcpClientImpl::send(const string& str) {
 	this->send(str.c_str(), str.length());
 }
 
-bool TcpClient::TcpClientImpl::start() {
+void TcpClient::TcpClientImpl::start() {
 	this->sock.close();
-	try {
-		this->sock.createTcp();
-	} catch (ducky::network::SocketException& e) {
-		return false;
-	}
-
-	catch (...) {
-		return false;
-	}
+	this->sock.createTcp();
 
 	if (0 == this->sock.connect(this->serverAddress, this->serverPort)) {
 		readThread->start();
 		sendThread->start();
-		return true;
 	}
-	return false;
 }
 
 void TcpClient::TcpClientImpl::stop() {
@@ -246,50 +235,50 @@ void TcpClient::TcpClientImpl::doSend(const char* buf, size_t len) {
 	}
 }
 
-TcpClient::TcpClient() : impl(new TcpClientImpl(this)){
+TcpClient::TcpClient() :
+		impl(new TcpClientImpl(this)) {
 
 }
 
-TcpClient::~TcpClient(){
+TcpClient::~TcpClient() {
 	delete this->impl;
 }
 
 /*发送数据*/
-void TcpClient::send(const char* buf, size_t len){
+void TcpClient::send(const char* buf, size_t len) {
 	this->impl->send(buf, len);
 }
 
-void TcpClient::send(const string& str){
+void TcpClient::send(const string& str) {
 	this->impl->send(str);
 }
 
 /*设置服务器地址*/
-void TcpClient::setServerAddress(const string& serverAddress){
+void TcpClient::setServerAddress(const string& serverAddress) {
 	this->impl->setServerAddress(serverAddress);
 }
 
-const string& TcpClient::getServerAddress() const{
+const string& TcpClient::getServerAddress() const {
 	return this->impl->getServerAddress();
 }
 
 /*设置服务器端口*/
-void TcpClient::setServerPort(int serverPort){
+void TcpClient::setServerPort(int serverPort) {
 	this->impl->setServerPort(serverPort);
 }
 
-int TcpClient::getServerPort() const{
+int TcpClient::getServerPort() const {
 	return this->impl->getServerPort();
 }
 
 /*启动\停止*/
-bool TcpClient::start(){
+void TcpClient::start() {
 	return this->impl->start();
 }
 
-void TcpClient::stop(){
+void TcpClient::stop() {
 	return this->impl->stop();
 }
-
 
 } //namespace network
 } //namespace ducky

@@ -33,7 +33,7 @@ public:
 	virtual void setServerPort(int serverPort);
 	virtual int getServerPort() const;
 	/*启动\停止*/
-	virtual bool start();
+	virtual void start();
 	virtual void stop();
 
 private:

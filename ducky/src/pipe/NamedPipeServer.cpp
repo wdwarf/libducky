@@ -32,8 +32,8 @@ public:
 	virtual ~NamedPipeServerImpl();
 
 	string getName() const;
-	void start(const std::string& name) throw (PipeException);
-	virtual bool stop();
+	void start(const std::string& name);
+	virtual void stop();
 	void join();
 	bool isRunning() const;
 	void send(const char* buf, int size);
@@ -159,8 +159,7 @@ NamedPipeServer::NamedPipeServerImpl::~NamedPipeServerImpl() {
 	//
 }
 
-void NamedPipeServer::NamedPipeServerImpl::start(const std::string& name)
-		throw (PipeException) {
+void NamedPipeServer::NamedPipeServerImpl::start(const std::string& name) {
 	this->pipeName = name;
 	this->readThread->setPipeName(this->pipeName);
 	this->sendThread->setPipeName(this->pipeName);
@@ -172,10 +171,9 @@ string NamedPipeServer::NamedPipeServerImpl::getName() const {
 	return this->pipeName;
 }
 
-bool NamedPipeServer::NamedPipeServerImpl::stop() {
+void NamedPipeServer::NamedPipeServerImpl::stop() {
 	this->readThread->stop();
 	this->sendThread->stop();
-	return true;
 }
 
 void NamedPipeServer::NamedPipeServerImpl::send(const char* buf, int size) {
@@ -230,7 +228,7 @@ bool NamedPipeServer::isRunning() const {
 	return this->impl->isRunning();
 }
 
-void NamedPipeServer::send(const char* buf, int size){
+void NamedPipeServer::send(const char* buf, int size) {
 	this->impl->send(buf, size);
 }
 

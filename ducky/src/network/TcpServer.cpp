@@ -39,12 +39,11 @@ public:
 	_TcpServerImpl(_TcpServer* tcpServer);
 	virtual ~_TcpServerImpl();
 
-	virtual void setIp(const string& ip) throw (NetServerException);
-	virtual void setPort(unsigned int port) throw (NetServerException);
-	virtual void setWorkThreadCount(int workThreadCount)
-			throw (NetServerException);
-	virtual bool start() throw (NetServerException);
-	virtual bool stop(bool joinServerThread = false);
+	virtual void setIp(const string& ip);
+	virtual void setPort(unsigned int port);
+	virtual void setWorkThreadCount(int workThreadCount);
+	virtual void start();
+	virtual void stop(bool joinServerThread = false);
 	virtual bool isRunning();
 	virtual void onStart();
 	virtual void onStop();
@@ -169,7 +168,7 @@ bool _TcpServer::_TcpServerImpl::isRunning() {
 }
 
 void _TcpServer::_TcpServerImpl::setWorkThreadCount(int workThreadCount)
-		throw (NetServerException) {
+		 {
 	if (this->isRunning()) {
 		throw NetServerException("Server is running");
 	}
@@ -185,7 +184,7 @@ void _TcpServer::_TcpServerImpl::onStop() {
 }
 
 void _TcpServer::_TcpServerImpl::setIp(const string& ip)
-		throw (NetServerException) {
+		 {
 	if (this->isRunning()) {
 		throw NetServerException("Server is running");
 	}
@@ -193,7 +192,7 @@ void _TcpServer::_TcpServerImpl::setIp(const string& ip)
 }
 
 void _TcpServer::_TcpServerImpl::setPort(unsigned int port)
-		throw (NetServerException) {
+		 {
 	if (this->isRunning()) {
 		throw NetServerException("Server is running");
 	}
@@ -223,33 +222,42 @@ bool _TcpServer::_TcpServerImpl::listen(int n) {
 	return (0 == ::listen(this->sock, n));
 }
 
-bool _TcpServer::_TcpServerImpl::start() throw (NetServerException) {
+void _TcpServer::_TcpServerImpl::start()  {
 	if (this->isRunning()) {
 		throw NetServerException("Server is running");
 	}
 
 	this->sock = socket(AF_INET, SOCK_STREAM, 0);
-	if (this->sock <= 0)
-		return false;
+	if (this->sock <= 0){
+		THROW_EXCEPTION(NetServerException, "Soekct create failed", errno);
+	}
 
 	this->setNonBlocking(this->sock);
 	if (!this->bind(this->port, this->ip) || !this->listen(100)) {
 		close(this->sock);
 		this->sock = 0;
-		return false;
+		THROW_EXCEPTION(NetServerException, "Socket bind failed", errno);
 	}
 
 	this->epfd = epoll_create1(0);
 	if (this->epfd <= 0) {
 		close(this->sock);
 		this->sock = 0;
-		return false;
+		THROW_EXCEPTION(NetServerException, "epoll create failed", errno);
 	}
 
 	for (int i = 0; i < this->workThreadCount; ++i) {
 		_TcpServerWorkThread* workThread = new _TcpServerWorkThread(this);
 		this->workThreads.push_back(workThread);
-		workThread->start();
+		try{
+			workThread->start();
+		}catch(...){
+			close(this->sock);
+			this->sock = 0;
+			close(this->epfd);
+			this->epfd = 0;
+			THROW_EXCEPTION(NetServerException, "Work thread start failed", errno);
+		}
 	}
 
 	struct epoll_event ev;
@@ -257,12 +265,16 @@ bool _TcpServer::_TcpServerImpl::start() throw (NetServerException) {
 	ev.events = EPOLLIN | EPOLLET;
 	epoll_ctl(this->epfd, EPOLL_CTL_ADD, this->sock, &ev);
 
-	return Thread::start();
+	try{
+		Thread::start();
+	}catch(...){
+		THROW_EXCEPTION(NetServerException, "Server thread start failed", errno);
+	}
 }
 
-bool _TcpServer::_TcpServerImpl::stop(bool joinServerThread) {
+void _TcpServer::_TcpServerImpl::stop(bool joinServerThread) {
 	if (!this->isRunning()) {
-		return true;
+		return;
 	}
 
 	for (list<int>::iterator it = this->clientSockets.begin();
@@ -305,11 +317,10 @@ bool _TcpServer::_TcpServerImpl::stop(bool joinServerThread) {
 
 	shutdown(this->sock, SHUT_RDWR);
 
-	int re = Thread::stop();
-	if (re && joinServerThread) {
+	Thread::stop();
+	if (joinServerThread) {
 		this->join();
 	}
-	return re;
 }
 
 bool _TcpServer::_TcpServerImpl::setNonBlocking(int sock) {
@@ -494,20 +505,20 @@ _TcpServer::~_TcpServer() {
 	delete this->impl;
 }
 
-void _TcpServer::setIp(const string& ip) throw (NetServerException) {
+void _TcpServer::setIp(const string& ip)  {
 	this->impl->setIp(ip);
 }
 
-void _TcpServer::setPort(unsigned int port) throw (NetServerException) {
+void _TcpServer::setPort(unsigned int port)  {
 	this->impl->setPort(port);
 }
 
-bool _TcpServer::start() throw (NetServerException) {
-	return this->impl->start();
+void _TcpServer::start()  {
+	this->impl->start();
 }
 
-bool _TcpServer::stop(bool joinServerThread) {
-	return this->impl->stop(joinServerThread);
+void _TcpServer::stop(bool joinServerThread) {
+	this->impl->stop(joinServerThread);
 }
 
 void _TcpServer::join() {
@@ -519,7 +530,7 @@ bool _TcpServer::isRunning() {
 }
 
 void _TcpServer::setWorkThreadCount(int workThreadCount)
-		throw (NetServerException) {
+		 {
 	this->impl->setWorkThreadCount(workThreadCount);
 }
 

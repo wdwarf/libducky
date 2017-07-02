@@ -22,8 +22,8 @@ public:
 
 	virtual void setIp(const string& ip) = 0;
 	virtual void setPort(unsigned int port) = 0;
-	virtual bool start() = 0;
-	virtual bool stop(bool joinServerThread = false) = 0;
+	virtual void start() = 0;
+	virtual void stop(bool joinServerThread = false) = 0;
 	virtual void onStart() = 0;
 	virtual void onStop() = 0;
 };

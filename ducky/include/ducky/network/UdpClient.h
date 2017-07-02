@@ -76,8 +76,8 @@ public:
 	void setBufferSize(int bufferSize);
 	void setBroadcast(bool isBroadcast);
 
-	bool start();
-	bool stop();
+	void start();
+	void stop();
 
 private:
 	void run();
@@ -104,7 +104,7 @@ public:
 	void recv(const buffer::Buffer& data, const string& ip, int port);
 	void recv(const char* data, int dataSize, const string& ip, int port);
 
-	bool stop();
+	void stop();
 
 private:
 	void run();
@@ -124,7 +124,7 @@ public:
 	void send(const buffer::Buffer& data, const string& ip, int port);
 	void send(const char* data, int dataSize, const string& ip, int port);
 
-	bool stop();
+	void stop();
 
 private:
 	void run();

@@ -48,7 +48,7 @@ public:
 	void addTask(ITask* task);
 	void cancelTask(ITask* task);
 	bool hasTask() const;
-	void setWorkThreadPoolSize(int workThreadPoolSize) throw (TaskException);
+	void setWorkThreadPoolSize(int workThreadPoolSize);
 	int getWorkThreadPoolSize() const;
 	void start();
 	void stop();

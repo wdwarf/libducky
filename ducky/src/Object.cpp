@@ -90,7 +90,11 @@ bool Object::isOnHeap() const {
 	return isOnHeap;
 }
 
+#if __cplusplus < 201103L
 void* Object::operator new(std::size_t size) throw (std::bad_alloc) {
+#else
+void* Object::operator new(std::size_t size) {
+#endif
 	if (!__obj_onheap_mutex_inited__) {
 		__obj_onheap_mutex_inited__ = true;
 		pthread_mutex_init(&__obj_onheap_mutex__, NULL);

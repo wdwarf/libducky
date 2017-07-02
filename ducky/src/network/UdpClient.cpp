@@ -78,7 +78,7 @@ void UdpClient::setBroadcast(bool isBroadcast) {
 	}
 }
 
-bool UdpClient::start() {
+void UdpClient::start() {
 	try {
 		this->sock.close();
 		this->sock.createUdp();
@@ -92,31 +92,36 @@ bool UdpClient::start() {
 		throw UdpClientException(e.what(), errno);
 	}
 
-	if (!readThread->start()) {
+	try {
+		readThread->start();
+	} catch (...) {
 		this->sock.close();
 		throw UdpClientException("Read thread start failed.", errno);
 	}
 
-	if (!sendThread->start()) {
+	try {
+		sendThread->start();
+	} catch (...) {
 		this->sock.close();
 		throw UdpClientException("Send thread start failed.", errno);
 	}
 
-	if (!Thread::start()) {
+	try {
+		Thread::start();
+	} catch (...) {
+		this->readThread->stop();
 		this->sendThread->stop();
+		this->sock.close();
 		throw UdpClientException("Client thread start failed.", errno);
 	}
-
-	return true;
 }
 
-bool UdpClient::stop() {
+void UdpClient::stop() {
 	this->readThread->stop();
 	this->sendThread->stop();
 	Thread::stop();
 	this->sock.shutdown();
 	this->sock.close();
-	return true;
 }
 
 void UdpClient::run() {
@@ -133,7 +138,7 @@ void UdpClient::run() {
 		if (re > 0) {
 			this->readThread->recv(buf, re, ip, port);
 		} else {
-			if(0 != errno){
+			if (0 != errno) {
 				break;
 			}
 		}
@@ -253,11 +258,10 @@ void UdpClientReadThread::run() {
 	this->contexts.clear();
 }
 
-bool UdpClientReadThread::stop() {
+void UdpClientReadThread::stop() {
 	Thread::stop();
 	this->sem.release();
 	this->join();
-	return true;
 }
 
 //=================================================
@@ -317,11 +321,10 @@ void UdpClientSendThread::run() {
 	this->contexts.clear();
 }
 
-bool UdpClientSendThread::stop() {
+void UdpClientSendThread::stop() {
 	Thread::stop();
 	this->sem.release();
 	this->join();
-	return true;
 }
 
 } /* namespace network */

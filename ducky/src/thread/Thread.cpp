@@ -88,13 +88,13 @@ void Thread::ThreadCancelFunc(Thread* pThread) {
 
 void Thread::start() {
 	if (TS_STOPPED != this->threadState) {
-		_THROW(ThreadException, "thread is running.", 0);
+		THROW_EXCEPTION(ThreadException, "thread is running.", 0);
 	}
 
 	int re = pthread_create(&this->threadId, NULL,
 			(void* (*)(void*))Thread::ThreadFunc, this);
 	if (0 != re) {
-		_THROW(ThreadException, "thread create failed..", errno);
+		THROW_EXCEPTION(ThreadException, "thread create failed..", errno);
 	}
 }
 
@@ -107,21 +107,21 @@ void Thread::stop() {
 
 void Thread::detach() {
 	if (!this->isRunning()) {
-		_THROW(ThreadException, "thread is not running..", 0);
+		THROW_EXCEPTION(ThreadException, "thread is not running..", 0);
 	}
 
 	if (0 != pthread_detach(this->threadId)) {
-		_THROW(ThreadException, "thread detach failed..", errno);
+		THROW_EXCEPTION(ThreadException, "thread detach failed..", errno);
 	}
 }
 
 void Thread::cancel() {
 	if (!this->isRunning()) {
-		_THROW(ThreadException, "thread is not running..", 0);
+		THROW_EXCEPTION(ThreadException, "thread is not running..", 0);
 	}
 
 	if (0 != pthread_cancel(this->threadId)) {
-		_THROW(ThreadException, "thread cancel failed..", errno);
+		THROW_EXCEPTION(ThreadException, "thread cancel failed..", errno);
 	}
 }
 
@@ -148,7 +148,7 @@ void Thread::join() {
 	}
 
 	if (0 != pthread_join(this->threadId, NULL)) {
-		_THROW(ThreadException, "thread join failed..", errno);
+		THROW_EXCEPTION(ThreadException, "thread join failed..", errno);
 	}
 }
 

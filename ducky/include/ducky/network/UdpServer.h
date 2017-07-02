@@ -115,14 +115,14 @@ public:
 	_UdpServer();
 	virtual ~_UdpServer();
 
-	virtual void setIp(const string& ip) throw(NetServerException);
+	virtual void setIp(const string& ip);
 	virtual string getIp() const;
-	virtual void setPort(unsigned int port) throw(NetServerException);
+	virtual void setPort(unsigned int port);
 	virtual unsigned int getPort() const;
-	virtual void setWorkThreadCount(int workThreadCount)throw(NetServerException);
+	virtual void setWorkThreadCount(int workThreadCount);
 	virtual int getWorkThreadCount() const;
-	virtual bool start() throw (NetServerException);
-	virtual bool stop(bool joinServerThread = false);
+	virtual void start();
+	virtual void stop(bool joinServerThread = false);
 	virtual void join();
 	virtual bool isRunning();
 	virtual void onStart() {
