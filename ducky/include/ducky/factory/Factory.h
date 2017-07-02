@@ -27,38 +27,52 @@ namespace factory {
 
 EXCEPTION_DEF(FactoryException);
 
-class _IConcreateCreator {
+class _ICreator {
 public:
-	_IConcreateCreator() {
+	_ICreator() {
 	}
-	virtual ~_IConcreateCreator() {
+	virtual ~_ICreator() {
 	}
 	virtual void* createObject() = 0;
 	virtual bool IsSingleton() = 0;
 };
 
 // 构造类，T为具体类
-template<typename T, bool PSingleton = false>
-class _ConcreteCreator: public _IConcreateCreator {
+template<typename T>
+class _NewCreator: public _ICreator {
 public:
 	virtual void* createObject() {
-		if (singleton) {
-			static T* obj = 0;
-			if (!obj) {
-				obj = new T();
-			}
-			return obj;
-		} else {
-			return new T();
-		}
+		return new T();
 	}
 
 	virtual bool IsSingleton() {
-		return singleton;
+		return false;
+	}
+};
+
+template<typename T>
+class _SingletonCreator: public _ICreator {
+public:
+	_SingletonCreator() : obj(NULL){}
+
+	virtual void* createObject() {
+		if (!obj) {
+			obj = new T();
+		}
+		return obj;
+	}
+
+	virtual bool IsSingleton() {
+		return true;
+	}
+
+	~_SingletonCreator() {
+		if (this->obj)
+			delete this->obj;
 	}
 
 private:
-	static const bool singleton = PSingleton;
+	T* obj;
 };
 
 // 工厂类接口
@@ -66,41 +80,13 @@ class Factory: virtual public Object {
 public:
 	Factory() {
 	}
+
 	virtual ~Factory() {
-	}
-
-	//创建对象
-	void* createObject(string className) {
 		thread::MutexLocker lk(this->mutex);
-		CreatorMap::iterator it = this->creatorMap.find(className);
-		if (it != this->creatorMap.end()) {
-			return it->second->createObject();
+		for (CreatorMap::iterator it = this->creatorMap.begin();
+				it != this->creatorMap.end(); ++it) {
+			delete it->second;
 		}
-
-		throw FactoryException("Class \"" + className + "\" Not Registered");
-	}
-
-	//创建对象，并强转为T类指针
-	template<typename T>
-	T* createObject(string className) {
-		thread::MutexLocker lk(this->mutex);
-		CreatorMap::iterator it = this->creatorMap.find(className);
-		if (it != this->creatorMap.end()) {
-			return (T*) it->second->createObject();
-		}
-
-		throw MK_EXCEPTION(FactoryException, "Class \"" + className + "\" Not Registered", 0);
-	}
-
-	//查询指定类是否是单例
-	bool isSingletonObject(string className) {
-		thread::MutexLocker lk(this->mutex);
-		CreatorMap::iterator it = this->creatorMap.find(className);
-		if (it != this->creatorMap.end()) {
-			return it->second->IsSingleton();
-		}
-
-		throw MK_EXCEPTION(FactoryException, "Class \"" + className + "\" Not Registered", 0);
 	}
 
 	/*
@@ -114,18 +100,14 @@ public:
 		if (it == this->creatorMap.end()) {
 			if (isSingleton) {
 				this->creatorMap.insert(
-						make_pair(className, new _ConcreteCreator<T, true>()));
+						make_pair(className, new _SingletonCreator<T>()));
 			} else {
 				this->creatorMap.insert(
-						make_pair(className, new _ConcreteCreator<T, false>()));
+						make_pair(className, new _NewCreator<T>()));
 			}
 		} else {
-			delete it->second;
-			if (isSingleton) {
-				it->second = new _ConcreteCreator<T, true>();
-			} else {
-				it->second = new _ConcreteCreator<T, false>();
-			}
+			_THROW(FactoryException,
+					"Class \"" + className + "\" Has Registered", 0);
 		}
 	}
 
@@ -141,8 +123,45 @@ public:
 		}
 	}
 
+	//创建对象
+	void* createObject(string className) {
+		thread::MutexLocker lk(this->mutex);
+		CreatorMap::iterator it = this->creatorMap.find(className);
+		if (it != this->creatorMap.end()) {
+			return it->second->createObject();
+		}
+
+		_THROW(FactoryException, "Class \"" + className + "\" Not Registered",
+				0);
+	}
+
+	//创建对象，并强转为T类指针
+	template<typename T>
+	T* createObject(string className) {
+		thread::MutexLocker lk(this->mutex);
+		CreatorMap::iterator it = this->creatorMap.find(className);
+		if (it != this->creatorMap.end()) {
+			return (T*) it->second->createObject();
+		}
+
+		_THROW(FactoryException, "Class \"" + className + "\" Not Registered",
+				0);
+	}
+
+	//查询指定类是否是单例
+	bool isSingletonObject(string className) {
+		thread::MutexLocker lk(this->mutex);
+		CreatorMap::iterator it = this->creatorMap.find(className);
+		if (it != this->creatorMap.end()) {
+			return it->second->IsSingleton();
+		}
+
+		_THROW(FactoryException, "Class \"" + className + "\" Not Registered",
+				0);
+	}
+
 private:
-	typedef map<string, _IConcreateCreator*> CreatorMap;
+	typedef map<string, _ICreator*> CreatorMap;
 	CreatorMap creatorMap;
 	thread::Mutex mutex;
 };

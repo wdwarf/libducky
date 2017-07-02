@@ -8,6 +8,9 @@
 #include <ducky/process/Process.h>
 #include <unistd.h>
 #include <sys/wait.h>
+#include <cstdlib>
+
+using namespace std;
 
 namespace ducky {
 namespace process {

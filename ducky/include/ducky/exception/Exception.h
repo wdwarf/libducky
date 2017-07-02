@@ -59,7 +59,11 @@ private:
 };
 
 #define MK_EXCEPTION(exceptionName, msg, errNo) exceptionName(msg, errNo, __LINE__, __FUNCTION__, __FILE__)
+<<<<<<< HEAD
 #define THROW_EXCEPTION(exceptionName, msg, errNo) throw MK_EXCEPTION(exceptionName, msg, errNo)
+=======
+#define _THROW(exceptionName, msg, errNo) throw MK_EXCEPTION(exceptionName, msg, errNo)
+>>>>>>> f4207ded7cfbbe32d619ea7f67ddba451817fc94
 
 } /* namespace ducky */
 

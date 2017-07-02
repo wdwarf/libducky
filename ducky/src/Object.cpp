@@ -79,9 +79,12 @@ std::string Object::getClassName() const {
 bool Object::isOnHeap() const {
 	bool isOnHeap = false;
 	pthread_mutex_lock(&__obj_onheap_mutex__);
-	const void* rawThisAddr = dynamic_cast<const void*>(this);
-	if (__heabObjs__.find(rawThisAddr) != __heabObjs__.end()) {
-		isOnHeap = true;
+	try {
+		const void* rawThisAddr = dynamic_cast<const void*>(this);
+		if (__heabObjs__.find(rawThisAddr) != __heabObjs__.end()) {
+			isOnHeap = true;
+		}
+	} catch (...) {
 	}
 	pthread_mutex_unlock(&__obj_onheap_mutex__);
 	return isOnHeap;
@@ -95,7 +98,10 @@ void* Object::operator new(std::size_t size) throw (std::bad_alloc) {
 
 	void* p = ::operator new(size);
 	pthread_mutex_lock(&__obj_onheap_mutex__);
-	__heabObjs__.insert(p);
+	try {
+		__heabObjs__.insert(p);
+	} catch (...) {
+	}
 	pthread_mutex_unlock(&__obj_onheap_mutex__);
 	return p;
 }
@@ -108,7 +114,10 @@ void* Object::operator new(size_t size, const std::nothrow_t&) throw () {
 
 	void* p = ::operator new(size);
 	pthread_mutex_lock(&__obj_onheap_mutex__);
-	__heabObjs__.insert(p);
+	try {
+		__heabObjs__.insert(p);
+	} catch (...) {
+	}
 	pthread_mutex_unlock(&__obj_onheap_mutex__);
 	return p;
 }
@@ -121,7 +130,10 @@ void* Object::operator new(std::size_t size, void *ptr) throw () {
 
 	void* p = ::operator new(size);
 	pthread_mutex_lock(&__obj_onheap_mutex__);
-	__heabObjs__.insert(p);
+	try {
+		__heabObjs__.insert(p);
+	} catch (...) {
+	}
 	pthread_mutex_unlock(&__obj_onheap_mutex__);
 	return p;
 }
@@ -133,9 +145,14 @@ void Object::operator delete(void* ptr) {
 	pthread_mutex_lock(&__obj_onheap_mutex__);
 	if (__heabObjs__.find(ptr) != __heabObjs__.end()) {
 		__heabObjs__.erase(ptr);
+	} else {
+		ptr = 0;
 	}
 	pthread_mutex_unlock(&__obj_onheap_mutex__);
-	::operator delete(ptr);
+
+	if (ptr) {
+		::operator delete(ptr);
+	}
 }
 
 void Object::deleteThis() {

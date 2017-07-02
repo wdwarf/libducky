@@ -1,7 +1,7 @@
 /*
  * Variant.h
  *
- *  Created on: 2016��12��1��
+ *  Created on: 2016-12-01
  *      Author: liyawu
  */
 
@@ -10,12 +10,15 @@
 
 #include <ducky/Object.h>
 #include <ducky/buffer/Buffer.h>
+#include <ducky/exception/Exception.h>
 #include <string>
 
 using std::string;
 
 namespace ducky {
 namespace variant {
+
+EXCEPTION_DEF(VariantException);
 
 enum VariantType {
 	VT_UNKNOWN = 0,
@@ -99,14 +102,15 @@ public:
 	operator string() const;
 	operator buffer::Buffer() const;
 
-	static VariantTypeInfo TypeInfoFromString(const string& typeName);
-	static VariantTypeInfo TypeInfo(VariantType type);
-
 	void clear();
 	unsigned long getSize() const;
 	void setSize(unsigned long size);
 	VariantType getVt() const;
 	void setVt(VariantType vt);
+	void setVt(const string& typeName);
+
+	static VariantTypeInfo TypeInfoFromString(const string& typeName);
+	static VariantTypeInfo TypeInfo(VariantType type);
 
 private:
 	VariantType vt;

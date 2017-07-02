@@ -7,8 +7,6 @@
 
 #include "ducky/exception/Exception.h"
 
-#include <iostream>
-
 using namespace std;
 
 namespace ducky {
@@ -22,7 +20,6 @@ Exception::Exception(const std::string& msg, int errNo, int lineNumber,
 	this->lineNumber = lineNumber;
 	this->functionName = functionName;
 	this->fileName = fileName;
-	cout << functionName << endl;
 }
 
 Exception::~Exception() _GLIBCXX_USE_NOEXCEPT {
