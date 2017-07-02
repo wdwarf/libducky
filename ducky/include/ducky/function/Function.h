@@ -48,6 +48,10 @@ protected:
 		return (this->f == f->f);
 	}
 
+	virtual bool compare(FunctionBase0* f){
+		return (this->f == f->f);
+	}
+
 private:
 	Func f;
 >>>>>>> f4207ded7cfbbe32d619ea7f67ddba451817fc94
