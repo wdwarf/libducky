@@ -29,8 +29,10 @@ public:
 
 	virtual void onRead(const char* buf, int size) = 0;
 	virtual void onSend(const char* buf, int size) = 0;
-	virtual void onStart(){}
-	virtual void onStop(){}
+	virtual void onStart() {
+	}
+	virtual void onStop() {
+	}
 
 private:
 	class NamedPipeClientImpl;

@@ -14,9 +14,10 @@
 namespace ducky {
 namespace network {
 
-class IClientSession : public ClientSessionBase {
+class IClientSession: public ClientSessionBase {
 public:
-	virtual ~IClientSession(){}
+	virtual ~IClientSession() {
+	}
 
 	virtual void onConnected() = 0;
 	virtual void onDisconnected() = 0;

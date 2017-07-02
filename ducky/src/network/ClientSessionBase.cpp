@@ -66,7 +66,7 @@ int ClientSessionBase::send(const char* buf, int len) {
 	_NetServerContext* context = new _NetServerContext;
 	context->sockFd = this->sock;
 	context->dataBuffer.setData(buf, len);
-	context->session = (IClientSession*)this;
+	context->session = (IClientSession*) this;
 	context->state = CS_WRITE;
 
 	struct epoll_event ev;

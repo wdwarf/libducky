@@ -22,7 +22,8 @@ EXCEPTION_DEF(NetServerException);
 
 class INetServer: virtual public Object {
 public:
-	virtual ~INetServer(){}
+	virtual ~INetServer() {
+	}
 
 	virtual void setIp(const string& ip) = 0;
 	virtual string getIp() const = 0;

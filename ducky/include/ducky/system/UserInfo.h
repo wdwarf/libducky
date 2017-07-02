@@ -22,7 +22,7 @@ using std::vector;
  */
 
 namespace ducky {
-namespace system{
+namespace system {
 
 class UserInfo: virtual public Object {
 public:

@@ -37,8 +37,8 @@ int Process::Exec(const std::string& command, bool wait) {
 	if (0 == pid) {
 		execlp(command.c_str(), command.c_str(), NULL);
 		exit(0);
-	}else{
-		if(wait){
+	} else {
+		if (wait) {
 			int status = 0;
 			waitpid(pid, &status, 0);
 		}

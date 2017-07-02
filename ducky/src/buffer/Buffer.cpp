@@ -131,14 +131,14 @@ void Buffer::BufferImpl::append(const BufferImpl& buffer) {
 	this->size += buffer.getSize();
 }
 
-void Buffer::BufferImpl::reverse(){
-	if(this->isEmpty()){
+void Buffer::BufferImpl::reverse() {
+	if (this->isEmpty()) {
 		return;
 	}
 
 	char* pH = this->data;
 	char* pE = this->data + this->size - 1;
-	while(pH != pE){
+	while (pH != pE) {
 		char c = *pH;
 		*pH = *pE;
 		*pE = c;
@@ -147,16 +147,16 @@ void Buffer::BufferImpl::reverse(){
 	}
 }
 
-void Buffer::BufferImpl::alloc(int size){
+void Buffer::BufferImpl::alloc(int size) {
 	this->clear();
 
-	if(size <= 0){
+	if (size <= 0) {
 		return;
 	}
 
 	this->size = size;
 	this->data = new char[this->size];
-	if(!this->data){
+	if (!this->data) {
 		this->size = 0;
 		throw MK_EXCEPTION(BufferException, "Alloc buffer failed", size);
 	}
@@ -312,12 +312,12 @@ stringstream& Buffer::getBufferStream() {
 	return this->impl->getBufferStream();
 }
 
-Buffer& Buffer::reverse(){
+Buffer& Buffer::reverse() {
 	this->impl->reverse();
 	return *this;
 }
 
-void Buffer::alloc(int size){
+void Buffer::alloc(int size) {
 	this->impl->alloc(size);
 }
 

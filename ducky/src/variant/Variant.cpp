@@ -706,16 +706,16 @@ T Variant::toValue() const {
 			stringstream str;
 			str.write((const char*) this->value.valPtr, this->size);
 			string valStr = ToLowerCopy(TrimCopy(str.str()));
-			if(!valStr.empty()){
-				if('+' == valStr[0] || '-' == valStr[0]){
+			if (!valStr.empty()) {
+				if ('+' == valStr[0] || '-' == valStr[0]) {
 					valStr = valStr.substr(1);
 				}
 
-				if(valStr.length() > 1){
-					if('0' == valStr[0]){
-						if('x' == valStr[1]){
+				if (valStr.length() > 1) {
+					if ('0' == valStr[0]) {
+						if ('x' == valStr[1]) {
 							str >> hex;
-						}else{
+						} else {
 							str >> oct;
 						}
 					}

@@ -13,7 +13,8 @@ namespace ducky {
 namespace exception {
 
 Exception::Exception(const std::string& msg, int errNo, int lineNumber,
-		const std::string& functionName, const std::string& fileName) _GLIBCXX_USE_NOEXCEPT {
+		const std::string& functionName, const std::string& fileName)
+				_GLIBCXX_USE_NOEXCEPT {
 	// TODO Auto-generated constructor stub
 	this->msg = msg;
 	this->errNo = errNo;

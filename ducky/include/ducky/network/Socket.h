@@ -57,7 +57,7 @@ public:
 	int recvFrom(char* buf, socklen_t readBytes, sockaddr_in& addr,
 			int timeoutSec = -1);
 	int recvFrom(char* buf, socklen_t readBytes, string& ip, int& port,
-				int timeoutSec = -1);
+			int timeoutSec = -1);
 
 private:
 	int sock_fd;

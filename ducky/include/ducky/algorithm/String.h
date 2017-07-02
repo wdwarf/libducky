@@ -28,14 +28,12 @@ string& TrimRight(string& str);
 string TrimRightCopy(const string& str);
 string& Trim(string& str);
 string TrimCopy(const string& str);
-string& Replease(string& src, const string& find,
-                 const string& replease);
+string& Replease(string& src, const string& find, const string& replease);
 string RepleaseCopy(const string& src, const string& find,
-                 const string& replease);
-string& RepleaseAll(string& src, const string& find,
-                 const string& replease);
+		const string& replease);
+string& RepleaseAll(string& src, const string& find, const string& replease);
 string RepleaseAllCopy(const string& src, const string& find,
-                 const string& replease);
+		const string& replease);
 
 } /* namespace string */
 } /* namespace ducky */

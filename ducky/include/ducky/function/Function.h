@@ -33,7 +33,7 @@ public:
 		return new ThisType((Func) this->f[0]);
 	}
 
-<<<<<<< HEAD
+	<<<<<<< HEAD
 	bool compare(const ThisType* func) {
 		return (0 == memcmp(this->f, func->f, sizeof(this->f)));
 	}
@@ -43,18 +43,17 @@ protected:
 	FunctionBase0(const void* f) {
 		memcpy(this->f, f, sizeof(this->f));
 	}
-=======
-	virtual bool compare(FunctionBase0* f){
+	=======
+	virtual bool compare(FunctionBase0* f) {
 		return (this->f == f->f);
 	}
 
-	virtual bool compare(FunctionBase0* f){
+	virtual bool compare(FunctionBase0* f) {
 		return (this->f == f->f);
 	}
 
 private:
-	Func f;
->>>>>>> f4207ded7cfbbe32d619ea7f67ddba451817fc94
+	Func f;>>>>>>> f4207ded7cfbbe32d619ea7f67ddba451817fc94
 };
 
 template<class R, class P1>

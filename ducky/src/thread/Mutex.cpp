@@ -96,7 +96,7 @@ bool MutexCondition::isShared() const {
 }
 
 int MutexCondition::wait(int mSec, Mutex* mutex) {
-	if(mutex){
+	if (mutex) {
 		this->_mutex = mutex;
 	}
 

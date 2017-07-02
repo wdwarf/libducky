@@ -33,8 +33,8 @@ public:
 
 	virtual void start();	//启动线程
 	virtual void stop();	//设置停止标志
-	virtual void detach();//分离线程
-	virtual void cancel();//取消线程
+	virtual void detach();	//分离线程
+	virtual void cancel();	//取消线程
 	virtual void join();	//等待线程结束
 	virtual bool isRunning() const;	//线程是否正在执行
 

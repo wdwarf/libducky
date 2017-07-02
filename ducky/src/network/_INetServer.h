@@ -18,7 +18,8 @@ using namespace std;
 
 class _INetServer: public ducky::thread::Thread {
 public:
-	virtual ~_INetServer(){}
+	virtual ~_INetServer() {
+	}
 
 	virtual void setIp(const string& ip) = 0;
 	virtual void setPort(unsigned int port) = 0;

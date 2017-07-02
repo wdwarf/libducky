@@ -167,8 +167,7 @@ bool _TcpServer::_TcpServerImpl::isRunning() {
 	return this->sock > 0;
 }
 
-void _TcpServer::_TcpServerImpl::setWorkThreadCount(int workThreadCount)
-		 {
+void _TcpServer::_TcpServerImpl::setWorkThreadCount(int workThreadCount) {
 	if (this->isRunning()) {
 		throw NetServerException("Server is running");
 	}
@@ -183,16 +182,14 @@ void _TcpServer::_TcpServerImpl::onStop() {
 	this->_tcpServer->onStop();
 }
 
-void _TcpServer::_TcpServerImpl::setIp(const string& ip)
-		 {
+void _TcpServer::_TcpServerImpl::setIp(const string& ip) {
 	if (this->isRunning()) {
 		throw NetServerException("Server is running");
 	}
 	this->ip = ip;
 }
 
-void _TcpServer::_TcpServerImpl::setPort(unsigned int port)
-		 {
+void _TcpServer::_TcpServerImpl::setPort(unsigned int port) {
 	if (this->isRunning()) {
 		throw NetServerException("Server is running");
 	}
@@ -222,13 +219,13 @@ bool _TcpServer::_TcpServerImpl::listen(int n) {
 	return (0 == ::listen(this->sock, n));
 }
 
-void _TcpServer::_TcpServerImpl::start()  {
+void _TcpServer::_TcpServerImpl::start() {
 	if (this->isRunning()) {
 		throw NetServerException("Server is running");
 	}
 
 	this->sock = socket(AF_INET, SOCK_STREAM, 0);
-	if (this->sock <= 0){
+	if (this->sock <= 0) {
 		THROW_EXCEPTION(NetServerException, "Soekct create failed", errno);
 	}
 
@@ -249,14 +246,15 @@ void _TcpServer::_TcpServerImpl::start()  {
 	for (int i = 0; i < this->workThreadCount; ++i) {
 		_TcpServerWorkThread* workThread = new _TcpServerWorkThread(this);
 		this->workThreads.push_back(workThread);
-		try{
+		try {
 			workThread->start();
-		}catch(...){
+		} catch (...) {
 			close(this->sock);
 			this->sock = 0;
 			close(this->epfd);
 			this->epfd = 0;
-			THROW_EXCEPTION(NetServerException, "Work thread start failed", errno);
+			THROW_EXCEPTION(NetServerException, "Work thread start failed",
+					errno);
 		}
 	}
 
@@ -265,10 +263,11 @@ void _TcpServer::_TcpServerImpl::start()  {
 	ev.events = EPOLLIN | EPOLLET;
 	epoll_ctl(this->epfd, EPOLL_CTL_ADD, this->sock, &ev);
 
-	try{
+	try {
 		Thread::start();
-	}catch(...){
-		THROW_EXCEPTION(NetServerException, "Server thread start failed", errno);
+	} catch (...) {
+		THROW_EXCEPTION(NetServerException, "Server thread start failed",
+				errno);
 	}
 }
 
@@ -505,15 +504,15 @@ _TcpServer::~_TcpServer() {
 	delete this->impl;
 }
 
-void _TcpServer::setIp(const string& ip)  {
+void _TcpServer::setIp(const string& ip) {
 	this->impl->setIp(ip);
 }
 
-void _TcpServer::setPort(unsigned int port)  {
+void _TcpServer::setPort(unsigned int port) {
 	this->impl->setPort(port);
 }
 
-void _TcpServer::start()  {
+void _TcpServer::start() {
 	this->impl->start();
 }
 
@@ -529,8 +528,7 @@ bool _TcpServer::isRunning() {
 	return this->impl->isRunning();
 }
 
-void _TcpServer::setWorkThreadCount(int workThreadCount)
-		 {
+void _TcpServer::setWorkThreadCount(int workThreadCount) {
 	this->impl->setWorkThreadCount(workThreadCount);
 }
 

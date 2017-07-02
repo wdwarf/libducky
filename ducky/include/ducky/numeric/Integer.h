@@ -17,7 +17,7 @@ namespace numeric {
 
 using std::string;
 
-class Integer : virtual public Object{
+class Integer: virtual public Object {
 public:
 	Integer();
 	Integer(int val);

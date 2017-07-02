@@ -39,13 +39,14 @@ private:
  * 这个单例会在main函数执行之前初始化
  * */
 template<class T>
-class Singleton2: public T {
+class Singleton2: public T, virtual public Object {
 private:
-	struct object_creator{
-		object_creator(){
+	struct object_creator {
+		object_creator() {
 			Singleton2<T>::getInstance();
 		}
-		inline void doNothing() const{}
+		inline void doNothing() const {
+		}
 	};
 	static object_creator creator_object;
 

@@ -1,4 +1,3 @@
-
 //Rijndael.h
 
 #ifndef __RIJNDAEL_H__
@@ -10,8 +9,8 @@
 
 using namespace std;
 
-namespace ducky{
-namespace encrypt{
+namespace ducky {
+namespace encrypt {
 
 //Rijndael (pronounced Reindaal) is a block cipher, designed by Joan Daemen and Vincent Rijmen as a candidate algorithm for the AES.
 //The cipher has a variable block length and key length. The authors currently specify how to use keys with a length
@@ -24,8 +23,7 @@ namespace encrypt{
 //Java code authors: Raif S. Naffah, Paulo S. L. M. Barreto
 //This Implementation was tested against KAT test published by the authors of the method and the
 //results were identical.
-class CRijndael: virtual public Object
-{
+class CRijndael: virtual public Object {
 public:
 	//Operation Modes
 	//The Electronic Code Book (ECB), Cipher Block Chaining (CBC) and Cipher Feedback Block (CFB) modes
@@ -36,11 +34,17 @@ public:
 	//plaintext block with the previous ciphertext block, and encrypting the resulting value.
 	//In CFB mode a ciphertext block is obtained by encrypting the previous ciphertext block
 	//and xoring the resulting value with the plaintext.
-	enum { ECB=0, CBC=1, CFB=2 };
+	enum {
+		ECB = 0, CBC = 1, CFB = 2
+	};
 
 private:
-	enum { DEFAULT_BLOCK_SIZE=16 };
-	enum { MAX_BLOCK_SIZE=32, MAX_ROUNDS=14, MAX_KC=8, MAX_BC=8 };
+	enum {
+		DEFAULT_BLOCK_SIZE = 16
+	};
+	enum {
+		MAX_BLOCK_SIZE = 32, MAX_ROUNDS = 14, MAX_KC = 8, MAX_BC = 8
+	};
 
 	//Auxiliary Functions
 	//Multiply two elements of GF(2^m)
@@ -61,7 +65,8 @@ public:
 	// chain      - initial chain block for CBC and CFB modes.
 	// keylength  - 16, 24 or 32 bytes
 	// blockSize  - The block size in bytes of this Rijndael (16, 24 or 32 bytes).
-	void MakeKey(char const* key, char const* chain, int keylength=DEFAULT_BLOCK_SIZE, int blockSize=DEFAULT_BLOCK_SIZE);
+	void MakeKey(char const* key, char const* chain, int keylength =
+			DEFAULT_BLOCK_SIZE, int blockSize = DEFAULT_BLOCK_SIZE);
 
 private:
 	//Auxiliary Function
@@ -82,24 +87,24 @@ private:
 public:
 	//Encrypt exactly one block of plaintext.
 	// in           - The plaintext.
-    // result       - The ciphertext generated from a plaintext using the key.
-    void EncryptBlock(char const* in, char* result);
-	
+	// result       - The ciphertext generated from a plaintext using the key.
+	void EncryptBlock(char const* in, char* result);
+
 	//Decrypt exactly one block of ciphertext.
 	// in         - The ciphertext.
 	// result     - The plaintext generated from a ciphertext using the session key.
 	void DecryptBlock(char const* in, char* result);
 
-	void Encrypt(char const* in, char* result, size_t n, int iMode=ECB);
-	
-	void Decrypt(char const* in, char* result, size_t n, int iMode=ECB);
+	void Encrypt(char const* in, char* result, size_t n, int iMode = ECB);
+
+	void Decrypt(char const* in, char* result, size_t n, int iMode = ECB);
 
 	//Get Key Length
 	int GetKeyLength();
 
 	//Block Size
-	int	GetBlockSize();
-	
+	int GetBlockSize();
+
 	//Number of Rounds
 	int GetRounds();
 
@@ -113,34 +118,34 @@ private:
 	static const int sm_alog[256];
 	static const int sm_log[256];
 	static const char sm_S[256];
-    static const char sm_Si[256];
-    static const int sm_T1[256];
-    static const int sm_T2[256];
-    static const int sm_T3[256];
-    static const int sm_T4[256];
-    static const int sm_T5[256];
-    static const int sm_T6[256];
-    static const int sm_T7[256];
-    static const int sm_T8[256];
-    static const int sm_U1[256];
-    static const int sm_U2[256];
-    static const int sm_U3[256];
-    static const int sm_U4[256];
-    static const char sm_rcon[30];
-    static const int sm_shifts[3][4][2];
+	static const char sm_Si[256];
+	static const int sm_T1[256];
+	static const int sm_T2[256];
+	static const int sm_T3[256];
+	static const int sm_T4[256];
+	static const int sm_T5[256];
+	static const int sm_T6[256];
+	static const int sm_T7[256];
+	static const int sm_T8[256];
+	static const int sm_U1[256];
+	static const int sm_U2[256];
+	static const int sm_U3[256];
+	static const int sm_U4[256];
+	static const char sm_rcon[30];
+	static const int sm_shifts[3][4][2];
 	//Error Messages
 	static char const* sm_szErrorMsg1;
 	static char const* sm_szErrorMsg2;
 	//Key Initialization Flag
 	bool m_bKeyInit;
 	//Encryption (m_Ke) round key
-	int m_Ke[MAX_ROUNDS+1][MAX_BC];
+	int m_Ke[MAX_ROUNDS + 1][MAX_BC];
 	//Decryption (m_Kd) round key
-    int m_Kd[MAX_ROUNDS+1][MAX_BC];
+	int m_Kd[MAX_ROUNDS + 1][MAX_BC];
 	//Key Length
 	int m_keylength;
 	//Block Size
-	int	m_blockSize;
+	int m_blockSize;
 	//Number of Rounds
 	int m_iROUNDS;
 	//Chain Block

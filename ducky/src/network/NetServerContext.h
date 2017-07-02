@@ -14,13 +14,11 @@
 namespace ducky {
 namespace network {
 
-enum _ContextState{
-	CS_READ,
-	CS_WRITE,
-	CS_DISCONNECTED
+enum _ContextState {
+	CS_READ, CS_WRITE, CS_DISCONNECTED
 };
 
-struct _NetServerContext{
+struct _NetServerContext {
 	int sockFd;
 	sockaddr_in addr;
 	IClientSession* session;

@@ -16,7 +16,7 @@
  */
 
 namespace ducky {
-namespace system{
+namespace system {
 
 class HostInfo: virtual public Object {
 public:

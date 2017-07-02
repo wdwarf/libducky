@@ -14,7 +14,7 @@ using namespace std;
 extern char** environ;
 
 namespace ducky {
-namespace system{
+namespace system {
 
 Environment::Environment() {
 	// TODO Auto-generated constructor stub
@@ -43,7 +43,7 @@ void Environment::refresh() {
 	}
 }
 
-std::string Environment::getEnv(std::string envName){
+std::string Environment::getEnv(std::string envName) {
 	algorithm::ToUpper(envName);
 	return this->env[envName];
 }

@@ -53,7 +53,9 @@ public:
 template<typename T>
 class _SingletonCreator: public _ICreator {
 public:
-	_SingletonCreator() : obj(NULL){}
+	_SingletonCreator() :
+			obj(NULL) {
+	}
 
 	virtual void* createObject() {
 		if (!obj) {

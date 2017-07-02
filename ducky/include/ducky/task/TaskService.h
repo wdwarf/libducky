@@ -15,7 +15,7 @@ namespace task {
 EXCEPTION_DEF(TaskException);
 
 class TaskService;
-class ITask {
+class ITask: virtual public Object {
 public:
 	ITask();
 	virtual ~ITask();
@@ -40,7 +40,7 @@ private:
 	friend class TaskService;
 };
 
-class TaskService {
+class TaskService: virtual public Object {
 public:
 	TaskService();
 	virtual ~TaskService();

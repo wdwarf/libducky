@@ -20,7 +20,7 @@ using std::map;
  */
 
 namespace ducky {
-namespace system{
+namespace system {
 
 class Environment: virtual public Object {
 public:

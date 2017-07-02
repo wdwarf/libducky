@@ -52,29 +52,24 @@ Integer::~Integer() {
 	// TODO Auto-generated destructor stub
 }
 
-string Integer::toString(bool toHex) const
-{
+string Integer::toString(bool toHex) const {
 	stringstream str;
-	if(toHex)
-	{
+	if (toHex) {
 		str << "0x";
 		str.fill('0');
-		unsigned char* p = (unsigned char*)&this->value;
+		unsigned char* p = (unsigned char*) &this->value;
 		int size = sizeof(this->value);
-		for(int i = size; i > 0; --i)
-		{
+		for (int i = size; i > 0; --i) {
 			str.width(2);
-			str << hex << (int)p[i - 1];
+			str << hex << (int) p[i - 1];
 		}
-	}else
-	{
+	} else {
 		str << this->value;
 	}
 	return str.str();
 }
 
-void Integer::fromString(const string& str)
-{
+void Integer::fromString(const string& str) {
 	this->value = atoi(str.c_str());
 }
 
@@ -82,6 +77,6 @@ void Integer::fromString(const string& str)
 } /* namespace ducky */
 
 std::ostream& operator<<(std::ostream& o, const ducky::numeric::Integer& i) {
-	o << (int)i;
+	o << (int) i;
 	return o;
 }

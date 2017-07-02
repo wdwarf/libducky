@@ -210,7 +210,8 @@ void TaskService::TaskServiceImpl::stop() {
 	this->semWait.release();
 }
 
-void TaskService::TaskServiceImpl::setWorkThreadPoolSize(int workThreadPoolSize) {
+void TaskService::TaskServiceImpl::setWorkThreadPoolSize(
+		int workThreadPoolSize) {
 	if (workThreadPoolSize < 0) {
 		stringstream str;
 		str << "invalid work thread pool size: " << workThreadPoolSize;
@@ -240,9 +241,9 @@ TaskService::TaskServiceImpl::TaskServiceWorkThread* TaskService::TaskServiceImp
 		this->workThreads.pop_front();
 	} else {
 		workThread = new TaskServiceWorkThread(this);
-		try{
+		try {
 			workThread->start();
-		}catch(...){
+		} catch (...) {
 			delete workThread;
 			return NULL;
 		}
@@ -342,7 +343,7 @@ void TaskService::TaskServiceImpl::run() {
 			}
 			break;
 		}
-		while(!this->taskList.empty()){
+		while (!this->taskList.empty()) {
 			ITask* task = this->taskList.front();
 			this->taskList.pop_front();
 			delete task;
@@ -367,7 +368,7 @@ void TaskService::addTask(ITask* task) {
 	this->impl->addTask(task);
 }
 
-void TaskService::setWorkThreadPoolSize(int workThreadPoolSize){
+void TaskService::setWorkThreadPoolSize(int workThreadPoolSize) {
 	this->impl->setWorkThreadPoolSize(workThreadPoolSize);
 }
 

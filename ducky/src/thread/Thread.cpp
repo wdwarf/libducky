@@ -156,7 +156,7 @@ void Thread::Sleep(unsigned int ms) {
 	usleep(ms * 1000);
 }
 
-void Thread::testcancel(){
+void Thread::testcancel() {
 	pthread_testcancel();
 }
 
@@ -168,7 +168,7 @@ void Thread::setFreeOnTerminated(bool freeOnTerminated) {
 	this->freeOnTerminated = freeOnTerminated;
 }
 
-bool Thread::operator==(const Thread& t) const{
+bool Thread::operator==(const Thread& t) const {
 	return pthread_equal(this->threadId, t.threadId);
 }
 

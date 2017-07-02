@@ -8,14 +8,11 @@
 #ifndef DUCKY_NETWORK_NETWORKEXCEPTION_H_
 #define DUCKY_NETWORK_NETWORKEXCEPTION_H_
 
-
-
 #include <ducky/exception/Exception.h>
 
 EXCEPTION_DEF(NetworkException);
 EXCEPTION_DEF2(TcpServerException, NetworkException);
 EXCEPTION_DEF2(UdpServerException, NetworkException);
 EXCEPTION_DEF2(UdpClientException, NetworkException);
-
 
 #endif /* DUCKY_NETWORK_NETWORKEXCEPTION_H_ */

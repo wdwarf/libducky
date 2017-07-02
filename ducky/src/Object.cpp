@@ -17,13 +17,14 @@ using namespace std;
 
 namespace ducky {
 
-static set<const void*> __heabObjs__;
-static pthread_mutex_t __obj_onheap_mutex__;
 static bool __obj_onheap_mutex_inited__ = false;
+static pthread_mutex_t __obj_onheap_mutex__;
+static set<const void*> __heabObjs__;
 
 Object::Object() {
 	// TODO Auto-generated constructor stub
 	if (!__obj_onheap_mutex_inited__) {
+		__heabObjs__.clear(); //make sure the __heabObjs__ object is constructed
 		__obj_onheap_mutex_inited__ = true;
 		pthread_mutex_init(&__obj_onheap_mutex__, NULL);
 	}
@@ -96,6 +97,7 @@ void* Object::operator new(std::size_t size) throw (std::bad_alloc) {
 void* Object::operator new(std::size_t size) {
 #endif
 	if (!__obj_onheap_mutex_inited__) {
+		__heabObjs__.clear(); //make sure the __heabObjs__ object is constructed
 		__obj_onheap_mutex_inited__ = true;
 		pthread_mutex_init(&__obj_onheap_mutex__, NULL);
 	}
@@ -111,35 +113,11 @@ void* Object::operator new(std::size_t size) {
 }
 
 void* Object::operator new(size_t size, const std::nothrow_t&) throw () {
-	if (!__obj_onheap_mutex_inited__) {
-		__obj_onheap_mutex_inited__ = true;
-		pthread_mutex_init(&__obj_onheap_mutex__, NULL);
-	}
-
-	void* p = ::operator new(size);
-	pthread_mutex_lock(&__obj_onheap_mutex__);
-	try {
-		__heabObjs__.insert(p);
-	} catch (...) {
-	}
-	pthread_mutex_unlock(&__obj_onheap_mutex__);
-	return p;
+	return Object::operator new(size);
 }
 
 void* Object::operator new(std::size_t size, void *ptr) throw () {
-	if (!__obj_onheap_mutex_inited__) {
-		__obj_onheap_mutex_inited__ = true;
-		pthread_mutex_init(&__obj_onheap_mutex__, NULL);
-	}
-
-	void* p = ::operator new(size);
-	pthread_mutex_lock(&__obj_onheap_mutex__);
-	try {
-		__heabObjs__.insert(p);
-	} catch (...) {
-	}
-	pthread_mutex_unlock(&__obj_onheap_mutex__);
-	return p;
+	return Object::operator new(size);
 }
 
 void Object::operator delete(void* ptr) {

@@ -11,10 +11,8 @@
 namespace ducky {
 namespace pipe {
 
-enum PipeType{
-	PT_UNKNOWN = 0,
-	PT_READ,
-	PT_WRITE
+enum PipeType {
+	PT_UNKNOWN = 0, PT_READ, PT_WRITE
 };
 
 } /* namespace pipe */

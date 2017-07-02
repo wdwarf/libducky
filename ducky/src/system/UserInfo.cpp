@@ -45,21 +45,23 @@ private:
 	void setValues(passwd* pwd);
 };
 
-
 UserInfo::UserInfoImpl::UserInfoImpl() {
 	this->loadUserInfo(UserInfo::UserInfoImpl::getCurrentUID());
 }
 
-UserInfo::UserInfoImpl::UserInfoImpl(uid_t uid) : uid(0), gid(0) {
+UserInfo::UserInfoImpl::UserInfoImpl(uid_t uid) :
+		uid(0), gid(0) {
 	this->loadUserInfo(uid);
 }
 
-UserInfo::UserInfoImpl::UserInfoImpl(passwd* pwd) : uid(0), gid(0) {
+UserInfo::UserInfoImpl::UserInfoImpl(passwd* pwd) :
+		uid(0), gid(0) {
 	this->clear();
 	this->setValues(pwd);
 }
 
-UserInfo::UserInfoImpl::UserInfoImpl(const string& userName) : uid(0), gid(0) {
+UserInfo::UserInfoImpl::UserInfoImpl(const string& userName) :
+		uid(0), gid(0) {
 	this->loadUserInfo(userName);
 }
 
@@ -142,20 +144,22 @@ void UserInfo::UserInfoImpl::clear() {
 	this->shell = "";
 }
 
-
-
-UserInfo::UserInfo() : impl(new UserInfoImpl) {
+UserInfo::UserInfo() :
+		impl(new UserInfoImpl) {
 }
 
-UserInfo::UserInfo(uid_t uid) : impl(new UserInfoImpl(uid)) {
+UserInfo::UserInfo(uid_t uid) :
+		impl(new UserInfoImpl(uid)) {
 	//
 }
 
-UserInfo::UserInfo(passwd* pwd) : impl(new UserInfoImpl(pwd)) {
+UserInfo::UserInfo(passwd* pwd) :
+		impl(new UserInfoImpl(pwd)) {
 	//
 }
 
-UserInfo::UserInfo(const string& userName) : impl(new UserInfoImpl(userName)) {
+UserInfo::UserInfo(const string& userName) :
+		impl(new UserInfoImpl(userName)) {
 	//
 }
 
@@ -198,7 +202,6 @@ const string& UserInfo::getShell() const {
 uid_t UserInfo::getUid() const {
 	return this->impl->getUid();
 }
-
 
 } /* namespace system */
 } /* namespace ducky */

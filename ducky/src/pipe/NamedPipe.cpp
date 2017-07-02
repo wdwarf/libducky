@@ -57,7 +57,7 @@ bool NamedPipe::NamedPipeImpl::isOpen() const {
 	return (this->pipeFd > 0);
 }
 
-int NamedPipe::NamedPipeImpl::getHandle() const{
+int NamedPipe::NamedPipeImpl::getHandle() const {
 	return this->pipeFd;
 }
 
@@ -198,7 +198,7 @@ string NamedPipe::getName() const {
 	return this->impl->getName();
 }
 
-int NamedPipe::getHandle() const{
+int NamedPipe::getHandle() const {
 	return this->impl->getHandle();
 }
 

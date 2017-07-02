@@ -17,7 +17,7 @@ namespace thread {
 
 EXCEPTION_DEF(MutexException)
 
-class Mutex : virtual public Object {
+class Mutex: virtual public Object {
 public:
 	Mutex(bool recursive = false, bool shared = false);
 	virtual ~Mutex();
@@ -34,8 +34,7 @@ private:
 	pthread_mutexattr_t attr;
 };
 
-class MutexLocker
-{
+class MutexLocker {
 public:
 	MutexLocker(Mutex& mutex);
 	~MutexLocker();
@@ -44,8 +43,7 @@ private:
 	Mutex& _mutex;
 };
 
-class MutexCondition
-{
+class MutexCondition {
 public:
 	MutexCondition(Mutex* mutex = NULL, bool shared = false);
 	~MutexCondition();

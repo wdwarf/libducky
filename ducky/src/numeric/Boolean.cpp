@@ -13,7 +13,8 @@ Boolean::Boolean(bool val) :
 		_value(val) {
 }
 
-Boolean::Boolean(const string& val) : _value(false) {
+Boolean::Boolean(const string& val) :
+		_value(false) {
 	this->fromString(val);
 }
 

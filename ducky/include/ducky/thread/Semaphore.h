@@ -12,15 +12,12 @@
 #include <ducky/Object.h>
 #include <semaphore.h>
 
-namespace ducky
-{
-namespace thread
-{
+namespace ducky {
+namespace thread {
 
 using std::string;
 
-class Semaphore: virtual public Object
-{
+class Semaphore: virtual public Object {
 public:
 	Semaphore();
 	Semaphore(const string& name, int flag, ...);

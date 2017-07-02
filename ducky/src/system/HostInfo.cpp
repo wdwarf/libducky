@@ -16,7 +16,7 @@ namespace system {
 
 using ducky::exception::Exception;
 
-class HostInfo::HostInfoImpl{
+class HostInfo::HostInfoImpl {
 public:
 	HostInfoImpl();
 	virtual ~HostInfoImpl();
@@ -90,9 +90,8 @@ const std::string& HostInfo::HostInfoImpl::getHostname() const {
 	return hostname;
 }
 
-
-
-HostInfo::HostInfo() : impl(new HostInfoImpl){
+HostInfo::HostInfo() :
+		impl(new HostInfoImpl) {
 	//
 }
 

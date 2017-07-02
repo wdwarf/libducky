@@ -52,7 +52,8 @@ public:
 private:
 	class BufferImpl;
 	BufferImpl* impl;
-}; /* class Buffer */
+};
+/* class Buffer */
 
 } /* namespace buffer */
 } /* namespace ducky */
@@ -66,7 +67,7 @@ ducky::buffer::Buffer& operator<<(ducky::buffer::Buffer& buffer,
 
 template<class T>
 ducky::buffer::Buffer& operator<<(ducky::buffer::Buffer& buffer, T& t) {
-	buffer.append((const char*) &t, (unsigned int)sizeof(T));
+	buffer.append((const char*) &t, (unsigned int) sizeof(T));
 	return buffer;
 }
 

@@ -21,9 +21,9 @@ namespace exception {
 
 class Exception: public std::exception, virtual public Object {
 public:
-	Exception(const std::string& msg, int errNo = 0,
-			int lineNumber = 0, const std::string& functionName = "",
-			const std::string& fileName = "") _GLIBCXX_USE_NOEXCEPT;
+	Exception(const std::string& msg, int errNo = 0, int lineNumber = 0,
+			const std::string& functionName = "", const std::string& fileName =
+					"") _GLIBCXX_USE_NOEXCEPT;
 	virtual ~Exception() _GLIBCXX_USE_NOEXCEPT;
 
 	virtual const char* what() const _GLIBCXX_USE_NOEXCEPT;
