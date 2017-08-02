@@ -2,6 +2,14 @@
 #include <sstream>
 #include <sys/time.h>
 
+#include <set>
+#include <ctime>
+#include <iostream>
+
+#include <ducky/thread/Thread.h>
+#include <ducky/thread/Mutex.h>
+#include <ducky/thread/Semaphore.h>
+
 using namespace ducky::thread;
 using namespace std;
 
@@ -11,8 +19,8 @@ namespace task {
 class ITask::ITaskImpl {
 public:
 	ITaskImpl() :
-			startTime(0), timeout(-1), repeatTask(false), freeAfterExecute(
-					true), taskService(NULL) {
+			startTime(0), timeout(-1), repeatTask(false), freeAfterExecute(true), canceled(false), taskService(
+					NULL) {
 
 	}
 
@@ -48,6 +56,14 @@ public:
 		return freeAfterExecute;
 	}
 
+	void cancel() {
+		this->canceled = true;
+	}
+
+	bool isCanceled() const {
+		return this->canceled;
+	}
+
 	TaskService* getTaskService() const {
 		return this->taskService;
 	}
@@ -57,6 +73,7 @@ private:
 	int timeout;
 	bool repeatTask;
 	bool freeAfterExecute;
+	bool canceled;
 
 	friend class TaskService;
 	TaskService* taskService;
@@ -102,6 +119,14 @@ bool ITask::isFreeAfterExecute() const {
 	return this->impl->isFreeAfterExecute();
 }
 
+void ITask::cancel() {
+	this->impl->cancel();
+}
+
+bool ITask::isCanceled() const {
+	return this->impl->isCanceled();
+}
+
 TaskService* ITask::getTaskService() const {
 	return this->impl->getTaskService();
 }
@@ -114,10 +139,13 @@ public:
 	TaskServiceImpl(TaskService* taskService);
 	virtual ~TaskServiceImpl();
 
-	void addTask(ITask* task);
+	void addTask(ITask* task, bool removeWorkingTasks = false);
+	void cancelTask(ITask* task);
+	bool hasTask(ITask* task);
+	void removeWorkingTask(ITask* task);
 	void setWorkThreadPoolSize(int workThreadPoolSize);
 	int getWorkThreadPoolSize() const;
-	virtual void stop();
+	virtual bool stop();
 
 private:
 	void run();
@@ -140,9 +168,10 @@ private:
 			this->sem.release();
 		}
 
-		virtual void stop() {
+		virtual bool stop() {
 			Thread::stop();
 			this->sem.release();
+			return true;
 		}
 
 	private:
@@ -157,14 +186,21 @@ private:
 				}
 
 				try {
-					this->task->execute();
+					if (!this->task->isCanceled()) {
+						this->task->execute();
+					}
 				} catch (...) {
 				}
 
-				if (this->task->isRepeat()) {
-					this->pTaskService->addTask(this->task);
+				if (!this->task->isCanceled() && this->task->isRepeat()) {
+					this->pTaskService->addTask(this->task, true);
 				} else if (this->task->isFreeAfterExecute()) {
+					this->pTaskService->removeWorkingTask(this->task);
+					this->task->onDone();
 					delete this->task;
+				}else{
+					this->pTaskService->removeWorkingTask(this->task);
+					this->task->onDone();
 				}
 				this->task = NULL;
 
@@ -189,13 +225,14 @@ private:
 	unsigned int currentThreadCount;
 	ducky::thread::Mutex mutex;
 	ducky::thread::Semaphore semWait;
-	std::list<ITask*> taskList;
-	std::list<TaskServiceWorkThread*> workThreads;
+	std::set<ITask*> taskList;
+	std::set<ITask*> workingTaskList;
+	std::set<TaskServiceWorkThread*> workThreads;
 };
 
 TaskService::TaskServiceImpl::TaskServiceImpl(TaskService* service) :
-		taskService(service), msecWait(-1), workThreadPoolSize(5), currentThreadCount(
-				0), mutex(true) {
+		taskService(service), msecWait(-1), workThreadPoolSize(5), currentThreadCount(0), mutex(
+				true) {
 
 }
 
@@ -205,13 +242,13 @@ TaskService::TaskServiceImpl::~TaskServiceImpl() {
 	}
 }
 
-void TaskService::TaskServiceImpl::stop() {
+bool TaskService::TaskServiceImpl::stop() {
 	Thread::stop();
 	this->semWait.release();
+	return true;
 }
 
-void TaskService::TaskServiceImpl::setWorkThreadPoolSize(
-		int workThreadPoolSize) {
+void TaskService::TaskServiceImpl::setWorkThreadPoolSize(int workThreadPoolSize) {
 	if (workThreadPoolSize < 0) {
 		stringstream str;
 		str << "invalid work thread pool size: " << workThreadPoolSize;
@@ -221,8 +258,8 @@ void TaskService::TaskServiceImpl::setWorkThreadPoolSize(
 	MutexLocker lk(this->mutex);
 	this->workThreadPoolSize = workThreadPoolSize;
 	while (this->workThreads.size() >= this->workThreadPoolSize) {
-		TaskServiceWorkThread* workThread = this->workThreads.front();
-		this->workThreads.pop_front();
+		TaskServiceWorkThread* workThread = *this->workThreads.begin();
+		this->workThreads.erase(this->workThreads.begin());
 		workThread->stop();
 		--currentThreadCount;
 		return;
@@ -237,8 +274,8 @@ TaskService::TaskServiceImpl::TaskServiceWorkThread* TaskService::TaskServiceImp
 	MutexLocker lk(this->mutex);
 	TaskServiceWorkThread* workThread;
 	if (!this->workThreads.empty()) {
-		workThread = this->workThreads.front();
-		this->workThreads.pop_front();
+		workThread = *this->workThreads.begin();
+		this->workThreads.erase(this->workThreads.begin());
 	} else {
 		workThread = new TaskServiceWorkThread(this);
 		try {
@@ -253,8 +290,7 @@ TaskService::TaskServiceImpl::TaskServiceWorkThread* TaskService::TaskServiceImp
 	return workThread;
 }
 
-void TaskService::TaskServiceImpl::recycleWorkThread(
-		TaskServiceWorkThread* workThread) {
+void TaskService::TaskServiceImpl::recycleWorkThread(TaskServiceWorkThread* workThread) {
 	if (NULL == workThread)
 		return;
 
@@ -265,14 +301,42 @@ void TaskService::TaskServiceImpl::recycleWorkThread(
 		return;
 	}
 
-	this->workThreads.push_back(workThread);
+	this->workThreads.insert(workThread);
 	this->semWait.release();
 }
 
-void TaskService::TaskServiceImpl::addTask(ITask* task) {
-	if (NULL == task)
+void TaskService::TaskServiceImpl::addTask(ITask* task, bool removeWorkingTasks) {
+	if (NULL == task){
 		return;
+	}
 	MutexLocker lk(this->mutex);
+
+	if (this->canStop()) {
+		if (task->isFreeAfterExecute()) {
+			delete task;
+		}
+		return;
+	}
+
+	if (this->taskList.find(task) != this->taskList.end()) {
+		return;
+	}
+
+	if (removeWorkingTasks) {
+		this->workingTaskList.erase(task);
+	} else {
+		if (this->workingTaskList.find(task) != this->workingTaskList.end()) {
+			return;
+		}
+	}
+
+	if (task->isCanceled()) {
+		if (task->isFreeAfterExecute()){
+			task->onDone();
+			delete task;
+		}
+		return;
+	}
 
 	timeval tv;
 	gettimeofday(&tv, NULL);
@@ -282,16 +346,45 @@ void TaskService::TaskServiceImpl::addTask(ITask* task) {
 	if (-1 == task->getTimeout()) {
 		TaskServiceWorkThread* workThread = this->getWorkThread();
 		if (workThread) {
+			this->workingTaskList.insert(task);
 			workThread->execute(task);
 			return;
 		}
 	}
 
-	this->taskList.push_back(task);
+	this->taskList.insert(task);
 
-	if (-1 == msecWait) {
+	int timeout = task->getTimeout();
+	unsigned long long t = timeout - (tv.tv_sec * 1000 + tv.tv_usec / 1000 - task->getStartTime());
+
+	if ((-1 == msecWait) || (t < msecWait)) {
 		this->semWait.release();
 	}
+}
+
+void TaskService::TaskServiceImpl::cancelTask(ITask* task) {
+	if(!task) return;
+
+	MutexLocker lk(this->mutex);
+
+	if (this->workingTaskList.find(task) != this->workingTaskList.end()) {
+		task->cancel();
+	} else if (this->taskList.find(task) != this->taskList.end()) {
+		task->cancel();
+		this->semWait.release();
+	}
+}
+
+bool TaskService::TaskServiceImpl::hasTask(ITask* task) {
+	MutexLocker lk(this->mutex);
+
+	return (this->workingTaskList.find(task) != this->workingTaskList.end())
+			|| (this->taskList.find(task) != this->taskList.end());
+}
+
+void TaskService::TaskServiceImpl::removeWorkingTask(ITask* task) {
+	MutexLocker lk(this->mutex);
+	this->workingTaskList.erase(task);
 }
 
 void TaskService::TaskServiceImpl::run() {
@@ -299,22 +392,22 @@ void TaskService::TaskServiceImpl::run() {
 		{
 			MutexLocker lk(this->mutex);
 			msecWait = -1;
-			for (list<ITask*>::iterator it = this->taskList.begin();
-					it != this->taskList.end(); ++it) {
+			timeval tv;
+			gettimeofday(&tv, NULL);
+			for (set<ITask*>::iterator it = this->taskList.begin(); it != this->taskList.end();
+					++it) {
 				ITask* task = *it;
 
 				int timeout = task->getTimeout();
-				timeval tv;
-				gettimeofday(&tv, NULL);
-				unsigned long long t = tv.tv_sec * 1000 + tv.tv_usec / 1000
-						- task->getStartTime();
+				unsigned long long t = tv.tv_sec * 1000 + tv.tv_usec / 1000 - task->getStartTime();
 
-				if ((timeout <= 0) || (t >= timeout)) {
-					list<ITask*>::iterator itPrev = it;
+				if (task->isCanceled() || (timeout <= 0) || (t >= timeout)) {
+					set<ITask*>::iterator itPrev = it;
 					--itPrev;
 					TaskServiceWorkThread* workThread = this->getWorkThread();
 					if (workThread) {
 						workThread->execute(task);
+						this->workingTaskList.insert(task);
 						this->taskList.erase(it);
 						it = itPrev;
 					}
@@ -336,17 +429,18 @@ void TaskService::TaskServiceImpl::run() {
 		MutexLocker lk(this->mutex);
 		if (currentThreadCount == this->workThreads.size()) {
 			while (!this->workThreads.empty()) {
-				TaskServiceWorkThread* workThread = this->workThreads.front();
-				this->workThreads.pop_front();
+				TaskServiceWorkThread* workThread = *this->workThreads.begin();
+				this->workThreads.erase(this->workThreads.begin());
 				workThread->stop();
-				workThread->join();
+				//workThread->join();
+			}
+			Thread::Sleep(500);
+			while (!this->taskList.empty()) {
+				ITask* task = *this->taskList.begin();
+				this->taskList.erase(this->taskList.begin());
+				delete task;
 			}
 			break;
-		}
-		while (!this->taskList.empty()) {
-			ITask* task = this->taskList.front();
-			this->taskList.pop_front();
-			delete task;
 		}
 		Thread::Sleep(100);
 	}
@@ -366,6 +460,14 @@ TaskService::~TaskService() {
 
 void TaskService::addTask(ITask* task) {
 	this->impl->addTask(task);
+}
+
+void TaskService::cancelTask(ITask* task) {
+	this->impl->cancelTask(task);
+}
+
+bool TaskService::hasTask(ITask* task) {
+	return this->impl->hasTask(task);
 }
 
 void TaskService::setWorkThreadPoolSize(int workThreadPoolSize) {

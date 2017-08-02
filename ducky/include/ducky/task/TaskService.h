@@ -1,12 +1,6 @@
 #ifndef TIMER_H
 #define TIMER_H
 
-#include <list>
-#include <ctime>
-
-#include <ducky/thread/Thread.h>
-#include <ducky/thread/Mutex.h>
-#include <ducky/thread/Semaphore.h>
 #include <ducky/exception/Exception.h>
 
 namespace ducky {
@@ -21,6 +15,7 @@ public:
 	virtual ~ITask();
 
 	virtual void execute() = 0;
+	virtual void onDone(){}
 
 	void setTimeout(int timeoutMSec = -1);
 	int getTimeout() const;
@@ -28,6 +23,8 @@ public:
 	bool isFreeAfterExecute() const;
 	void setRepeat(bool repeatTask);
 	bool isRepeat() const;
+	void cancel();
+	bool isCanceled() const;
 	TaskService* getTaskService() const;
 
 private:
@@ -47,7 +44,7 @@ public:
 
 	void addTask(ITask* task);
 	void cancelTask(ITask* task);
-	bool hasTask() const;
+	bool hasTask(ITask* task);
 	void setWorkThreadPoolSize(int workThreadPoolSize);
 	int getWorkThreadPoolSize() const;
 	void start();
