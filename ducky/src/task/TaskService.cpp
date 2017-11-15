@@ -145,7 +145,7 @@ public:
 	void removeWorkingTask(ITask* task);
 	void setWorkThreadPoolSize(int workThreadPoolSize);
 	int getWorkThreadPoolSize() const;
-	virtual bool stop();
+	virtual void stop();
 
 private:
 	void run();
@@ -168,10 +168,9 @@ private:
 			this->sem.release();
 		}
 
-		virtual bool stop() {
+		virtual void stop() {
 			Thread::stop();
 			this->sem.release();
-			return true;
 		}
 
 	private:
@@ -242,10 +241,9 @@ TaskService::TaskServiceImpl::~TaskServiceImpl() {
 	}
 }
 
-bool TaskService::TaskServiceImpl::stop() {
+void TaskService::TaskServiceImpl::stop() {
 	Thread::stop();
 	this->semWait.release();
-	return true;
 }
 
 void TaskService::TaskServiceImpl::setWorkThreadPoolSize(int workThreadPoolSize) {
