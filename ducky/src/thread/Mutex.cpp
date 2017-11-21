@@ -111,7 +111,7 @@ int MutexCondition::wait(int mSec, Mutex* mutex) {
 		clock_gettime(CLOCK_REALTIME, &ts);
 		ts.tv_sec += mSec / 1000;
 		ts.tv_nsec += (mSec % 1000) * 1000000;
-		if(ts.tv_nsec > 1000000000){
+		if(ts.tv_nsec >= 1000000000){
 			ts.tv_sec += 1;
 			ts.tv_nsec -= 1000000000;
 		}
@@ -137,7 +137,7 @@ int MutexCondition::lockAndWait(int mSec, Mutex* mutex) {
 		clock_gettime(CLOCK_REALTIME, &ts);
 		ts.tv_sec += mSec / 1000;
 		ts.tv_nsec += (mSec % 1000) * 1000000;
-		if(ts.tv_nsec > 1000000000){
+		if(ts.tv_nsec >= 1000000000){
 			ts.tv_sec += 1;
 			ts.tv_nsec -= 1000000000;
 		}
