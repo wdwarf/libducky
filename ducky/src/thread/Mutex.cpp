@@ -108,8 +108,39 @@ int MutexCondition::wait(int mSec, Mutex* mutex) {
 		return pthread_cond_wait(&this->cond, *this->_mutex);
 	} else {
 		timespec ts;
-		ts.tv_sec = mSec / 1000;
-		ts.tv_nsec = (mSec - ts.tv_sec * 1000) * 1000;
+		clock_gettime(CLOCK_REALTIME, &ts);
+		ts.tv_sec += mSec / 1000;
+		ts.tv_nsec += (mSec % 1000) * 1000000;
+		if(ts.tv_nsec > 1000000000){
+			ts.tv_sec += 1;
+			ts.tv_nsec -= 1000000000;
+		}
+		return pthread_cond_timedwait(&this->cond, *this->_mutex, &ts);
+	}
+}
+
+int MutexCondition::lockAndWait(int mSec, Mutex* mutex) {
+	if (mutex) {
+		this->_mutex = mutex;
+	}
+
+	if (NULL == this->_mutex) {
+		throw MutexException("param \"mutex\" can not be NULL.");
+	}
+
+	MutexLocker lk(*this->_mutex);
+
+	if (mSec < 0) {
+		return pthread_cond_wait(&this->cond, *this->_mutex);
+	} else {
+		timespec ts;
+		clock_gettime(CLOCK_REALTIME, &ts);
+		ts.tv_sec += mSec / 1000;
+		ts.tv_nsec += (mSec % 1000) * 1000000;
+		if(ts.tv_nsec > 1000000000){
+			ts.tv_sec += 1;
+			ts.tv_nsec -= 1000000000;
+		}
 		return pthread_cond_timedwait(&this->cond, *this->_mutex, &ts);
 	}
 }

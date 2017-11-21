@@ -6,9 +6,13 @@
  */
 
 #include "ducky/thread/Thread.h"
+#include <iostream>
 #include <unistd.h>
 #include <errno.h>
 #include <cstring>
+#include <sys/syscall.h>
+
+using namespace std;
 
 namespace ducky {
 namespace thread {
@@ -53,6 +57,7 @@ void* Thread::ThreadFunc(Thread* pThread) {
 		try {
 			pThread->run();
 		} catch (std::exception& e) {
+			cerr << e.what() << endl;
 		} catch (...) {
 			throw;
 		}
@@ -133,6 +138,10 @@ pthread_t Thread::getThreadId() {
 	return this->threadId;
 }
 
+bool Thread::isInCurrentThread() const{
+	return (pthread_self() == this->threadId);
+}
+
 bool Thread::isRunning() const {
 	return ((TS_RUNNING == this->threadState)
 			|| (TS_STOP_REQUIRING == this->threadState));
@@ -159,6 +168,11 @@ void Thread::Sleep(unsigned int ms) {
 void Thread::testcancel() {
 	pthread_testcancel();
 }
+
+pid_t Thread::CurrentTid(){
+	return syscall(SYS_gettid);
+}
+
 
 bool Thread::isFreeOnTerminated() const {
 	return freeOnTerminated;

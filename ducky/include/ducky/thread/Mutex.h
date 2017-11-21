@@ -50,6 +50,7 @@ public:
 
 	void setMutex(Mutex* mutex);
 	int wait(int mSec = -1, Mutex* mutex = NULL);
+	int lockAndWait(int mSec = -1, Mutex* mutex = NULL);
 	int wakeOne();
 	int wakeAll();
 	bool isShared() const;

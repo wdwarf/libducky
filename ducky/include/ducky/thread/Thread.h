@@ -40,6 +40,7 @@ public:
 
 	virtual ThreadState getState() const;	//线程的状态
 	pthread_t getThreadId();
+	bool isInCurrentThread() const;
 	bool isFreeOnTerminated() const;
 	void setFreeOnTerminated(bool freeOnTerminated);
 
@@ -47,6 +48,7 @@ public:
 
 	static void Sleep(unsigned int ms);	//睡眠函数，单位为毫秒
 	static void testcancel();
+	static pid_t CurrentTid();
 
 protected:
 	virtual void run() = 0;	//线程的执行函数，必须实现这个方法。

@@ -802,7 +802,7 @@ Variant::operator long long() const {
 }
 
 Variant::operator unsigned char() const {
-	return toValue<unsigned char>();
+	return toValue<unsigned short>();
 }
 
 Variant::operator unsigned short() const {
