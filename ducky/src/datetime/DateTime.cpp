@@ -7,6 +7,7 @@
 
 #include <ducky/datetime/DateTime.h>
 #include <sys/time.h>
+#include <errno.h>
 #include <vector>
 #include <ctime>
 #include <cstring>
@@ -33,6 +34,22 @@ DateTime::~DateTime() {
 
 }
 
+string DateTime::getLocalDate() const {
+	return this->toLocalString("%F");
+}
+
+string DateTime::getLocalTime() const {
+	return this->toLocalString("%T");
+}
+
+string DateTime::getDate() const {
+	return this->toString("%F");
+}
+
+string DateTime::getTime() const {
+	return this->toString("%T");
+}
+
 string DateTime::toLocalString(const string& format) const {
 	string f = format;
 	if (f.empty()) {
@@ -40,7 +57,10 @@ string DateTime::toLocalString(const string& format) const {
 	}
 	vector<char> buf(f.length() * 4 + 10);
 	tm tm_t;
-	localtime_r(&t, &tm_t);
+	if (NULL == localtime_r(&t, &tm_t)) {
+		THROW_EXCEPTION(DateTimeException,
+				string("localtime_r failed: ") + strerror(errno), errno);
+	}
 	strftime(&buf[0], buf.size(), f.c_str(), &tm_t);
 	return &buf[0];
 }
@@ -52,20 +72,29 @@ string DateTime::toString(const string& format) const {
 	}
 	vector<char> buf(f.length() * 4 + 10);
 	tm tm_t;
-	gmtime_r(&t, &tm_t);
+	if (NULL == gmtime_r(&t, &tm_t)) {
+		THROW_EXCEPTION(DateTimeException,
+				string("gmtime_r failed: ") + strerror(errno), errno);
+	}
 	strftime(&buf[0], buf.size(), f.c_str(), &tm_t);
 	return &buf[0];
 }
 
 tm DateTime::toLocalTm() const {
 	tm tm_t;
-	localtime_r(&t, &tm_t);
+	if (NULL == localtime_r(&t, &tm_t)) {
+		THROW_EXCEPTION(DateTimeException,
+				string("localtime_r failed: ") + strerror(errno), errno);
+	}
 	return tm_t;
 }
 
 tm DateTime::toTm() const {
 	tm tm_t;
-	gmtime_r(&t, &tm_t);
+	if (NULL == gmtime_r(&t, &tm_t)) {
+		THROW_EXCEPTION(DateTimeException,
+				string("gmtime_r failed: ") + strerror(errno), errno);
+	}
 	return tm_t;
 }
 

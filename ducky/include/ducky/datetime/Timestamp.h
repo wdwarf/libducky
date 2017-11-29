@@ -9,10 +9,13 @@
 #define DUCKY_DATETIME_TIMESTAMP_H_
 
 #include <ducky/Object.h>
+#include <ducky/exception/Exception.h>
 #include <ducky/datetime/DateTime.h>
 
 namespace ducky {
 namespace datetime {
+
+EXCEPTION_DEF(TimestampException)
 
 class Timestamp: public Object {
 public:

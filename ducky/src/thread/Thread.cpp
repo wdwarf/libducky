@@ -10,6 +10,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <cstring>
+#include <cassert>
 #include <sys/syscall.h>
 
 using namespace std;
@@ -49,12 +50,12 @@ Thread::~Thread() {
 }
 
 void* Thread::ThreadFunc(Thread* pThread) {
-	if (NULL == pThread)
-		return NULL;
+	assert(pThread);
 
 	pThread->threadState = TS_RUNNING;
 	pthread_cleanup_push((void (*)(void*))Thread::ThreadCancelFunc, pThread);
 		try {
+			assert(pThread->isInCurrentThread());
 			pThread->run();
 		} catch (std::exception& e) {
 			cerr << e.what() << endl;
@@ -78,6 +79,8 @@ void* Thread::ThreadFunc(Thread* pThread) {
 }
 
 void Thread::ThreadCancelFunc(Thread* pThread) {
+	assert(pThread);
+
 	try {
 		pThread->onCanceled();
 		pThread->onTerminated();
@@ -104,10 +107,8 @@ void Thread::start() {
 }
 
 void Thread::stop() {
-	if (!this->isRunning())
-		return;
-
-	this->threadState = TS_STOP_REQUIRING;
+	if (TS_RUNNING == this->threadState)
+		this->threadState = TS_STOP_REQUIRING;
 }
 
 void Thread::detach() {
@@ -122,7 +123,7 @@ void Thread::detach() {
 
 void Thread::cancel() {
 	if (!this->isRunning()) {
-		THROW_EXCEPTION(ThreadException, "thread is not running..", 0);
+		return;
 	}
 
 	if (0 != pthread_cancel(this->threadId)) {
@@ -138,8 +139,8 @@ pthread_t Thread::getThreadId() {
 	return this->threadId;
 }
 
-bool Thread::isInCurrentThread() const{
-	return (pthread_self() == this->threadId);
+bool Thread::isInCurrentThread() const {
+	return pthread_equal(pthread_self(), this->threadId);
 }
 
 bool Thread::isRunning() const {
@@ -169,10 +170,9 @@ void Thread::testcancel() {
 	pthread_testcancel();
 }
 
-pid_t Thread::CurrentTid(){
+pid_t Thread::CurrentTid() {
 	return syscall(SYS_gettid);
 }
-
 
 bool Thread::isFreeOnTerminated() const {
 	return freeOnTerminated;

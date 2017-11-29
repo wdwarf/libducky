@@ -9,13 +9,14 @@
 #define DUCKY_DATETIME_DATETIME_H_
 
 #include <ducky/Object.h>
+#include <ducky/exception/Exception.h>
 #include <string>
 #include <ctime>
 
-using std::string;
-
 namespace ducky {
 namespace datetime {
+
+EXCEPTION_DEF(DateTimeException)
 
 class DateTime: public Object {
 public:
@@ -23,7 +24,6 @@ public:
 	DateTime(time_t t);
 	DateTime(const DateTime& t);
 	virtual ~DateTime();
-	DateTime& operator=(const DateTime& t);
 
 	int getLocalYear() const;
 	int getLocalMonth() const;
@@ -33,6 +33,10 @@ public:
 	int getLocalSecond() const;
 	int getLocalWeek() const;
 	int getLocalYearDay() const;
+	std::string getLocalDate() const;
+	std::string getLocalTime() const;
+	std::string toLocalString(const std::string& format = "") const;
+	tm toLocalTm() const;
 
 	int getYear() const;
 	int getMonth() const;
@@ -42,14 +46,12 @@ public:
 	int getSecond() const;
 	int getWeek() const;
 	int getYearDay() const;
-
-	string toLocalString(const string& format = "") const;
-	string toString(const string& format = "") const;
-	tm toLocalTm() const;
+	std::string getDate() const;
+	std::string getTime() const;
+	std::string toString(const std::string& format = "") const;
 	tm toTm() const;
 
-	static DateTime now();
-
+	DateTime& operator=(const DateTime& t);
 	bool operator==(const DateTime& t) const;
 	bool operator!=(const DateTime& t) const;
 	bool operator<(const DateTime& t) const;
@@ -57,6 +59,8 @@ public:
 	bool operator>(const DateTime& t) const;
 	bool operator>=(const DateTime& t) const;
 	long operator-(const DateTime& t) const;
+
+	static DateTime now();
 
 private:
 	time_t t;

@@ -9,9 +9,12 @@
 #define DATETIME_TICK_H_
 
 #include <ducky/Object.h>
+#include <ducky/exception/Exception.h>
 
 namespace ducky {
 namespace datetime {
+
+EXCEPTION_DEF(TickException)
 
 class Tick: public Object {
 public:
