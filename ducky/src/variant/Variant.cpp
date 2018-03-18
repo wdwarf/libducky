@@ -88,6 +88,18 @@ Variant::Variant(unsigned long long v) {
 	this->value.valULongLong = v;
 }
 
+Variant::Variant(float v) {
+	this->vt = VT_FLOAT;
+	this->size = TypeInfo(this->vt).size;
+	this->value.valFloat = v;
+}
+
+Variant::Variant(double v) {
+	this->vt = VT_DOUBLE;
+	this->size = TypeInfo(this->vt).size;
+	this->value.valDouble = v;
+}
+
 Variant::Variant(const char* v) {
 	this->vt = VT_STRING;
 	this->size = strlen(v);
@@ -239,6 +251,14 @@ VariantTypeInfo Variant::TypeInfo(VariantType type) {
 		typeInfo.size = sizeof(long long);
 		break;
 	}
+	case VT_FLOAT: {
+		typeInfo.size = sizeof(float);
+		break;
+	}
+	case VT_DOUBLE: {
+		typeInfo.size = sizeof(double);
+		break;
+	}
 	default:
 		typeInfo.size = 0;
 		break;
@@ -294,6 +314,14 @@ string Variant::toString() const {
 	}
 	case VT_LONGLONG: {
 		val << this->value.valLongLong;
+		break;
+	}
+	case VT_FLOAT: {
+		val << this->value.valFloat;
+		break;
+	}
+	case VT_DOUBLE: {
+		val << this->value.valDouble;
 		break;
 	}
 	case VT_CARRAY:
@@ -356,6 +384,14 @@ buffer::Buffer Variant::toBuffer() const {
 		val << this->value.valLongLong;
 		break;
 	}
+	case VT_FLOAT: {
+		val << this->value.valFloat;
+		break;
+	}
+	case VT_DOUBLE: {
+		val << this->value.valDouble;
+		break;
+	}
 	case VT_CARRAY:
 	case VT_STRING: {
 		if (this->value.valPtr && this->size > 0) {
@@ -402,6 +438,12 @@ void Variant::clear() {
 		break;
 	}
 	case VT_LONGLONG: {
+		break;
+	}
+	case VT_FLOAT: {
+		break;
+	}
+	case VT_DOUBLE: {
 		break;
 	}
 	case VT_CARRAY:
@@ -502,6 +544,22 @@ Variant& Variant::operator=(unsigned long long v) {
 	this->vt = VT_ULONGLONG;
 	this->size = TypeInfo(this->vt).size;
 	this->value.valULongLong = v;
+	return *this;
+}
+
+Variant& Variant::operator=(float v) {
+	this->clear();
+	this->vt = VT_FLOAT;
+	this->size = TypeInfo(this->vt).size;
+	this->value.valFloat = v;
+	return *this;
+}
+
+Variant& Variant::operator=(double v) {
+	this->clear();
+	this->vt = VT_DOUBLE;
+	this->size = TypeInfo(this->vt).size;
+	this->value.valDouble = v;
 	return *this;
 }
 
@@ -619,6 +677,14 @@ void Variant::setValue(const void* v) {
 		memcpy(&this->value.valLongLong, v, this->size);
 		break;
 	}
+	case VT_FLOAT: {
+		memcpy(&this->value.valFloat, v, this->size);
+		break;
+	}
+	case VT_DOUBLE: {
+		memcpy(&this->value.valDouble, v, this->size);
+		break;
+	}
 	case VT_CARRAY: {
 		memcpy(this->value.valPtr, v, this->size);
 		break;
@@ -695,6 +761,14 @@ T Variant::toValue() const {
 		val = this->value.valLongLong;
 		break;
 	}
+	case VT_FLOAT: {
+		val = this->value.valFloat;
+		break;
+	}
+	case VT_DOUBLE: {
+		val = this->value.valDouble;
+		break;
+	}
 	case VT_CARRAY: {
 		if (this->size > sizeof(T)) {
 			memcpy(&val, this->value.valPtr, sizeof(T));
@@ -767,6 +841,12 @@ Variant::operator bool() const {
 	case VT_LONGLONG: {
 		return (0 != this->value.valLongLong);
 	}
+	case VT_FLOAT: {
+		return (0 != this->value.valFloat);
+	}
+	case VT_DOUBLE: {
+		return (0 != this->value.valDouble);
+	}
 	case VT_CARRAY:
 	case VT_STRING: {
 		string val = this->toString();
@@ -819,6 +899,14 @@ Variant::operator unsigned long() const {
 
 Variant::operator unsigned long long() const {
 	return toValue<unsigned long long>();
+}
+
+Variant::operator float() const {
+	return toValue<float>();
+}
+
+Variant::operator double() const {
+	return toValue<double>();
 }
 
 Variant::operator string() const {

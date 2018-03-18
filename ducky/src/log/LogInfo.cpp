@@ -148,3 +148,9 @@ std::ostream& operator<<(std::ostream& o, const ducky::log::LogType& lt){
 	o << lt.getName();
 	return o;
 }
+
+std::ostream& operator<<(std::ostream& o, const ducky::log::LogLevel& lt){
+	o << lt.toString();
+	return o;
+}
+

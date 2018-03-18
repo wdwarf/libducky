@@ -74,18 +74,7 @@ void Logger::run() {
 				continue;
 			}
 		}
-		/*
-		 stringstream str;
-		 str << "[" << logInfo.getLogTime() << "]" << " [" << logInfo.getLogModule() << "]" << " ["
-		 << logInfo.getLogType() << "]" << " [" << (string) logInfo.getLogLevel() << "]";
-		 if (!logInfo.getFileName().empty() && 0 != logInfo.getLineNumber()
-		 && !logInfo.getFunctionName().empty()) {
-		 str << " [" << File(logInfo.getFileName()).getName() << " " << logInfo.getLineNumber()
-		 << " " << logInfo.getFunctionName() << "]";
-		 }
-		 str << " " << logInfo.getLogMessage();
-		 cout << str.str() << endl;
-		 */
+
 		{
 			MutexLocker lk(this->mutex);
 			for (std::list<IAppender*>::iterator it = this->appenders.begin();

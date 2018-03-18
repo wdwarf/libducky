@@ -33,6 +33,8 @@ enum VariantType {
 	VT_INT,
 	VT_LONG,
 	VT_LONGLONG,
+	VT_FLOAT,
+	VT_DOUBLE,
 	VT_CARRAY,
 	VT_STRING
 };
@@ -62,6 +64,8 @@ public:
 	Variant(unsigned int v);
 	Variant(unsigned long v);
 	Variant(unsigned long long v);
+	Variant(float v);
+	Variant(double v);
 	Variant(const char* v);
 	Variant(const string& v);
 	Variant(const buffer::Buffer& v);
@@ -81,6 +85,8 @@ public:
 	Variant& operator=(unsigned int v);
 	Variant& operator=(unsigned long v);
 	Variant& operator=(unsigned long long v);
+	Variant& operator=(float v);
+	Variant& operator=(double v);
 	Variant& operator=(const char* v);
 	Variant& operator=(const string& v);
 	Variant& operator=(const buffer::Buffer& v);
@@ -99,6 +105,8 @@ public:
 	operator unsigned int() const;
 	operator unsigned long() const;
 	operator unsigned long long() const;
+	operator float() const;
+	operator double() const;
 	operator string() const;
 	operator buffer::Buffer() const;
 
@@ -128,6 +136,8 @@ private:
 		unsigned int valUInt;
 		unsigned long valULong;
 		unsigned long long valULongLong;
+		float valFloat;
+		double valDouble;
 	} Value;
 	Value value;
 

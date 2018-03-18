@@ -6,6 +6,7 @@
  */
 
 #include <ducky/network/UdpClient.h>
+#include <ducky/network/NetworkException.h>
 #include <errno.h>
 
 using namespace std;
@@ -66,7 +67,7 @@ int UdpClient::getBufferSize() const {
 
 void UdpClient::setBufferSize(int bufferSize) {
 	if (bufferSize <= 0) {
-		throw NetworkException("Invalid buffer size.", bufferSize);
+		THROW_EXCEPTION(NetworkException, "Invalid buffer size.", bufferSize);
 	}
 	this->bufferSize = bufferSize;
 }
@@ -89,21 +90,21 @@ void UdpClient::start() {
 
 		this->setBroadcast(true);
 	} catch (exception::Exception& e) {
-		throw UdpClientException(e.what(), errno);
+		THROW_EXCEPTION(UdpClientException, e.what(), errno);
 	}
 
 	try {
 		readThread->start();
 	} catch (...) {
 		this->sock.close();
-		throw UdpClientException("Read thread start failed.", errno);
+		THROW_EXCEPTION(UdpClientException, "Read thread start failed.", errno);
 	}
 
 	try {
 		sendThread->start();
 	} catch (...) {
 		this->sock.close();
-		throw UdpClientException("Send thread start failed.", errno);
+		THROW_EXCEPTION(UdpClientException, "Send thread start failed.", errno);
 	}
 
 	try {
@@ -112,7 +113,7 @@ void UdpClient::start() {
 		this->readThread->stop();
 		this->sendThread->stop();
 		this->sock.close();
-		throw UdpClientException("Client thread start failed.", errno);
+		THROW_EXCEPTION(UdpClientException, "Client thread start failed.", errno);
 	}
 }
 
@@ -217,7 +218,7 @@ UdpClientReadThread::UdpClientReadThread(UdpClient* parent) {
 void UdpClientReadThread::recv(const UdpClientContext& context) {
 	MutexLocker lk(this->mutex);
 	if (context.getIp().empty() || (context.getPort() <= 0)) {
-		throw NetworkException("Invalid context.", -1);
+		THROW_EXCEPTION(NetworkException, "Invalid context.", -1);
 	}
 	this->contexts.push_back(context);
 	this->sem.release();
@@ -274,7 +275,7 @@ UdpClientSendThread::UdpClientSendThread(UdpClient* parent) {
 void UdpClientSendThread::send(const UdpClientContext& context) {
 	MutexLocker lk(this->mutex);
 	if (context.getIp().empty() || (context.getPort() <= 0)) {
-		throw NetworkException("Invalid context.", -1);
+		THROW_EXCEPTION(NetworkException, "Invalid context.", -1);
 	}
 	this->contexts.push_back(context);
 	this->sem.release();

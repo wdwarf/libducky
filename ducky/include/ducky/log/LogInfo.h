@@ -46,7 +46,11 @@ public:
 		return (this->_level == (E_LogLevel) level);
 	}
 
-	operator std::string() {
+	operator std::string() const {
+		return this->toString();
+	}
+
+	std::string toString() const {
 		switch (this->_level) {
 		case LL_DEBUG: {
 			return "D";
@@ -88,8 +92,9 @@ private:
 class LogInfo: virtual public Object {
 public:
 	LogInfo();
-	LogInfo(const LogLevel& logLevel, const std::string& logMessage, const std::string& logModule,
-			const LogType& logType, ducky::datetime::DateTime logTime, const std::string& fileName,
+	LogInfo(const LogLevel& logLevel, const std::string& logMessage,
+			const std::string& logModule, const LogType& logType,
+			ducky::datetime::DateTime logTime, const std::string& fileName,
 			const std::string& functionName, unsigned int lineNumber);
 	virtual ~LogInfo();
 
@@ -132,5 +137,6 @@ private:
 } /* namespace ducky */
 
 std::ostream& operator<<(std::ostream& o, const ducky::log::LogType& lt);
+std::ostream& operator<<(std::ostream& o, const ducky::log::LogLevel& lt);
 
 #endif /* LOG_LOGINFO_H_ */
