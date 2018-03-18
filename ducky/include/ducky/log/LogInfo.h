@@ -13,6 +13,7 @@
 
 #include <ducky/Object.h>
 #include <ducky/log/LogException.h>
+#include <ducky/datetime/DateTime.h>
 
 namespace ducky {
 namespace log {
@@ -88,7 +89,7 @@ class LogInfo: virtual public Object {
 public:
 	LogInfo();
 	LogInfo(const LogLevel& logLevel, const std::string& logMessage, const std::string& logModule,
-			const LogType& logType, time_t logTime, const std::string& fileName,
+			const LogType& logType, ducky::datetime::DateTime logTime, const std::string& fileName,
 			const std::string& functionName, unsigned int lineNumber);
 	virtual ~LogInfo();
 
@@ -104,8 +105,8 @@ public:
 	void setLogLevel(LogLevel logLevel);
 	const std::string& getLogModule() const;
 	void setLogModule(const std::string& logModule);
-	time_t getLogTime() const;
-	void setLogTime(time_t logTime);
+	ducky::datetime::DateTime getLogTime() const;
+	void setLogTime(ducky::datetime::DateTime logTime);
 	const LogType& getLogType() const;
 	void setLogType(const LogType& logType);
 
@@ -117,7 +118,7 @@ private:
 	std::string logMessage;
 	std::string logModule;
 	LogType logType;
-	time_t logTime;
+	ducky::datetime::DateTime logTime;
 
 	std::string fileName;
 	std::string functionName;

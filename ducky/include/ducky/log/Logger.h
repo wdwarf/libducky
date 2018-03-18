@@ -33,6 +33,8 @@ public:
 	void addAppender(IAppender* appender);
 	void removeAppender(IAppender* appender);
 
+	void flush();
+
 private:
 	virtual void run();
 

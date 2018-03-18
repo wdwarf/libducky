@@ -24,6 +24,7 @@ Logger::Logger(const std::string& module) :
 }
 
 Logger::~Logger() {
+	this->flush();
 	this->stop();
 	this->join();
 }
@@ -37,6 +38,21 @@ void Logger::log(const LogInfo& logInfo) {
 	MutexLocker lk(this->mutex);
 	this->logInfos.push_back(logInfo);
 	this->sem.release();
+}
+
+void Logger::flush() {
+	MutexLocker lk(this->mutex);
+	for(std::list<LogInfo>::iterator it = this->logInfos.begin(); it != this->logInfos.end(); ++it){
+		LogInfo& logInfo = *it;
+		for (std::list<IAppender*>::iterator it = this->appenders.begin();
+				it != this->appenders.end(); ++it) {
+			IAppender* appender = *it;
+			if (NULL == appender)
+				continue;
+			appender->log(logInfo);
+		}
+	}
+	this->logInfos.clear();
 }
 
 void Logger::run() {
@@ -58,18 +74,18 @@ void Logger::run() {
 				continue;
 			}
 		}
-/*
-		stringstream str;
-		str << "[" << logInfo.getLogTime() << "]" << " [" << logInfo.getLogModule() << "]" << " ["
-				<< logInfo.getLogType() << "]" << " [" << (string) logInfo.getLogLevel() << "]";
-		if (!logInfo.getFileName().empty() && 0 != logInfo.getLineNumber()
-				&& !logInfo.getFunctionName().empty()) {
-			str << " [" << File(logInfo.getFileName()).getName() << " " << logInfo.getLineNumber()
-					<< " " << logInfo.getFunctionName() << "]";
-		}
-		str << " " << logInfo.getLogMessage();
-		cout << str.str() << endl;
-*/
+		/*
+		 stringstream str;
+		 str << "[" << logInfo.getLogTime() << "]" << " [" << logInfo.getLogModule() << "]" << " ["
+		 << logInfo.getLogType() << "]" << " [" << (string) logInfo.getLogLevel() << "]";
+		 if (!logInfo.getFileName().empty() && 0 != logInfo.getLineNumber()
+		 && !logInfo.getFunctionName().empty()) {
+		 str << " [" << File(logInfo.getFileName()).getName() << " " << logInfo.getLineNumber()
+		 << " " << logInfo.getFunctionName() << "]";
+		 }
+		 str << " " << logInfo.getLogMessage();
+		 cout << str.str() << endl;
+		 */
 		{
 			MutexLocker lk(this->mutex);
 			for (std::list<IAppender*>::iterator it = this->appenders.begin();
@@ -86,8 +102,8 @@ void Logger::run() {
 
 void Logger::addAppender(IAppender* appender) {
 	MutexLocker lk(this->mutex);
-	for (std::list<IAppender*>::iterator it = this->appenders.begin(); it != this->appenders.end();
-			++it) {
+	for (std::list<IAppender*>::iterator it = this->appenders.begin();
+			it != this->appenders.end(); ++it) {
 		if (*it == appender)
 			return;
 	}

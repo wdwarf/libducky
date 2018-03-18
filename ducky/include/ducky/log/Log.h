@@ -31,14 +31,14 @@ public:
 	static ducky::smartptr::SharedPtr<Logger> GetLogger(const std::string& module);
 
 	void log(const LogInfo& logInfo);
-	Log& d(const std::string& logMsg, const LogType& type, const std::string& fileName,
-			const std::string& functionName, unsigned int lineNumber);
-	Log& i(const std::string& logMsg, const LogType& type, const std::string& fileName,
-			const std::string& functionName, unsigned int lineNumber);
-	Log& w(const std::string& logMsg, const LogType& type, const std::string& fileName,
-			const std::string& functionName, unsigned int lineNumber);
-	Log& e(const std::string& logMsg, const LogType& type, const std::string& fileName,
-			const std::string& functionName, unsigned int lineNumber);
+	Log& d(const std::string& logMsg, const LogType& type, const std::string& fileName = "",
+			const std::string& functionName = "", unsigned int lineNumber = 0);
+	Log& i(const std::string& logMsg, const LogType& type, const std::string& fileName = "",
+			const std::string& functionName = "", unsigned int lineNumber = 0);
+	Log& w(const std::string& logMsg, const LogType& type, const std::string& fileName = "",
+			const std::string& functionName = "", unsigned int lineNumber = 0);
+	Log& e(const std::string& logMsg, const LogType& type, const std::string& fileName = "",
+			const std::string& functionName = "", unsigned int lineNumber = 0);
 
 	Log& operator<<(const LogLevel& logLevel);
 	Log& operator<<(const LogType& logType);

@@ -16,7 +16,7 @@ LogInfo::LogInfo() :
 }
 
 LogInfo::LogInfo(const LogLevel& _logLevel, const std::string& logMessage,
-		const std::string& logModule, const LogType& logType, time_t logTime,
+		const std::string& logModule, const LogType& logType, ducky::datetime::DateTime logTime,
 		const std::string& fileName, const std::string& functionName, unsigned int lineNumber) :
 		logLevel(LL_INFO) {
 	this->logLevel = _logLevel;
@@ -73,11 +73,11 @@ void LogInfo::setLogModule(const std::string& logModule) {
 	this->logModule = logModule;
 }
 
-time_t LogInfo::getLogTime() const {
+ducky::datetime::DateTime LogInfo::getLogTime() const {
 	return logTime;
 }
 
-void LogInfo::setLogTime(time_t logTime) {
+void LogInfo::setLogTime(ducky::datetime::DateTime logTime) {
 	this->logTime = logTime;
 }
 

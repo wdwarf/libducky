@@ -162,6 +162,11 @@ int DateTime::getYearDay() const {
 	return this->toTm().tm_yday;
 }
 
+DateTime& DateTime::operator=(const time_t& t){
+	this->t = t;
+	return *this;
+}
+
 bool DateTime::operator==(const DateTime& t) const {
 	return (t.t == this->t);
 }

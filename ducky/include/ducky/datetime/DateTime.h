@@ -51,7 +51,7 @@ public:
 	std::string toString(const std::string& format = "") const;
 	tm toTm() const;
 
-	DateTime& operator=(const DateTime& t);
+	DateTime& operator=(const time_t& t);
 	bool operator==(const DateTime& t) const;
 	bool operator!=(const DateTime& t) const;
 	bool operator<(const DateTime& t) const;
