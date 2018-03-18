@@ -16,13 +16,18 @@ namespace process {
 
 class Process: public Object {
 public:
-	Process();
+	Process(const std::string& command);
 	virtual ~Process();
+
+	int exec(bool wait = true);
 
 public:
 	static int GetPid();
 	static int GetPPid();
 	static int Exec(const std::string& command, bool wait = false);
+
+private:
+	std::string command;
 };
 
 } /* namespace process */

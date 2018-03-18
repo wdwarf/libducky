@@ -66,6 +66,10 @@ public:
 	virtual void onStop() {
 	}
 
+	const std::string& getLocalIp() const;
+	void setLocalIp(const std::string& localIp);
+	int getLocalPort() const;
+	void setLocalPort(int localPort);
 	const std::string& getServerIp() const;
 	void setServerIp(const std::string& serverIp);
 	int getServerPort() const;

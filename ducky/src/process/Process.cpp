@@ -15,13 +15,16 @@ using namespace std;
 namespace ducky {
 namespace process {
 
-Process::Process() {
-	// TODO Auto-generated constructor stub
-
+Process::Process(const std::string& command) {
+	this->command = command;
 }
 
 Process::~Process() {
-	// TODO Auto-generated destructor stub
+	//
+}
+
+int Process::exec(bool wait){
+	return Process::Exec(this->command, wait);
 }
 
 int Process::GetPid() {
@@ -34,16 +37,18 @@ int Process::GetPPid() {
 
 int Process::Exec(const std::string& command, bool wait) {
 	int pid = vfork();
+
 	if (0 == pid) {
-		execlp(command.c_str(), command.c_str(), NULL);
-		exit(0);
-	} else {
-		if (wait) {
+		int re = execlp(command.c_str(), command.c_str(), NULL);
+		exit(re);
+	}else{
+		if(wait){
 			int status = 0;
 			waitpid(pid, &status, 0);
 		}
 	}
-	return 0;
+
+	return pid;
 }
 
 } /* namespace process */

@@ -327,5 +327,21 @@ void UdpClientSendThread::stop() {
 	this->join();
 }
 
+const std::string& UdpClient::getLocalIp() const {
+	return localIp;
+}
+
+void UdpClient::setLocalIp(const std::string& localIp) {
+	this->localIp = localIp;
+}
+
+int UdpClient::getLocalPort() const {
+	return localPort;
+}
+
+void UdpClient::setLocalPort(int localPort) {
+	this->localPort = localPort;
+}
+
 } /* namespace network */
 } /* namespace ducky */

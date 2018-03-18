@@ -72,7 +72,11 @@ void* Thread::ThreadFunc(Thread* pThread) {
 	pThread->threadState = TS_STOPPED;
 	memset(&pThread->threadId, 0, sizeof(pThread->threadId));
 	if (pThread->freeOnTerminated) {
+#ifdef __OBJ_DELETE_THIS__
 		pThread->deleteThis();
+#else
+		delete pThread;
+#endif
 	}
 
 	return NULL;
@@ -90,7 +94,11 @@ void Thread::ThreadCancelFunc(Thread* pThread) {
 	pThread->threadState = TS_STOPPED;
 	memset(&pThread->threadId, 0, sizeof(pThread->threadId));
 	if (pThread->freeOnTerminated) {
+#ifdef __OBJ_DELETE_THIS__
 		pThread->deleteThis();
+#else
+		delete pThread;
+#endif
 	}
 }
 
