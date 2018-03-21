@@ -130,12 +130,11 @@ Log& Log::operator()(const ducky::variant::Variant& logMsg) {
 	return this->put(logMsg);
 }
 
-Log& Log::done(const LogLevel& logLevel, const LogType& type, const std::string& fileName,
-		const std::string& functionName, unsigned int lineNumber) {
+Log& Log::done(const LogLevel& logLevel, const LogType& type) {
 	this->log(
 			LogInfo(this->logLevel, this->logBuffer.str(), this->module,
 					type.getName().empty() ? this->logType : type,
-					DateTime::now(), fileName, functionName, lineNumber));
+					DateTime::now(), fileName, this->functionName, this->lineNumber));
 	MutexLocker lk(this->_mutex);
 	this->logBuffer.clear();
 	this->logBuffer.str("");
@@ -188,6 +187,30 @@ Log& Log::setLogType(const LogType& logType) {
 	MutexLocker lk(this->_mutex);
 	this->logType = logType;
 	return *this;
+}
+
+const std::string& Log::getFileName() const {
+	return fileName;
+}
+
+void Log::setFileName(const std::string& fileName) {
+	this->fileName = fileName;
+}
+
+const std::string& Log::getFunctionName() const {
+	return functionName;
+}
+
+void Log::setFunctionName(const std::string& functionName) {
+	this->functionName = functionName;
+}
+
+unsigned int Log::getLineNumber() const {
+	return lineNumber;
+}
+
+void Log::setLineNumber(unsigned int lineNumber) {
+	this->lineNumber = lineNumber;
 }
 
 } /* namespace log */

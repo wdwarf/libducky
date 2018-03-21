@@ -51,8 +51,7 @@ public:
 
 	Log& put(const ducky::variant::Variant& logMsg);
 	Log& operator()(const ducky::variant::Variant& logMsg);
-	Log& done(const LogLevel& logLevel = LL_INFO, const LogType& type = "", const std::string& fileName = "",
-			const std::string& functionName = "", unsigned int lineNumber = 0);
+	Log& done(const LogLevel& logLevel = LL_INFO, const LogType& type = "");
 
 	Log& operator<<(const LogLevel& logLevel);
 	Log& operator<<(const LogType& logType);
@@ -62,11 +61,20 @@ public:
 	Log& setLogLevel(const LogLevel& logLevel);
 	const LogType& getLogType() const;
 	Log& setLogType(const LogType& logType);
+	const std::string& getFileName() const;
+	void setFileName(const std::string& fileName);
+	const std::string& getFunctionName() const;
+	void setFunctionName(const std::string& functionName);
+	unsigned int getLineNumber() const;
+	void setLineNumber(unsigned int lineNumber);
 
 private:
 	std::string module;
 	LogLevel logLevel;
 	LogType logType;
+	std::string fileName;
+	std::string functionName;
+	unsigned int lineNumber;
 	ducky::thread::Mutex _mutex;
 	ducky::smartptr::SharedPtr<Logger> logger;
 	std::stringstream logBuffer;
