@@ -167,6 +167,10 @@ DateTime& DateTime::operator=(const time_t& t){
 	return *this;
 }
 
+DateTime::operator time_t() const{
+	return this->t;
+}
+
 bool DateTime::operator==(const DateTime& t) const {
 	return (t.t == this->t);
 }

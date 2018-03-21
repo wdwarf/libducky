@@ -52,6 +52,7 @@ public:
 	tm toTm() const;
 
 	DateTime& operator=(const time_t& t);
+	operator time_t() const;
 	bool operator==(const DateTime& t) const;
 	bool operator!=(const DateTime& t) const;
 	bool operator<(const DateTime& t) const;
