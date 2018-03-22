@@ -36,31 +36,19 @@ public:
 	static void RemoveLogger(const std::string& module);
 
 	void log(const LogInfo& logInfo);
-	Log& d(const std::string& logMsg, const LogType& type,
-			const std::string& fileName = "", const std::string& functionName =
-					"", unsigned int lineNumber = 0);
-	Log& i(const std::string& logMsg, const LogType& type,
-			const std::string& fileName = "", const std::string& functionName =
-					"", unsigned int lineNumber = 0);
-	Log& w(const std::string& logMsg, const LogType& type,
-			const std::string& fileName = "", const std::string& functionName =
-					"", unsigned int lineNumber = 0);
-	Log& e(const std::string& logMsg, const LogType& type,
-			const std::string& fileName = "", const std::string& functionName =
-					"", unsigned int lineNumber = 0);
 
 	Log& put(const ducky::variant::Variant& logMsg);
 	Log& operator()(const ducky::variant::Variant& logMsg);
-	Log& done(const LogLevel& logLevel = LL_INFO, const LogType& type = "");
+	Log& operator()(const LogLevel& logLevel);
+	Log& operator()(const LogType& logType);
+	Log& done(const LogType& type);
+	Log& done(const std::string& type = "");
 
-	Log& operator<<(const LogLevel& logLevel);
-	Log& operator<<(const LogType& logType);
-	Log& operator<<(const std::string& msg);
-	Log& operator<<(const char* msg);
 	const LogLevel& getLogLevel() const;
 	Log& setLogLevel(const LogLevel& logLevel);
 	const LogType& getLogType() const;
 	Log& setLogType(const LogType& logType);
+	Log& setLogType(const std::string& logType);
 	const std::string& getFileName() const;
 	void setFileName(const std::string& fileName);
 	const std::string& getFunctionName() const;

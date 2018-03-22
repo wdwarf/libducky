@@ -12,32 +12,15 @@
 #include <cstring>
 #include <cassert>
 #include <sys/syscall.h>
+#include <signal.h>
 
 using namespace std;
 
 namespace ducky {
 namespace thread {
 
-string ToString(ThreadState state) {
-	string stateName;
-	switch (state) {
-	case TS_RUNNING:
-		stateName = "TS_RUNNING";
-		break;
-	case TS_STOP_REQUIRING:
-		stateName = "TS_STOP_REQUIRING";
-		break;
-	case TS_STOPPED:
-		stateName = "TS_STOPPED";
-		break;
-	default:
-		break;
-	}
-	return stateName;
-}
-
 Thread::Thread() :
-		threadState(TS_STOPPED), freeOnTerminated(false) {
+		running(false), canStop(false), freeOnTerminated(false) {
 	memset(&this->threadId, 0, sizeof(this->threadId));
 }
 
@@ -52,7 +35,6 @@ Thread::~Thread() {
 void* Thread::ThreadFunc(Thread* pThread) {
 	assert(pThread);
 
-	pThread->threadState = TS_RUNNING;
 	pthread_cleanup_push((void (*)(void*))Thread::ThreadCancelFunc, pThread);
 		try {
 			assert(pThread->isInCurrentThread());
@@ -66,11 +48,15 @@ void* Thread::ThreadFunc(Thread* pThread) {
 
 	try {
 		pThread->onTerminated();
+	} catch (std::exception& e) {
+		cerr << e.what() << endl;
 	} catch (...) {
 	}
 
-	pThread->threadState = TS_STOPPED;
-	memset(&pThread->threadId, 0, sizeof(pThread->threadId));
+	{
+		MutexLocker lk(pThread->mutex);
+		pThread->running = false;
+	}
 	if (pThread->freeOnTerminated) {
 #ifdef __OBJ_DELETE_THIS__
 		pThread->deleteThis();
@@ -88,11 +74,15 @@ void Thread::ThreadCancelFunc(Thread* pThread) {
 	try {
 		pThread->onCanceled();
 		pThread->onTerminated();
+	} catch (std::exception& e) {
+		cerr << e.what() << endl;
 	} catch (...) {
 	}
 
-	pThread->threadState = TS_STOPPED;
-	memset(&pThread->threadId, 0, sizeof(pThread->threadId));
+	{
+		MutexLocker lk(pThread->mutex);
+		pThread->running = false;
+	}
 	if (pThread->freeOnTerminated) {
 #ifdef __OBJ_DELETE_THIS__
 		pThread->deleteThis();
@@ -103,20 +93,27 @@ void Thread::ThreadCancelFunc(Thread* pThread) {
 }
 
 void Thread::start() {
-	if (TS_STOPPED != this->threadState) {
+	if (this->isRunning()) {
 		THROW_EXCEPTION(ThreadException, "thread is running.", 0);
 	}
 
+	this->canStop = false;
 	int re = pthread_create(&this->threadId, NULL,
 			(void* (*)(void*))Thread::ThreadFunc, this);
 	if (0 != re) {
 		THROW_EXCEPTION(ThreadException, "thread create failed..", errno);
 	}
+
+	{
+		MutexLocker lk(this->mutex);
+		this->running = true;
+	}
 }
 
 void Thread::stop() {
-	if (TS_RUNNING == this->threadState)
-		this->threadState = TS_STOP_REQUIRING;
+	if (this->isRunning()) {
+		this->canStop = true;
+	}
 }
 
 void Thread::detach() {
@@ -139,10 +136,6 @@ void Thread::cancel() {
 	}
 }
 
-ThreadState Thread::getState() const {
-	return this->threadState;
-}
-
 pthread_t Thread::getThreadId() {
 	return this->threadId;
 }
@@ -152,12 +145,11 @@ bool Thread::isInCurrentThread() const {
 }
 
 bool Thread::isRunning() const {
-	return ((TS_RUNNING == this->threadState)
-			|| (TS_STOP_REQUIRING == this->threadState));
+	return (this->running && (0 == pthread_kill(this->threadId, 0)));
 }
 
-bool Thread::canStop() {
-	return (TS_STOP_REQUIRING == this->threadState);
+bool Thread::isCanStop() const {
+	return this->canStop;
 }
 
 void Thread::join() {

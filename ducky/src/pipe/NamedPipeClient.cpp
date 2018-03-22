@@ -57,10 +57,10 @@ private:
 				int bufSize = 2048;
 				Buffer buf;
 				buf.alloc(bufSize);
-				while (!this->canStop()) {
+				while (!this->isCanStop()) {
 					int readBytes = this->pipe.read(buf.getData(),
 							buf.getSize());
-					if (this->canStop()) {
+					if (this->isCanStop()) {
 						break;
 					}
 					if (readBytes < 0) {
@@ -96,9 +96,9 @@ private:
 		void run() {
 			try {
 				this->pipe.open(this->pipeName, PT_WRITE);
-				while (!this->canStop()) {
+				while (!this->isCanStop()) {
 					this->sem.wait();
-					if (this->canStop()) {
+					if (this->isCanStop()) {
 						break;
 					}
 
@@ -110,7 +110,7 @@ private:
 
 					int readBytes = this->pipe.write(buf.getData(),
 							buf.getSize());
-					if (this->canStop()) {
+					if (this->isCanStop()) {
 						break;
 					}
 					if (readBytes < 0) {

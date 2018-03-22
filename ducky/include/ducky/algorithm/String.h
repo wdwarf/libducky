@@ -28,12 +28,17 @@ string& TrimRight(string& str);
 string TrimRightCopy(const string& str);
 string& Trim(string& str);
 string TrimCopy(const string& str);
-string& Replease(string& src, const string& find, const string& replease);
-string RepleaseCopy(const string& src, const string& find,
-		const string& replease);
-string& RepleaseAll(string& src, const string& find, const string& replease);
-string RepleaseAllCopy(const string& src, const string& find,
-		const string& replease);
+
+string& Replace(string& src, const string& find, const string& replace,
+		bool ignoreCase = false);
+string ReplaceCopy(const string& src, const string& find, const string& replace,
+		bool ignoreCase = false);
+string& ReplaceAll(string& src, const string& find, const string& replace,
+		bool ignoreCase = false);
+string ReplaceAllCopy(const string& src, const string& find,
+		const string& replace, bool ignoreCase = false);
+
+int IndexOf(const string& src, const string& find, bool ignoreCase = false);
 
 } /* namespace string */
 } /* namespace ducky */

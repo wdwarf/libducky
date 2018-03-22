@@ -31,7 +31,7 @@ Log::Log(const std::string& module) :
 }
 
 Log::~Log() {
-	//
+	this->done();
 }
 
 ducky::smartptr::SharedPtr<Logger> Log::CreateLogger(
@@ -84,42 +84,6 @@ void Log::log(const LogInfo& logInfo) {
 	}
 }
 
-Log& Log::d(const std::string& logMsg, const LogType& type,
-		const std::string& fileName, const std::string& functionName,
-		unsigned int lineNumber) {
-	this->log(
-			LogInfo(LL_DEBUG, logMsg, this->module, type, DateTime::now(),
-					fileName, functionName, lineNumber));
-	return *this;
-}
-
-Log& Log::i(const std::string& logMsg, const LogType& type,
-		const std::string& fileName, const std::string& functionName,
-		unsigned int lineNumber) {
-	this->log(
-			LogInfo(LL_INFO, logMsg, this->module, type, DateTime::now(),
-					fileName, functionName, lineNumber));
-	return *this;
-}
-
-Log& Log::w(const std::string& logMsg, const LogType& type,
-		const std::string& fileName, const std::string& functionName,
-		unsigned int lineNumber) {
-	this->log(
-			LogInfo(LL_WARNING, logMsg, this->module, type, DateTime::now(),
-					fileName, functionName, lineNumber));
-	return *this;
-}
-
-Log& Log::e(const std::string& logMsg, const LogType& type,
-		const std::string& fileName, const std::string& functionName,
-		unsigned int lineNumber) {
-	this->log(
-			LogInfo(LL_ERROR, logMsg, this->module, type, DateTime::now(),
-					fileName, functionName, lineNumber));
-	return *this;
-}
-
 Log& Log::put(const ducky::variant::Variant& logMsg) {
 	MutexLocker lk(this->_mutex);
 	this->logBuffer << logMsg.toString();
@@ -130,43 +94,39 @@ Log& Log::operator()(const ducky::variant::Variant& logMsg) {
 	return this->put(logMsg);
 }
 
-Log& Log::done(const LogLevel& logLevel, const LogType& type) {
+Log& Log::operator()(const LogLevel& logLevel){
+	this->setLogLevel(logLevel);
+	return *this;
+}
+
+Log& Log::operator()(const LogType& logType){
+	this->setLogType(logType);
+	return *this;
+}
+
+Log& Log::done(const LogType& type) {
+	string logInfo;
+	{
+		MutexLocker lk(this->_mutex);
+		logInfo = this->logBuffer.str();
+
+		if (logInfo.empty())
+			return *this;
+		this->logBuffer.clear();
+		this->logBuffer.str("");
+	}
+
 	this->log(
-			LogInfo(this->logLevel, this->logBuffer.str(), this->module,
+			LogInfo(this->logLevel, logInfo, this->module,
 					type.getName().empty() ? this->logType : type,
-					DateTime::now(), fileName, this->functionName, this->lineNumber));
-	MutexLocker lk(this->_mutex);
-	this->logBuffer.clear();
-	this->logBuffer.str("");
+					DateTime::now(), fileName, this->functionName,
+					this->lineNumber));
+
 	return *this;
 }
 
-Log& Log::operator<<(const LogLevel& logLevel) {
-	MutexLocker lk(this->_mutex);
-	this->logLevel = logLevel;
-	return *this;
-}
-
-Log& Log::operator<<(const LogType& logType) {
-	MutexLocker lk(this->_mutex);
-	this->logType = logType;
-	return *this;
-}
-
-Log& Log::operator<<(const std::string& msg) {
-	MutexLocker lk(this->_mutex);
-	this->log(
-			LogInfo(this->logLevel, msg, this->module, this->logType,
-					DateTime::now(), "", "", 0));
-	return *this;
-}
-
-Log& Log::operator<<(const char* msg) {
-	MutexLocker lk(this->_mutex);
-	this->log(
-			LogInfo(this->logLevel, msg, this->module, this->logType,
-					DateTime::now(), "", "", 0));
-	return *this;
+Log& Log::done(const std::string& type){
+	return this->done(LogType(type));
 }
 
 const LogLevel& Log::getLogLevel() const {
@@ -187,6 +147,10 @@ Log& Log::setLogType(const LogType& logType) {
 	MutexLocker lk(this->_mutex);
 	this->logType = logType;
 	return *this;
+}
+
+Log& Log::setLogType(const std::string& logType){
+	return this->setLogType(LogType(logType));
 }
 
 const std::string& Log::getFileName() const {

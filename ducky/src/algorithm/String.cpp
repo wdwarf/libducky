@@ -76,38 +76,80 @@ string TrimCopy(const string& str) {
 	return Trim(newStr);
 }
 
-string& Replease(string& src, const string& find, const string& replease) {
-	string::size_type pos = src.find_first_of(find);
-	if (pos != string::npos) {
-		src.replace(pos, find.length(), replease);
+string& Replace(string& src, const string& find, const string& replace,
+		bool ignoreCase) {
+	string::size_type pos = string::npos;
+	if (ignoreCase) {
+		string s = src;
+		string f = find;
+		ToLower(s);
+		ToLower(f);
+		pos = s.find(f);
+	} else {
+		pos = src.find(find);
 	}
+
+	if (pos != string::npos) {
+		src.replace(pos, find.length(), replace);
+	}
+
 	return src;
 }
 
-string RepleaseCopy(const string& src, const string& find,
-		const string& replease) {
-	string str = str;
-	return Replease(str, find, replease);
+string ReplaceCopy(const string& src, const string& find, const string& replace,
+		bool ignoreCase) {
+	string str = src;
+	return Replace(str, find, replace, ignoreCase);
 }
 
-string& RepleaseAll(string& src, const string& find, const string& replease) {
+string& ReplaceAll(string& src, const string& find, const string& replace,
+		bool ignoreCase) {
 	string::size_type pos = 0;
+	string s = src;
+	string f = find;
+	if (ignoreCase) {
+		ToLower(s);
+		ToLower(f);
+	}
+
 	do {
-		pos = src.find(find, pos);
+		pos = s.find(f, pos);
+
 		if (pos != string::npos) {
-			src.replace(pos, find.length(), replease);
+			src.replace(pos, find.length(), replace);
+			s.replace(pos, find.length(), replace);
 		} else {
 			break;
 		}
-		pos += replease.length();
+		pos += replace.length();
 	} while (true);
 	return src;
 }
 
-string RepleaseAllCopy(const string& src, const string& find,
-		const string& replease) {
+string ReplaceAllCopy(const string& src, const string& find,
+		const string& replace, bool ignoreCase) {
 	string str = src;
-	return RepleaseAll(str, find, replease);
+	return ReplaceAll(str, find, replace, ignoreCase);
+}
+
+int IndexOf(const string& src, const string& find, bool ignoreCase) {
+	int re = -1;
+	string::size_type pos = string::npos;
+	if (ignoreCase) {
+		string s = src;
+		string f = find;
+		ToLower(s);
+		ToLower(f);
+		pos = s.find(f);
+	} else {
+		pos = src.find(find);
+	}
+
+	if (pos != string::npos) {
+		re = pos;
+	}
+
+	return re;
 }
 
 } /* namespace string */

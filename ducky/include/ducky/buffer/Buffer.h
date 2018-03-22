@@ -16,7 +16,6 @@
 using std::string;
 using std::ostream;
 using std::istream;
-using std::stringstream;
 
 namespace ducky {
 namespace buffer {
@@ -32,8 +31,10 @@ public:
 	virtual ~Buffer();
 
 	Buffer& operator=(const Buffer& buffer);
-	Buffer operator+(const Buffer& buffer);
+	Buffer& operator+=(const Buffer& buffer);
+	Buffer operator+(const Buffer& buffer) const;
 	char& operator[](unsigned index);
+	const char& operator[](unsigned index) const;
 
 	void append(const char* data, unsigned int size);
 	void append(const Buffer& buffer);
@@ -47,8 +48,10 @@ public:
 	void alloc(int size);
 
 	string toString() const;
-	stringstream& getBufferStream();
+	int read(void* buf, int size) const;
+	void resetReadPos() const;
 
+	static void ReverseBytes(char* buf, int size);
 private:
 	class BufferImpl;
 	BufferImpl* impl;
@@ -59,34 +62,48 @@ private:
 } /* namespace ducky */
 
 ostream& operator<<(ostream& o, const ducky::buffer::Buffer& buffer);
-ostream& operator<<(ostream& o, ducky::buffer::Buffer& buffer);
-ducky::buffer::Buffer& operator<<(ducky::buffer::Buffer& buffer, istream& i);
-ducky::buffer::Buffer& operator<<(ducky::buffer::Buffer& buffer, string& str);
+
+#define BUF_IN_OPERATOR_DEF(T) ducky::buffer::Buffer& operator<<(ducky::buffer::Buffer& buffer, const T& t)
+#define BUF_OUT_OPERATOR_DEF(T) ducky::buffer::Buffer& operator>>(ducky::buffer::Buffer& buffer, T& t)
+
+#define BUF_IN_OPERATOR_IMPL(T) ducky::buffer::Buffer& operator<<(ducky::buffer::Buffer& buffer, const T& t) {\
+		buffer.append((const char*) &t, sizeof(T));\
+		return buffer;\
+}
+
+#define BUF_OUT_OPERATOR_IMPL(T) ducky::buffer::Buffer& operator>>(ducky::buffer::Buffer& buffer, T& t) {\
+		buffer.read((void*)&t, sizeof(t));\
+		return buffer;\
+}
+
+BUF_IN_OPERATOR_DEF(long long);
+BUF_IN_OPERATOR_DEF(long);
+BUF_IN_OPERATOR_DEF(int);
+BUF_IN_OPERATOR_DEF(short);
+BUF_IN_OPERATOR_DEF(char);
+BUF_IN_OPERATOR_DEF(unsigned long long);
+BUF_IN_OPERATOR_DEF(unsigned long);
+BUF_IN_OPERATOR_DEF(unsigned int);
+BUF_IN_OPERATOR_DEF(unsigned short);
+BUF_IN_OPERATOR_DEF(unsigned char);
+BUF_IN_OPERATOR_DEF(float);
+BUF_IN_OPERATOR_DEF(double);
+
+BUF_OUT_OPERATOR_DEF(long long);
+BUF_OUT_OPERATOR_DEF(long);
+BUF_OUT_OPERATOR_DEF(int);
+BUF_OUT_OPERATOR_DEF(short);
+BUF_OUT_OPERATOR_DEF(char);
+BUF_OUT_OPERATOR_DEF(unsigned long long);
+BUF_OUT_OPERATOR_DEF(unsigned long);
+BUF_OUT_OPERATOR_DEF(unsigned int);
+BUF_OUT_OPERATOR_DEF(unsigned short);
+BUF_OUT_OPERATOR_DEF(unsigned char);
+BUF_OUT_OPERATOR_DEF(float);
+BUF_OUT_OPERATOR_DEF(double);
+
 ducky::buffer::Buffer& operator<<(ducky::buffer::Buffer& buffer,
-		const char* str);
+		const ducky::buffer::Buffer& in_buffer);
+ducky::buffer::Buffer& operator<<(ducky::buffer::Buffer& buffer, istream& i);
 
-template<class T>
-ducky::buffer::Buffer& operator<<(ducky::buffer::Buffer& buffer, T& t) {
-	buffer.append((const char*) &t, (unsigned int) sizeof(T));
-	return buffer;
-}
-
-template<class T>
-T& operator<<(T& t, ducky::buffer::Buffer& buffer) {
-	buffer.getBufferStream() >> t;
-	return t;
-}
-
-template<class T>
-ducky::buffer::Buffer& operator>>(ducky::buffer::Buffer& buffer, T& t) {
-	buffer.getBufferStream() >> t;
-	return buffer;
-}
-
-template<class T>
-T& operator>>(T& t, ducky::buffer::Buffer& buffer) {
-	buffer.append((const char*) &t, sizeof(T));
-	return t;
-}
-
-#endif /* BUFFER_WBUFFER_H_ */
+#endif /* DUCKY_BUFFER_BUFFER_H_ */

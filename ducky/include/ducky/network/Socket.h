@@ -4,14 +4,38 @@
  *  Created on: Dec 23, 2013
  *      Author: wdwarf
  */
+
+#ifndef DUCKY_NETWORK_SOCKET_H_
+#define DUCKY_NETWORK_SOCKET_H_
+
+#ifdef __WINNT__
+
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#define SHUT_RDWR 2
+
+#else
+
+#include <unistd.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <arpa/inet.h>
+
+#endif
+
 #include <string>
 #include <ducky/Object.h>
 #include <ducky/exception/Exception.h>
 
-#ifndef DUCKY_NETWORK_SOCKET_H_
-#define DUCKY_NETWORK_SOCKET_H_
+#ifndef socklen_t
+
+#ifdef __MINGW32__
+#define socklen_t int
+#else
+#define socklen_t unsigned int
+#endif
+
+#endif
 
 namespace ducky {
 namespace network {
@@ -25,7 +49,7 @@ EXCEPTION_DEF2(SocketBindException, SocketException);
 class Socket: virtual public Object {
 public:
 	Socket();
-	Socket(int sock_fd);
+	Socket(int sockFd);
 	virtual ~Socket();
 
 	int create(int af, int style, int protocol = 0);
@@ -34,7 +58,7 @@ public:
 	int getHandle();
 	int close();
 	int shutdown(int type = SHUT_RDWR);
-	bool attach(int sock_fd);
+	bool attach(int sockFd);
 	int dettach();
 
 	string getLocalAddress();
@@ -60,7 +84,7 @@ public:
 			int timeoutSec = -1);
 
 private:
-	int sock_fd;
+	int sockFd;
 };
 
 } /* namespace network */

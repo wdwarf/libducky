@@ -108,7 +108,7 @@ void _TcpServerWorkThread::run() {
 	while (true) {
 		_NetServerContext* context = this->_server->getContext();
 
-		if (this->canStop()) {
+		if (this->isCanStop()) {
 			if (context) {
 				context->session->onDisconnected();
 
@@ -468,7 +468,7 @@ void _TcpServer::_TcpServerImpl::run() {
 
 	vector<struct epoll_event> events(this->eventCount);
 	string threadName;
-	while (!this->canStop()) {
+	while (!this->isCanStop()) {
 		int nfds = epoll_wait(epfd, &events[0], this->eventCount, -1);
 		for (int i = 0; i < nfds; ++i) {
 			if (events[i].data.fd == this->sock) {

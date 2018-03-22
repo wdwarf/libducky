@@ -1,5 +1,5 @@
 /*
- * WBuffer.cpp
+ * Buffer.cpp
  *
  *  Created on: Oct 14, 2016
  *      Author: ducky
@@ -7,6 +7,7 @@
 
 #include <ducky/buffer/Buffer.h>
 
+#include <iostream>
 #include <cstring>
 #include <sstream>
 #include <vector>
@@ -26,8 +27,9 @@ public:
 	virtual ~BufferImpl();
 
 	BufferImpl& operator=(const BufferImpl& buffer);
-	BufferImpl operator+(const BufferImpl& buffer);
+	BufferImpl operator+(const BufferImpl& buffer) const;
 	char& operator[](unsigned index);
+	const char& operator[](unsigned index) const;
 
 	void append(const char* data, unsigned int size);
 	void append(const BufferImpl& buffer);
@@ -41,35 +43,51 @@ public:
 	void alloc(int size);
 
 	string toString();
-	stringstream& getBufferStream();
+	int read(void* buf, int size) const;
+	void resetReadPos() const;
 
 private:
 	char* data;
 	unsigned int size;
-	stringstream bufStream;
+	mutable unsigned int readPos;
 };
 
 Buffer::BufferImpl::BufferImpl() :
-		data(NULL), size(0) {
+		data(NULL), size(0), readPos(0) {
 
 }
 
 Buffer::BufferImpl::BufferImpl(unsigned int initSize) :
-		data(NULL), size(0) {
+		data(NULL), size(0), readPos(0) {
 	this->size = initSize;
 	this->data = new char[this->size];
 }
 
 Buffer::BufferImpl::BufferImpl(const char* data, unsigned int size) :
-		data(NULL), size(0) {
+		data(NULL), size(0), readPos(0) {
 	this->setData(data, size);
 }
 
 Buffer::BufferImpl::BufferImpl(const Buffer::BufferImpl& buffer) :
-		data(NULL), size(0) {
+		data(NULL), size(0), readPos(0) {
 	this->setData(buffer.getData(), buffer.getSize());
 }
 
+int Buffer::BufferImpl::read(void* buf, int size) const {
+	int avaliableSize = this->getSize() - this->readPos;
+	cout << "avaliableSize: " << avaliableSize << endl;
+	if (avaliableSize <= 0)
+		return 0;
+
+	int readSzie = avaliableSize > size ? size : avaliableSize;
+	memcpy(buf, this->data + this->readPos, readSzie);
+	this->readPos += readSzie;
+	return readSzie;
+}
+
+void Buffer::BufferImpl::resetReadPos() const {
+	this->readPos = 0;
+}
 Buffer::BufferImpl& Buffer::BufferImpl::operator=(
 		const Buffer::BufferImpl& buffer) {
 	this->setData(buffer.getData(), buffer.getSize());
@@ -77,7 +95,7 @@ Buffer::BufferImpl& Buffer::BufferImpl::operator=(
 }
 
 Buffer::BufferImpl Buffer::BufferImpl::operator+(
-		const Buffer::BufferImpl& buffer) {
+		const Buffer::BufferImpl& buffer) const {
 	Buffer::BufferImpl newBuffer;
 	newBuffer.append(*this);
 	newBuffer.append(buffer);
@@ -96,15 +114,6 @@ void Buffer::BufferImpl::append(const char* data, unsigned int size) {
 		delete[] this->data;
 	this->data = newData;
 	this->size += size;
-
-	stringstream::pos_type startPos = 0;
-	if (this->bufStream.eof()) {
-		this->bufStream.seekg(0, ios::end);
-	}
-	startPos = this->bufStream.tellg();
-	this->bufStream.seekp(0, ios::end);
-	this->bufStream.write(data, size);
-	this->bufStream.seekg(startPos, ios::beg);
 }
 
 void Buffer::BufferImpl::append(const BufferImpl& buffer) {
@@ -118,33 +127,30 @@ void Buffer::BufferImpl::append(const BufferImpl& buffer) {
 	if (NULL != this->data)
 		delete[] this->data;
 
-	stringstream::pos_type startPos = 0;
-	if (this->bufStream.eof()) {
-		this->bufStream.seekg(0, ios::end);
-	}
-	startPos = this->bufStream.tellg();
-	this->bufStream.seekp(0, ios::end);
-	this->bufStream.write(buffer.getData(), buffer.getSize());
-	this->bufStream.seekg(startPos, ios::beg);
-
 	this->data = newData;
 	this->size += buffer.getSize();
 }
 
-void Buffer::BufferImpl::reverse() {
-	if (this->isEmpty()) {
+void Buffer::ReverseBytes(char* buf, int size) {
+	if (!buf || (size <= 0)) {
 		return;
 	}
 
-	char* pH = this->data;
-	char* pE = this->data + this->size - 1;
-	while (pH != pE) {
+	char* pH = buf;
+	char* pE = buf + size - 1;
+	while (pH < pE) {
 		char c = *pH;
 		*pH = *pE;
 		*pE = c;
 		++pH;
 		--pE;
 	}
+}
+
+void Buffer::BufferImpl::reverse() {
+	Buffer::ReverseBytes(this->data, this->size);
+
+	this->resetReadPos();
 }
 
 void Buffer::BufferImpl::alloc(int size) {
@@ -161,9 +167,21 @@ void Buffer::BufferImpl::alloc(int size) {
 		throw MK_EXCEPTION(BufferException, "Alloc buffer failed", size);
 	}
 	memset(this->data, 0, this->size);
+
+	this->resetReadPos();
 }
 
 char& Buffer::BufferImpl::operator[](unsigned index) {
+	if (index >= this->size) {
+		THROW_EXCEPTION(BufferException, "Index out of bound.", this->size);
+	}
+	return this->data[index];
+}
+
+const char& Buffer::BufferImpl::operator[](unsigned index) const {
+	if (index >= this->size) {
+		THROW_EXCEPTION(BufferException, "Index out of bound.", this->size);
+	}
 	return this->data[index];
 }
 
@@ -173,17 +191,13 @@ void Buffer::BufferImpl::setData(const char* data, unsigned int size) {
 		this->size = size;
 		this->data = new char[this->size];
 		memcpy(this->data, data, this->size);
-
-		this->bufStream.clear();
-		this->bufStream.str("");
-		this->bufStream.write(this->data, this->size);
 	} else {
 		this->size = 0;
 		this->data = NULL;
-
-		this->bufStream.clear();
-		this->bufStream.str("");
 	}
+
+	this->resetReadPos();
+
 	if (oldData)
 		delete[] oldData;
 }
@@ -210,8 +224,7 @@ void Buffer::BufferImpl::clear() {
 		this->data = NULL;
 		this->size = 0;
 
-		this->bufStream.clear();
-		this->bufStream.str("");
+		this->resetReadPos();
 	}
 }
 
@@ -233,10 +246,6 @@ string Buffer::BufferImpl::toString() {
 	}
 
 	return strBuf.str();
-}
-
-stringstream& Buffer::BufferImpl::getBufferStream() {
-	return this->bufStream;
 }
 
 /* end of Buffer::BufferImpl */
@@ -263,7 +272,12 @@ Buffer& Buffer::operator=(const Buffer& buffer) {
 	return *this;
 }
 
-Buffer Buffer::operator+(const Buffer& buffer) {
+Buffer& Buffer::operator+=(const Buffer& buffer) {
+	this->append(buffer);
+	return *this;
+}
+
+Buffer Buffer::operator+(const Buffer& buffer) const {
 	Buffer newBuffer;
 	newBuffer.append(*this);
 	newBuffer.append(buffer);
@@ -279,6 +293,10 @@ void Buffer::append(const Buffer& buffer) {
 }
 
 char& Buffer::operator[](unsigned index) {
+	return this->impl->operator [](index);
+}
+
+const char& Buffer::operator[](unsigned index) const {
 	return this->impl->operator [](index);
 }
 
@@ -308,10 +326,6 @@ string Buffer::toString() const {
 	return this->impl->toString();
 }
 
-stringstream& Buffer::getBufferStream() {
-	return this->impl->getBufferStream();
-}
-
 Buffer& Buffer::reverse() {
 	this->impl->reverse();
 	return *this;
@@ -319,6 +333,14 @@ Buffer& Buffer::reverse() {
 
 void Buffer::alloc(int size) {
 	this->impl->alloc(size);
+}
+
+int Buffer::read(void* buf, int size) const {
+	return this->impl->read(buf, size);
+}
+
+void Buffer::resetReadPos() const {
+	this->impl->resetReadPos();
 }
 
 } /* namespace buffer */
@@ -329,9 +351,10 @@ ostream& operator<<(ostream& o, const ducky::buffer::Buffer& buffer) {
 	return o;
 }
 
-ostream& operator<<(ostream& o, ducky::buffer::Buffer& buffer) {
-	o << buffer.toString();
-	return o;
+ducky::buffer::Buffer& operator<<(ducky::buffer::Buffer& buffer,
+		const ducky::buffer::Buffer& in_buffer) {
+	buffer.append(in_buffer);
+	return buffer;
 }
 
 ducky::buffer::Buffer& operator<<(ducky::buffer::Buffer& buffer, istream& i) {
@@ -347,14 +370,28 @@ ducky::buffer::Buffer& operator<<(ducky::buffer::Buffer& buffer, istream& i) {
 	return buffer;
 }
 
-ducky::buffer::Buffer& operator<<(ducky::buffer::Buffer& buffer, string& str) {
-	buffer.append(str.c_str(), str.length());
-	return buffer;
-}
+BUF_IN_OPERATOR_IMPL(long long);
+BUF_IN_OPERATOR_IMPL(long);
+BUF_IN_OPERATOR_IMPL(int);
+BUF_IN_OPERATOR_IMPL(short);
+BUF_IN_OPERATOR_IMPL(char);
+BUF_IN_OPERATOR_IMPL(unsigned long long);
+BUF_IN_OPERATOR_IMPL(unsigned long);
+BUF_IN_OPERATOR_IMPL(unsigned int);
+BUF_IN_OPERATOR_IMPL(unsigned short);
+BUF_IN_OPERATOR_IMPL(unsigned char);
+BUF_IN_OPERATOR_IMPL(float);
+BUF_IN_OPERATOR_IMPL(double);
 
-ducky::buffer::Buffer& operator<<(ducky::buffer::Buffer& buffer,
-		const char* str) {
-	buffer.append(str, strlen(str));
-	return buffer;
-}
-
+BUF_OUT_OPERATOR_IMPL(long long);
+BUF_OUT_OPERATOR_IMPL(long);
+BUF_OUT_OPERATOR_IMPL(int);
+BUF_OUT_OPERATOR_IMPL(short);
+BUF_OUT_OPERATOR_IMPL(char);
+BUF_OUT_OPERATOR_IMPL(unsigned long long);
+BUF_OUT_OPERATOR_IMPL(unsigned long);
+BUF_OUT_OPERATOR_IMPL(unsigned int);
+BUF_OUT_OPERATOR_IMPL(unsigned short);
+BUF_OUT_OPERATOR_IMPL(unsigned char);
+BUF_OUT_OPERATOR_IMPL(float);
+BUF_OUT_OPERATOR_IMPL(double);

@@ -75,8 +75,8 @@ private:
 class LogType {
 public:
 	LogType();
-	LogType(const std::string& name);
-	LogType(const char* name);
+	explicit LogType(const std::string& name);
+	explicit LogType(const char* name);
 
 	const std::string& getName() const;
 	void setName(const std::string& name);
