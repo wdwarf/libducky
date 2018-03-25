@@ -40,8 +40,11 @@ public:
 	virtual ~_TcpServerImpl();
 
 	virtual void setIp(const string& ip);
+	virtual string getIp() const;
 	virtual void setPort(unsigned int port);
+	virtual unsigned int getPort() const;
 	virtual void setWorkThreadCount(int workThreadCount);
+	int getWorkThreadCount() const;
 	virtual void start();
 	virtual void stop(bool joinServerThread = false);
 	virtual bool isRunning();
@@ -174,6 +177,10 @@ void _TcpServer::_TcpServerImpl::setWorkThreadCount(int workThreadCount) {
 	this->workThreadCount = workThreadCount;
 }
 
+int _TcpServer::_TcpServerImpl::getWorkThreadCount() const{
+	return this->workThreadCount;
+}
+
 void _TcpServer::_TcpServerImpl::onStart() {
 	this->_tcpServer->onStart();
 }
@@ -189,11 +196,19 @@ void _TcpServer::_TcpServerImpl::setIp(const string& ip) {
 	this->ip = ip;
 }
 
+string _TcpServer::_TcpServerImpl::getIp() const{
+	return this->ip;
+}
+
 void _TcpServer::_TcpServerImpl::setPort(unsigned int port) {
 	if (this->isRunning()) {
 		throw NetServerException("Server is running");
 	}
 	this->port = port;
+}
+
+unsigned int _TcpServer::_TcpServerImpl::getPort() const{
+	return this->port;
 }
 
 bool _TcpServer::_TcpServerImpl::bind(unsigned int port, const string& ip) {
@@ -508,8 +523,16 @@ void _TcpServer::setIp(const string& ip) {
 	this->impl->setIp(ip);
 }
 
+string _TcpServer::getIp() const{
+	return this->impl->getIp();
+}
+
 void _TcpServer::setPort(unsigned int port) {
 	this->impl->setPort(port);
+}
+
+unsigned int _TcpServer::getPort() const{
+	return this->impl->getPort();
 }
 
 void _TcpServer::start() {
@@ -530,6 +553,10 @@ bool _TcpServer::isRunning() {
 
 void _TcpServer::setWorkThreadCount(int workThreadCount) {
 	this->impl->setWorkThreadCount(workThreadCount);
+}
+
+int _TcpServer::getWorkThreadCount() const{
+	return this->impl->getWorkThreadCount();
 }
 
 } /* namespace network */

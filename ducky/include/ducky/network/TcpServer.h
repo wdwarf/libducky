@@ -21,8 +21,11 @@ public:
 	virtual ~_TcpServer();
 
 	virtual void setIp(const string& ip);
+	virtual string getIp() const;
 	virtual void setPort(unsigned int port);
+	virtual unsigned int getPort() const;
 	virtual void setWorkThreadCount(int workThreadCount);
+	int getWorkThreadCount() const;
 	virtual void start();
 	virtual void stop(bool joinServerThread = false);
 	virtual bool isRunning();

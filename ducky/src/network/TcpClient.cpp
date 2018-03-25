@@ -22,6 +22,11 @@ public:
 	virtual void send(const char* buf, size_t len);
 	virtual void send(const string& str);
 
+	virtual void setLocalAddress(const string& localAddr);
+	virtual const string& getLocalAddress() const;
+	virtual void setLocalPort(int port);
+	virtual int getLocalPort() const;
+
 	/*设置服务器地址*/
 	virtual void setServerAddress(const string& serverAddress);
 	virtual const string& getServerAddress() const;
@@ -34,6 +39,8 @@ public:
 
 private:
 	Socket sock;
+	string localAddress;
+	int localPort;
 	string serverAddress;
 	int serverPort;
 
@@ -147,7 +154,7 @@ private:
 	Semaphore sem;
 };
 
-TcpClient::TcpClientImpl::TcpClientImpl(TcpClient* client) :
+TcpClient::TcpClientImpl::TcpClientImpl(TcpClient* client) : localPort(0),
 		serverPort(0), readThread(new TcpClientReadThread(this)), sendThread(
 				new TcpClientSendThread(this)) {
 	this->client = client;
@@ -171,6 +178,10 @@ void TcpClient::TcpClientImpl::start() {
 	this->sock.close();
 	this->sock.createTcp();
 
+	if(!this->localAddress.empty() || this->localPort > 0){
+		this->sock.bind(this->localAddress, this->localPort);
+	}
+
 	if (0 == this->sock.connect(this->serverAddress, this->serverPort)) {
 		readThread->start();
 		sendThread->start();
@@ -184,6 +195,22 @@ void TcpClient::TcpClientImpl::stop() {
 
 	readThread->join();
 	sendThread->join();
+}
+
+void TcpClient::TcpClientImpl::setLocalAddress(const string& localAddr){
+	this->localAddress = localAddr;
+}
+
+const string& TcpClient::TcpClientImpl::getLocalAddress() const{
+	return this->localAddress;
+}
+
+void TcpClient::TcpClientImpl::setLocalPort(int port){
+	this->localPort = port;
+}
+
+int TcpClient::TcpClientImpl::getLocalPort() const{
+	return this->localPort;
 }
 
 void TcpClient::TcpClientImpl::setServerAddress(const string& serverAddress) {
@@ -251,6 +278,22 @@ void TcpClient::send(const char* buf, size_t len) {
 
 void TcpClient::send(const string& str) {
 	this->impl->send(str);
+}
+
+void TcpClient::setLocalAddress(const string& localAddr){
+	this->impl->setLocalAddress(localAddr);
+}
+
+const string& TcpClient::getLocalAddress() const{
+	return this->impl->getLocalAddress();
+}
+
+void TcpClient::setLocalPort(int port){
+	this->impl->setLocalPort(port);
+}
+
+int TcpClient::getLocalPort() const{
+	return this->impl->getLocalPort();
 }
 
 /*设置服务器地址*/

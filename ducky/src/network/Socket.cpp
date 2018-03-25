@@ -61,7 +61,8 @@ int Socket::create(int af, int style, int protocol) {
 	this->sockFd = socket(af, style, protocol);
 
 	if (this->sockFd <= 0) {
-		THROW_EXCEPTION(SocketException, "can't create socket.", errno);
+		THROW_EXCEPTION(SocketException,
+				string("can't create socket.") + strerror(errno), errno);
 	}
 
 #ifdef __WINNT__
@@ -198,9 +199,14 @@ int Socket::bind(string ip, int port) {
 		} else {
 			addr.sin_addr.s_addr = INADDR_ANY;
 		}
+
+		int flag = 1;
+		setsockopt(this->sockFd, SOL_SOCKET, SO_REUSEADDR, &flag, sizeof(flag));
+
 		re = ::bind(this->sockFd, (sockaddr*) &addr, sizeof(sockaddr));
 		if (re < 0) {
-			THROW_EXCEPTION(SocketBindException, "bind socket failed.", errno);
+			THROW_EXCEPTION(SocketBindException,
+					string("bind socket failed.") + strerror(errno), errno);
 		}
 	}
 	return re;

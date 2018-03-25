@@ -26,6 +26,11 @@ public:
 	virtual void send(const char* buf, size_t len);
 	virtual void send(const string& str);
 
+	virtual void setLocalAddress(const string& localAddr);
+	virtual const string& getLocalAddress() const;
+	virtual void setLocalPort(int port);
+	virtual int getLocalPort() const;
+
 	/*设置服务器地址*/
 	virtual void setServerAddress(const string& serverAddress);
 	virtual const string& getServerAddress() const;
