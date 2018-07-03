@@ -6,9 +6,12 @@
  */
 
 #include <string>
+#include <sstream>
 #include <algorithm>
+#include <ducky/exception/Exception.h>
 
 using namespace std;
+using namespace ducky::exception;
 
 namespace ducky {
 namespace algorithm {
@@ -44,8 +47,7 @@ string ToUpperCopy(const string& str) {
 }
 
 string& TrimLeft(string& str) {
-	string::iterator p = find_if(str.begin(), str.end(),
-			not1(ptr_fun<int, int>(_isspace_)));
+	string::iterator p = find_if(str.begin(), str.end(), not1(ptr_fun<int, int>(_isspace_)));
 	str.erase(str.begin(), p);
 	return str;
 }
@@ -76,8 +78,7 @@ string TrimCopy(const string& str) {
 	return Trim(newStr);
 }
 
-string& Replace(string& src, const string& find, const string& replace,
-		bool ignoreCase) {
+string& Replace(string& src, const string& find, const string& replace, bool ignoreCase) {
 	string::size_type pos = string::npos;
 	if (ignoreCase) {
 		string s = src;
@@ -96,14 +97,12 @@ string& Replace(string& src, const string& find, const string& replace,
 	return src;
 }
 
-string ReplaceCopy(const string& src, const string& find, const string& replace,
-		bool ignoreCase) {
+string ReplaceCopy(const string& src, const string& find, const string& replace, bool ignoreCase) {
 	string str = src;
 	return Replace(str, find, replace, ignoreCase);
 }
 
-string& ReplaceAll(string& src, const string& find, const string& replace,
-		bool ignoreCase) {
+string& ReplaceAll(string& src, const string& find, const string& replace, bool ignoreCase) {
 	string::size_type pos = 0;
 	string s = src;
 	string f = find;
@@ -126,8 +125,8 @@ string& ReplaceAll(string& src, const string& find, const string& replace,
 	return src;
 }
 
-string ReplaceAllCopy(const string& src, const string& find,
-		const string& replace, bool ignoreCase) {
+string ReplaceAllCopy(const string& src, const string& find, const string& replace,
+		bool ignoreCase) {
 	string str = src;
 	return ReplaceAll(str, find, replace, ignoreCase);
 }
@@ -152,6 +151,34 @@ int IndexOf(const string& src, const string& find, bool ignoreCase) {
 	return re;
 }
 
-} /* namespace string */
-} /* namespace ducky */
+unsigned int HexAToI(char x) {
+	if ((x >= 48) && (x <= 57))
+		x -= 48; /* 0-9 */
+	else if ((x >= 97) && (x <= 102))
+		x -= 87; /* a-f */
+	else if ((x >= 65) && (x <= 70))
+		x -= 55; /* A-F */
+	else{
+		stringstream str;
+		str << "Invalid hex character[" << x << "]";
+		THROW_EXCEPTION(Exception, str.str(), x);
+	}
+	return x;
+}
 
+char IToHexA(unsigned int x){
+	if(x >= 0 && x <= 9){
+		x += 48;
+	}if(x >= 10 && x <= 15){
+		x += 55;
+	}else{
+		stringstream str;
+		str << "Invalid hex number[" << x << "]";
+		THROW_EXCEPTION(Exception, str.str(), x);
+	}
+
+	return x;
+}
+
+} /* namespace algorithm */
+} /* namespace ducky */

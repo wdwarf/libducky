@@ -40,6 +40,10 @@ string ReplaceAllCopy(const string& src, const string& find,
 
 int IndexOf(const string& src, const string& find, bool ignoreCase = false);
 
+//十六进制字符转数字
+unsigned int HexAToI(char x);
+char IToHexA(unsigned int x);
+
 } /* namespace string */
 } /* namespace ducky */
 
