@@ -34,6 +34,9 @@ public:
 	void clear();
 
 	std::set<std::string> getKeys() const;
+
+	virtual void saveToFile(const std::string& file);
+	virtual void loadFromFile(const std::string& file);
 private:
 	typedef std::map<string, ducky::variant::Variant> ValueMap;
 	ValueMap values;
