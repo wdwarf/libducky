@@ -104,6 +104,20 @@ Log& Log::operator()(const LogType& logType){
 	return *this;
 }
 
+Log& Log::operator<<(const ducky::variant::Variant& logMsg) {
+	return this->put(logMsg);
+}
+
+Log& Log::operator<<(const LogLevel& logLevel){
+	this->setLogLevel(logLevel);
+	return *this;
+}
+
+Log& Log::operator<<(const LogType& logType){
+	this->setLogType(logType);
+	return *this;
+}
+
 Log& Log::done(const LogType& type) {
 	string logInfo;
 	{

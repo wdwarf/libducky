@@ -175,9 +175,9 @@ private:
 
 	private:
 		void run() {
-			while (!this->isCanStop()) {
+			while (!this->canStop()) {
 				sem.wait();
-				if (this->isCanStop()) {
+				if (this->canStop()) {
 					break;
 				}
 				if (!this->task) {
@@ -309,7 +309,7 @@ void TaskService::TaskServiceImpl::addTask(ITask* task, bool removeWorkingTasks)
 	}
 	MutexLocker lk(this->mutex);
 
-	if (this->isCanStop()) {
+	if (this->canStop()) {
 		if (task->isFreeAfterExecute()) {
 			delete task;
 		}
@@ -386,7 +386,7 @@ void TaskService::TaskServiceImpl::removeWorkingTask(ITask* task) {
 }
 
 void TaskService::TaskServiceImpl::run() {
-	while (!this->isCanStop()) {
+	while (!this->canStop()) {
 		{
 			MutexLocker lk(this->mutex);
 			msecWait = -1;

@@ -5,13 +5,16 @@
  *      Author: ducky
  */
 
-#include "ducky/thread/Thread.h"
+#include <ducky/thread/Thread.h>
 #include <iostream>
 #include <unistd.h>
 #include <errno.h>
 #include <cstring>
 #include <cassert>
+
+#ifdef __linux__
 #include <sys/syscall.h>
+#endif
 #include <signal.h>
 
 using namespace std;
@@ -20,14 +23,25 @@ namespace ducky {
 namespace thread {
 
 Thread::Thread() :
-		running(false), canStop(false), freeOnTerminated(false) {
+		runnable(this), running(false), _canStop(false), freeOnTerminated(false) {
+	memset(&this->threadId, 0, sizeof(this->threadId));
+}
+
+Thread::Thread(Runnable& r) :
+		runnable(&r), running(false), _canStop(false), freeOnTerminated(false) {
 	memset(&this->threadId, 0, sizeof(this->threadId));
 }
 
 Thread::~Thread() {
 	try {
-		this->cancel();
+		this->stop();
 		this->join();
+
+		string className = this->runnable->getClassName();
+		if (string::npos != className.find("ThreadFuncWraper")
+				|| string::npos != className.find("ThreadMFuncWraper")) {
+			delete this->runnable;
+		}
 	} catch (...) {
 	}
 }
@@ -35,16 +49,24 @@ Thread::~Thread() {
 void* Thread::ThreadFunc(Thread* pThread) {
 	assert(pThread);
 
+	cout << "thread " << pThread->threadId << ", " << pThread->getClassName() << " started" << endl;
+
+#ifdef __linux__
 	pthread_cleanup_push((void (*)(void*))Thread::ThreadCancelFunc, pThread);
-		try {
-			assert(pThread->isInCurrentThread());
-			pThread->run();
-		} catch (std::exception& e) {
-			cerr << e.what() << endl;
-		} catch (...) {
-			throw;
-		}
-		pthread_cleanup_pop(0);
+#endif
+
+	try {
+		assert(pThread->isInCurrentThread());
+		pThread->getRunnable()->run();
+	} catch (std::exception& e) {
+		cerr << e.what() << endl;
+	} catch (...) {
+		throw;
+	}
+
+#ifdef __linux__
+	pthread_cleanup_pop(0);
+#endif
 
 	try {
 		pThread->onTerminated();
@@ -52,6 +74,8 @@ void* Thread::ThreadFunc(Thread* pThread) {
 		cerr << e.what() << endl;
 	} catch (...) {
 	}
+
+	cout << "thread " << pThread->threadId << ", " << pThread->getClassName() << " stoped" << endl;
 
 	{
 		MutexLocker lk(pThread->mutex);
@@ -68,6 +92,7 @@ void* Thread::ThreadFunc(Thread* pThread) {
 	return NULL;
 }
 
+#ifdef __linux__
 void Thread::ThreadCancelFunc(Thread* pThread) {
 	assert(pThread);
 
@@ -91,16 +116,17 @@ void Thread::ThreadCancelFunc(Thread* pThread) {
 #endif
 	}
 }
+#endif
 
-void Thread::start() {
+bool Thread::start() {
 	if (this->isRunning()) {
 		THROW_EXCEPTION(ThreadException, "thread is running.", 0);
 	}
 
-	this->canStop = false;
-	int re = pthread_create(&this->threadId, NULL,
-			(void* (*)(void*))Thread::ThreadFunc, this);
-	if (0 != re) {
+	this->_canStop = false;
+
+	bool re = (this->beforeStart() && (0 == pthread_create(&this->threadId, NULL, (void* (*)(void*))Thread::ThreadFunc, this)));
+	if (!re) {
 		THROW_EXCEPTION(ThreadException, "thread create failed..", errno);
 	}
 
@@ -108,12 +134,29 @@ void Thread::start() {
 		MutexLocker lk(this->mutex);
 		this->running = true;
 	}
+
+	return true;
 }
 
-void Thread::stop() {
+bool Thread::beforeStart(){
+	return true;
+}
+
+bool Thread::stop() {
 	if (this->isRunning()) {
-		this->canStop = true;
+		this->beforeStop();
+		this->_canStop = true;
 	}
+
+	return true;
+}
+
+bool Thread::beforeStop(){
+	return true;
+}
+
+void Thread::run() {
+	cout << "empty thread run method..." << endl;
 }
 
 void Thread::detach() {
@@ -126,6 +169,7 @@ void Thread::detach() {
 	}
 }
 
+#ifdef __linux__
 void Thread::cancel() {
 	if (!this->isRunning()) {
 		return;
@@ -135,6 +179,7 @@ void Thread::cancel() {
 		THROW_EXCEPTION(ThreadException, "thread cancel failed..", errno);
 	}
 }
+#endif
 
 pthread_t Thread::getThreadId() {
 	return this->threadId;
@@ -148,8 +193,8 @@ bool Thread::isRunning() const {
 	return (this->running && (0 == pthread_kill(this->threadId, 0)));
 }
 
-bool Thread::isCanStop() const {
-	return this->canStop;
+bool Thread::canStop() const {
+	return this->_canStop;
 }
 
 void Thread::join() {
@@ -166,13 +211,17 @@ void Thread::Sleep(unsigned int ms) {
 	usleep(ms * 1000);
 }
 
+#ifdef __linux__
 void Thread::testcancel() {
 	pthread_testcancel();
 }
+#endif
 
+#ifdef __linux__
 pid_t Thread::CurrentTid() {
 	return syscall(SYS_gettid);
 }
+#endif
 
 bool Thread::isFreeOnTerminated() const {
 	return freeOnTerminated;
@@ -186,6 +235,9 @@ bool Thread::operator==(const Thread& t) const {
 	return pthread_equal(this->threadId, t.threadId);
 }
 
+Runnable* Thread::getRunnable() {
+	return this->runnable;
+}
+
 } /* namespace ducky */
 } /* namespace thread */
-

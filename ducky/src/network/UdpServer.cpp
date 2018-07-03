@@ -125,9 +125,9 @@ private:
 
 	private:
 		void run() {
-			while (!this->isCanStop()) {
+			while (!this->canStop()) {
 				this->sem.wait();
-				if (this->isCanStop())
+				if (this->canStop())
 					break;
 
 				UdpSendContext context;
@@ -170,7 +170,7 @@ private:
 		}
 	private:
 		void run() {
-			while (!this->isCanStop()) {
+			while (!this->canStop()) {
 				SharedPtr<IUdpClientSession> session =
 						this->parent->popReadySession();
 				if (session.get() && !session->isSessionExpired()) {
@@ -216,7 +216,7 @@ private:
 		}
 	private:
 		void run() {
-			while (!this->isCanStop()) {
+			while (!this->canStop()) {
 				UdpServerImpl::SessionList expiredSessions;
 				{
 					MutexLocker lk(this->mutex);
@@ -609,7 +609,7 @@ void UdpServerImpl::stop(bool joinServerThread) {
 
 void UdpServerImpl::run() {
 	this->onStart();
-	while (!this->isCanStop()) {
+	while (!this->canStop()) {
 		char buf[2048] = { 0 };
 		int len = 2048;
 		string ip;

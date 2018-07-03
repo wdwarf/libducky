@@ -4,52 +4,87 @@
  *  Created on: Feb 5, 2017
  *      Author: ducky
  */
-
 #include <ducky/process/Process.h>
-#include <unistd.h>
-#include <sys/wait.h>
-#include <cstdlib>
+#include "ProcessImpl.h"
 
 using namespace std;
 
 namespace ducky {
 namespace process {
 
-Process::Process(const std::string& command) {
-	this->command = command;
+
+Process::Process(const std::string& command) :
+		impl(new ProcessImpl(this, command)) {
 }
 
 Process::~Process() {
-	//
+	delete this->impl;
 }
 
-int Process::exec(bool wait){
-	return Process::Exec(this->command, wait);
+void Process::start() {
+	return this->impl->start();
+}
+
+void Process::stop() {
+	this->impl->stop();
+}
+
+void Process::waitForFinished() {
+	this->impl->waitForFinished();
 }
 
 int Process::GetPid() {
-	return getpid();
+	return Process::ProcessImpl::GetPid();
 }
 
 int Process::GetPPid() {
-	return getppid();
+	return Process::ProcessImpl::GetPPid();
 }
 
 int Process::Exec(const std::string& command, bool wait) {
-	int pid = vfork();
+	return Process::ProcessImpl::Exec(command, wait);
+}
 
-	if (0 == pid) {
-		int re = execlp(command.c_str(), command.c_str(), NULL);
-		exit(re);
-	}else{
-		if(wait){
-			int status = 0;
-			waitpid(pid, &status, 0);
-		}
-	}
+const std::string& Process::getCommand() const {
+	return this->impl->getCommand();
+}
 
-	return pid;
+void Process::setCommand(const std::string& command) {
+	this->impl->setCommand(command);
+}
+
+int Process::readData(char* buf, int bufLen){
+	return this->impl->readData(buf, bufLen);
+}
+
+bool Process::isAsyncRead() const{
+	return this->impl->isAsyncRead();
+}
+
+void Process::setAsyncRead(bool asyncRead){
+	this->impl->setAsyncRead(asyncRead);
+}
+
+const std::string& Process::getWorkDir() const {
+	return this->impl->getWorkDir();
+}
+
+void Process::setWorkDir(const std::string& workDir) {
+	this->impl->setWorkDir(workDir);
+}
+
+void Process::addParameter(const std::string& arg){
+	this->impl->addParameter(arg);
+}
+
+const vector<string>& Process::getParameters() const{
+	return this->impl->getParameters();
+}
+
+void Process::clearParameter(){
+	this->impl->clearParameter();
 }
 
 } /* namespace process */
 } /* namespace ducky */
+

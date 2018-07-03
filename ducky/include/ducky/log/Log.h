@@ -41,6 +41,9 @@ public:
 	Log& operator()(const ducky::variant::Variant& logMsg);
 	Log& operator()(const LogLevel& logLevel);
 	Log& operator()(const LogType& logType);
+	Log& operator<<(const ducky::variant::Variant& logMsg);
+	Log& operator<<(const LogLevel& logLevel);
+	Log& operator<<(const LogType& logType);
 	Log& done(const LogType& type);
 	Log& done(const std::string& type = "");
 

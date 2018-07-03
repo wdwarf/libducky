@@ -74,7 +74,7 @@ private:
 		} catch (...) {
 		}
 
-		while (!this->isCanStop()) {
+		while (!this->canStop()) {
 			try {
 				const int bufLen = 20480;
 				char* buf = new char[bufLen];
@@ -119,10 +119,10 @@ public:
 
 private:
 	void run() {
-		while (!this->isCanStop()) {
+		while (!this->canStop()) {
 			try {
 				this->sem.wait();
-				if (this->isCanStop()) {
+				if (this->canStop()) {
 					break;
 				}
 

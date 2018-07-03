@@ -57,9 +57,9 @@ void Logger::flush() {
 
 void Logger::run() {
 	cout << "logger[" << this->module << "] started" << endl;
-	while (!this->isCanStop()) {
+	while (!this->canStop()) {
 		this->sem.wait();
-		if (this->isCanStop())
+		if (this->canStop())
 			break;
 		LogInfo logInfo;
 

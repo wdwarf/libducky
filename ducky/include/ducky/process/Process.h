@@ -4,22 +4,40 @@
  *  Created on: Feb 5, 2017
  *      Author: ducky
  */
-
 #ifndef DUCKY_PROCESS_PROCESS_H_
 #define DUCKY_PROCESS_PROCESS_H_
 
 #include <ducky/Object.h>
+#include <ducky/exception/Exception.h>
 #include <string>
+#include <vector>
 
 namespace ducky {
 namespace process {
+
+EXCEPTION_DEF(ProcessException);
 
 class Process: public Object {
 public:
 	Process(const std::string& command);
 	virtual ~Process();
 
-	int exec(bool wait = true);
+	void start();
+	void stop();
+	void waitForFinished();
+	const std::string& getCommand() const;
+	void setCommand(const std::string& command);
+	int readData(char* buf, int bufLen);
+	bool isAsyncRead() const;
+	void setAsyncRead(bool asyncRead);
+	const std::string& getWorkDir() const;
+	void setWorkDir(const std::string& workDir);
+	void addParameter(const std::string& arg);
+	const std::vector<std::string>& getParameters() const;
+	void clearParameter();
+
+	virtual void onReadData(char* buf, int bufLen) {
+	}
 
 public:
 	static int GetPid();
@@ -27,7 +45,9 @@ public:
 	static int Exec(const std::string& command, bool wait = false);
 
 private:
-	std::string command;
+	class ProcessImpl;
+	ProcessImpl* impl;
+
 };
 
 } /* namespace process */

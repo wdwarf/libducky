@@ -132,7 +132,7 @@ void UdpClient::run() {
 	}
 
 	char* buf = new char[this->bufferSize];
-	while (!this->isCanStop()) {
+	while (!this->canStop()) {
 		string ip;
 		int port = 0;
 		int re = this->sock.recvFrom(buf, this->bufferSize, ip, port);
@@ -235,9 +235,9 @@ void UdpClientReadThread::recv(const char* data, int dataSize, const string& ip,
 }
 
 void UdpClientReadThread::run() {
-	while (!this->isCanStop()) {
+	while (!this->canStop()) {
 		this->sem.wait();
-		if (this->isCanStop()) {
+		if (this->canStop()) {
 			break;
 		}
 
@@ -292,9 +292,9 @@ void UdpClientSendThread::send(const char* data, int dataSize, const string& ip,
 }
 
 void UdpClientSendThread::run() {
-	while (!this->isCanStop()) {
+	while (!this->canStop()) {
 		this->sem.wait();
-		if (this->isCanStop()) {
+		if (this->canStop()) {
 			break;
 		}
 
