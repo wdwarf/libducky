@@ -22,6 +22,9 @@ namespace buffer {
 
 EXCEPTION_DEF(BufferException)
 
+#define BUF_IN_OPERATOR_DEF(T) ducky::buffer::Buffer& operator<<(const T& t)
+#define BUF_OUT_OPERATOR_DEF(T) ducky::buffer::Buffer& operator>>(T& t)
+
 class Buffer: virtual public Object {
 public:
 	Buffer();
@@ -51,6 +54,32 @@ public:
 	int read(void* buf, int size) const;
 	void resetReadPos() const;
 
+	BUF_IN_OPERATOR_DEF(long long);
+	BUF_IN_OPERATOR_DEF(long);
+	BUF_IN_OPERATOR_DEF(int);
+	BUF_IN_OPERATOR_DEF(short);
+	BUF_IN_OPERATOR_DEF(char);
+	BUF_IN_OPERATOR_DEF(unsigned long long);
+	BUF_IN_OPERATOR_DEF(unsigned long);
+	BUF_IN_OPERATOR_DEF(unsigned int);
+	BUF_IN_OPERATOR_DEF(unsigned short);
+	BUF_IN_OPERATOR_DEF(unsigned char);
+	BUF_IN_OPERATOR_DEF(float);
+	BUF_IN_OPERATOR_DEF(double);
+
+	BUF_OUT_OPERATOR_DEF(long long);
+	BUF_OUT_OPERATOR_DEF(long);
+	BUF_OUT_OPERATOR_DEF(int);
+	BUF_OUT_OPERATOR_DEF(short);
+	BUF_OUT_OPERATOR_DEF(char);
+	BUF_OUT_OPERATOR_DEF(unsigned long long);
+	BUF_OUT_OPERATOR_DEF(unsigned long);
+	BUF_OUT_OPERATOR_DEF(unsigned int);
+	BUF_OUT_OPERATOR_DEF(unsigned short);
+	BUF_OUT_OPERATOR_DEF(unsigned char);
+	BUF_OUT_OPERATOR_DEF(float);
+	BUF_OUT_OPERATOR_DEF(double);
+
 	static void ReverseBytes(char* buf, int size);
 private:
 	class BufferImpl;
@@ -62,45 +91,6 @@ private:
 } /* namespace ducky */
 
 ostream& operator<<(ostream& o, const ducky::buffer::Buffer& buffer);
-
-#define BUF_IN_OPERATOR_DEF(T) ducky::buffer::Buffer& operator<<(ducky::buffer::Buffer& buffer, const T& t)
-#define BUF_OUT_OPERATOR_DEF(T) ducky::buffer::Buffer& operator>>(ducky::buffer::Buffer& buffer, T& t)
-
-#define BUF_IN_OPERATOR_IMPL(T) ducky::buffer::Buffer& operator<<(ducky::buffer::Buffer& buffer, const T& t) {\
-		buffer.append((const char*) &t, sizeof(T));\
-		return buffer;\
-}
-
-#define BUF_OUT_OPERATOR_IMPL(T) ducky::buffer::Buffer& operator>>(ducky::buffer::Buffer& buffer, T& t) {\
-		buffer.read((void*)&t, sizeof(t));\
-		return buffer;\
-}
-
-BUF_IN_OPERATOR_DEF(long long);
-BUF_IN_OPERATOR_DEF(long);
-BUF_IN_OPERATOR_DEF(int);
-BUF_IN_OPERATOR_DEF(short);
-BUF_IN_OPERATOR_DEF(char);
-BUF_IN_OPERATOR_DEF(unsigned long long);
-BUF_IN_OPERATOR_DEF(unsigned long);
-BUF_IN_OPERATOR_DEF(unsigned int);
-BUF_IN_OPERATOR_DEF(unsigned short);
-BUF_IN_OPERATOR_DEF(unsigned char);
-BUF_IN_OPERATOR_DEF(float);
-BUF_IN_OPERATOR_DEF(double);
-
-BUF_OUT_OPERATOR_DEF(long long);
-BUF_OUT_OPERATOR_DEF(long);
-BUF_OUT_OPERATOR_DEF(int);
-BUF_OUT_OPERATOR_DEF(short);
-BUF_OUT_OPERATOR_DEF(char);
-BUF_OUT_OPERATOR_DEF(unsigned long long);
-BUF_OUT_OPERATOR_DEF(unsigned long);
-BUF_OUT_OPERATOR_DEF(unsigned int);
-BUF_OUT_OPERATOR_DEF(unsigned short);
-BUF_OUT_OPERATOR_DEF(unsigned char);
-BUF_OUT_OPERATOR_DEF(float);
-BUF_OUT_OPERATOR_DEF(double);
 
 ducky::buffer::Buffer& operator<<(ducky::buffer::Buffer& buffer,
 		const ducky::buffer::Buffer& in_buffer);

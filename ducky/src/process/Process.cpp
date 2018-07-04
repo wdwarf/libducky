@@ -85,6 +85,10 @@ void Process::clearParameter(){
 	this->impl->clearParameter();
 }
 
+int Process::getProcessId() const{
+	return this->impl->getProcessId();
+}
+
 } /* namespace process */
 } /* namespace ducky */
 

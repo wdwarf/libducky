@@ -17,6 +17,16 @@ using namespace std;
 namespace ducky {
 namespace buffer {
 
+#define BUF_IN_OPERATOR_IMPL(T) ducky::buffer::Buffer& ducky::buffer::Buffer::operator<<(const T& t) {\
+		this->append((const char*) &t, sizeof(T));\
+		return *this;\
+}
+
+#define BUF_OUT_OPERATOR_IMPL(T) ducky::buffer::Buffer& ducky::buffer::Buffer::operator>>(T& t) {\
+		this->read((void*)&t, sizeof(t));\
+		return *this;\
+}
+
 /* Buffer::BufferImpl */
 class Buffer::BufferImpl {
 public:
@@ -75,7 +85,6 @@ Buffer::BufferImpl::BufferImpl(const Buffer::BufferImpl& buffer) :
 
 int Buffer::BufferImpl::read(void* buf, int size) const {
 	int avaliableSize = this->getSize() - this->readPos;
-	cout << "avaliableSize: " << avaliableSize << endl;
 	if (avaliableSize <= 0)
 		return 0;
 
@@ -343,6 +352,32 @@ void Buffer::resetReadPos() const {
 	this->impl->resetReadPos();
 }
 
+BUF_IN_OPERATOR_IMPL(long long);
+BUF_IN_OPERATOR_IMPL(long);
+BUF_IN_OPERATOR_IMPL(int);
+BUF_IN_OPERATOR_IMPL(short);
+BUF_IN_OPERATOR_IMPL(char);
+BUF_IN_OPERATOR_IMPL(unsigned long long);
+BUF_IN_OPERATOR_IMPL(unsigned long);
+BUF_IN_OPERATOR_IMPL(unsigned int);
+BUF_IN_OPERATOR_IMPL(unsigned short);
+BUF_IN_OPERATOR_IMPL(unsigned char);
+BUF_IN_OPERATOR_IMPL(float);
+BUF_IN_OPERATOR_IMPL(double);
+
+BUF_OUT_OPERATOR_IMPL(long long);
+BUF_OUT_OPERATOR_IMPL(long);
+BUF_OUT_OPERATOR_IMPL(int);
+BUF_OUT_OPERATOR_IMPL(short);
+BUF_OUT_OPERATOR_IMPL(char);
+BUF_OUT_OPERATOR_IMPL(unsigned long long);
+BUF_OUT_OPERATOR_IMPL(unsigned long);
+BUF_OUT_OPERATOR_IMPL(unsigned int);
+BUF_OUT_OPERATOR_IMPL(unsigned short);
+BUF_OUT_OPERATOR_IMPL(unsigned char);
+BUF_OUT_OPERATOR_IMPL(float);
+BUF_OUT_OPERATOR_IMPL(double);
+
 } /* namespace buffer */
 } /* namespace ducky */
 
@@ -370,28 +405,3 @@ ducky::buffer::Buffer& operator<<(ducky::buffer::Buffer& buffer, istream& i) {
 	return buffer;
 }
 
-BUF_IN_OPERATOR_IMPL(long long);
-BUF_IN_OPERATOR_IMPL(long);
-BUF_IN_OPERATOR_IMPL(int);
-BUF_IN_OPERATOR_IMPL(short);
-BUF_IN_OPERATOR_IMPL(char);
-BUF_IN_OPERATOR_IMPL(unsigned long long);
-BUF_IN_OPERATOR_IMPL(unsigned long);
-BUF_IN_OPERATOR_IMPL(unsigned int);
-BUF_IN_OPERATOR_IMPL(unsigned short);
-BUF_IN_OPERATOR_IMPL(unsigned char);
-BUF_IN_OPERATOR_IMPL(float);
-BUF_IN_OPERATOR_IMPL(double);
-
-BUF_OUT_OPERATOR_IMPL(long long);
-BUF_OUT_OPERATOR_IMPL(long);
-BUF_OUT_OPERATOR_IMPL(int);
-BUF_OUT_OPERATOR_IMPL(short);
-BUF_OUT_OPERATOR_IMPL(char);
-BUF_OUT_OPERATOR_IMPL(unsigned long long);
-BUF_OUT_OPERATOR_IMPL(unsigned long);
-BUF_OUT_OPERATOR_IMPL(unsigned int);
-BUF_OUT_OPERATOR_IMPL(unsigned short);
-BUF_OUT_OPERATOR_IMPL(unsigned char);
-BUF_OUT_OPERATOR_IMPL(float);
-BUF_OUT_OPERATOR_IMPL(double);

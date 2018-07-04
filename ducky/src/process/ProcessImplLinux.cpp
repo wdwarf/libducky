@@ -52,6 +52,7 @@ void Process::ProcessImpl::start() {
 
 		close(this->pipeFd[0]);
 		dup2(this->pipeFd[1], STDOUT_FILENO);
+		dup2(this->pipeFd[1], STDERR_FILENO);
 		close(this->pipeFd[1]);
 
 		char** argv = new char*[args.size() + 2];
@@ -83,6 +84,9 @@ void Process::ProcessImpl::stop() {
 		this->readThread->join();
 		this->readThread.reset();
 	}
+	close(this->pipeFd[0]);
+	this->pid = 0;
+	memset(this->pipeFd, 0, sizeof(this->pipeFd));
 }
 
 void Process::ProcessImpl::waitForFinished() {
@@ -91,6 +95,10 @@ void Process::ProcessImpl::waitForFinished() {
 
 	int status = 0;
 	waitpid(this->pid, &status, 0);
+}
+
+int Process::ProcessImpl::getProcessId() const{
+	return this->pid;
 }
 
 int Process::ProcessImpl::readData(char* buf, int bufLen) {
@@ -110,9 +118,6 @@ void Process::ProcessImpl::doReadData() {
 	while ((readBytes = read(this->pipeFd[0], buf, bufLen)) > 0) {
 		this->_proc->onReadData(buf, readBytes);
 	}
-	close(this->pipeFd[0]);
-	this->pid = 0;
-	memset(this->pipeFd, 0, sizeof(this->pipeFd));
 }
 
 int Process::ProcessImpl::GetPid() {

@@ -114,6 +114,10 @@ void Process::ProcessImpl::waitForFinished() {
 	::WaitForSingleObject(this->pi.hProcess, INFINITE);
 }
 
+int Process::ProcessImpl::getProcessId() const{
+	return this->pi.dwProcessId;
+}
+
 int Process::ProcessImpl::readData(char* buf, int bufLen){
 	if (INVALID_HANDLE_VALUE == this->pi.hProcess
 			|| INVALID_HANDLE_VALUE == this->hRead
