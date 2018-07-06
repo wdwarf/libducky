@@ -18,6 +18,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <vector>
+#include <map>
 
 using namespace std;
 using namespace ducky::thread;
@@ -49,6 +50,10 @@ public:
 	static int GetPid();
 	static int GetPPid();
 	static int Exec(const std::string& command, bool wait);
+	static int GetPidByName(const std::string& processName);
+	static bool Kill(int pid, int code = 15);
+	static bool Kill(const std::string& processName, int code = 15);
+	static std::map<int, std::string> ListProcesses();
 
 private:
 	void doReadData();

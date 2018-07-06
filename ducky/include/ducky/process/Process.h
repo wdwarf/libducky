@@ -11,6 +11,7 @@
 #include <ducky/exception/Exception.h>
 #include <string>
 #include <vector>
+#include <map>
 
 namespace ducky {
 namespace process {
@@ -44,6 +45,10 @@ public:
 	static int GetPid();
 	static int GetPPid();
 	static int Exec(const std::string& command, bool wait = false);
+	static int GetPidByName(const std::string& processName);
+	static bool Kill(int pid, int code = 15);
+	static bool Kill(const std::string& processName, int code = 15);
+	static std::map<int, std::string> ListProcesses();
 
 private:
 	class ProcessImpl;

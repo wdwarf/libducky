@@ -9,6 +9,9 @@
 
 #include "ProcessImplLinux.h"
 #include <ducky/thread/Thread.h>
+#include <ducky/file/File.h>
+#include <ducky/algorithm/String.h>
+#include <ducky/variant/Variant.h>
 #include <unistd.h>
 #include <errno.h>
 #include <cstdlib>
@@ -16,9 +19,13 @@
 #include <sys/wait.h>
 #include <signal.h>
 #include <iostream>
+#include <fstream>
 
 using namespace std;
 using namespace ducky::thread;
+using namespace ducky::file;
+using namespace ducky::algorithm;
+using namespace ducky::variant;
 
 namespace ducky {
 namespace process {
@@ -59,7 +66,7 @@ void Process::ProcessImpl::start() {
 		for (size_t i = 0; i < args.size(); ++i) {
 			argv[i + 1] = (char*) args[i].c_str();
 		}
-		argv[0] = (char*)command.c_str();
+		argv[0] = (char*) command.c_str();
 		argv[args.size() + 1] = NULL;
 		int re = execvp(command.c_str(), argv);
 		exit(re);
@@ -97,7 +104,7 @@ void Process::ProcessImpl::waitForFinished() {
 	waitpid(this->pid, &status, 0);
 }
 
-int Process::ProcessImpl::getProcessId() const{
+int Process::ProcessImpl::getProcessId() const {
 	return this->pid;
 }
 
@@ -142,6 +149,80 @@ int Process::ProcessImpl::Exec(const std::string& command, bool wait) {
 	}
 
 	return pid;
+}
+
+int Process::ProcessImpl::GetPidByName(const std::string& processName) {
+	File proc("/proc");
+	list<File> files = proc.list();
+	for (list<File>::iterator it = files.begin(); it != files.end(); ++it) {
+		File status(*it, "status");
+		if (!status.isExists())
+			continue;
+
+		fstream f;
+		f.open(status.getPath().c_str(), ios::in);
+		if (!f.is_open())
+			continue;
+
+		string name;
+		while (!f.eof()) {
+			string line;
+			std::getline(f, line);
+			if (0 != line.find("Name"))
+				continue;
+			size_t pos = line.find(":");
+			if (string::npos == pos)
+				continue;
+			name = TrimCopy(line.substr(pos + 1));
+			break;
+		}
+		if (name == processName) {
+			return Variant(it->getName());
+		}
+	}
+	return -1;
+}
+
+bool Process::ProcessImpl::Kill(int pid, int code) {
+	return (0 == ::kill(pid, code));
+}
+
+bool Process::ProcessImpl::Kill(const std::string& processName, int code) {
+	int pid = Process::GetPidByName(processName);
+	if (pid <= 0)
+		return false;
+	return Process::ProcessImpl::Kill(pid, code);
+}
+
+std::map<int, std::string> Process::ProcessImpl::ListProcesses() {
+	std::map<int, std::string> re;
+	File proc("/proc");
+	list<File> files = proc.list();
+	for (list<File>::iterator it = files.begin(); it != files.end(); ++it) {
+		File status(*it, "status");
+		if (!status.isExists())
+			continue;
+
+		fstream f;
+		f.open(status.getPath().c_str(), ios::in);
+		if (!f.is_open())
+			continue;
+
+		while (!f.eof()) {
+			string line;
+			std::getline(f, line);
+			if (0 != line.find("Name"))
+				continue;
+			size_t pos = line.find(":");
+			if (string::npos == pos)
+				continue;
+			string name = TrimCopy(line.substr(pos + 1));
+			int pid = Variant(it->getName());
+			re.insert(make_pair(pid, name));
+			break;
+		}
+	}
+	return re;
 }
 
 const std::string& Process::ProcessImpl::getCommand() const {
