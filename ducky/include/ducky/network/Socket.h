@@ -8,7 +8,7 @@
 #ifndef DUCKY_NETWORK_SOCKET_H_
 #define DUCKY_NETWORK_SOCKET_H_
 
-#ifdef __WINNT__
+#ifdef WIN32
 
 #include <winsock2.h>
 #include <ws2tcpip.h>
@@ -60,6 +60,10 @@ public:
 	int shutdown(int type = SHUT_RDWR);
 	bool attach(int sockFd);
 	int dettach();
+	void setBlocking(bool nonBlocking = true);
+	bool isNonBlocking() const;
+	bool isUserSelect() const;
+	void setUserSelect(bool userSelect);
 
 	string getLocalAddress();
 	int getLocalPort();
@@ -67,10 +71,10 @@ public:
 	int getRemotePort();
 	int getSocketType();
 
-	int connect(string ip, int port);
+	int connect(string ip, int port, int msTimeout = 3000);
 	bool isConnected();
-	int bind(string ip, int port);
-	int listen(int n);
+	void bind(string ip, int port);
+	void listen(int n = 10);
 	int accept(sockaddr_in& addr);
 
 	int send(const char* buf, socklen_t bufLen);
@@ -83,8 +87,12 @@ public:
 	int recvFrom(char* buf, socklen_t readBytes, string& ip, int& port,
 			int timeoutSec = -1);
 
+	static bool SetBlocking(int sockFd, bool isNonBlocking = true);
+	static bool IsNonBlocking(int sockFd);
+
 private:
 	int sockFd;
+	bool userSelect;
 };
 
 } /* namespace network */

@@ -6,8 +6,9 @@
  */
 
 #include <ducky/network/Socket.h>
+#include <ducky/variant/Variant.h>
 
-#ifdef __WINNT__
+#ifdef WIN32
 #include <Mstcpip.h>
 #define SIO_UDP_CONNRESET _WSAIOW(IOC_VENDOR, 12)
 #else
@@ -22,19 +23,21 @@
 #include <iostream>
 
 using namespace std;
+using namespace ducky::variant;
 
 namespace ducky {
 namespace network {
 
 Socket::Socket() :
-		sockFd(0) {
-#ifdef __WINNT__
+		sockFd(0), userSelect(true) {
+#ifdef WIN32
 	WSADATA wsaData;
 	WSAStartup(MAKEWORD(2,0), &wsaData);
 #endif
 }
 
-Socket::Socket(int sockFd) {
+Socket::Socket(int sockFd) :
+		userSelect(true) {
 	this->sockFd = sockFd;
 }
 
@@ -65,7 +68,7 @@ int Socket::create(int af, int style, int protocol) {
 				string("can't create socket.") + strerror(errno), errno);
 	}
 
-#ifdef __WINNT__
+#ifdef WIN32
 	if (SOCK_DGRAM == style) {
 		BOOL bNewBehavior = FALSE;
 		DWORD dwBytesReturned = 0;
@@ -75,6 +78,16 @@ int Socket::create(int af, int style, int protocol) {
 #endif
 
 	return this->sockFd;
+}
+
+void Socket::setBlocking(bool nonBlocking) {
+	if (this->sockFd > 0) {
+		Socket::SetBlocking(this->sockFd, nonBlocking);
+	}
+}
+
+bool Socket::isNonBlocking() const {
+	return (this->sockFd > 0 && Socket::IsNonBlocking(this->sockFd));
 }
 
 int Socket::getHandle() {
@@ -92,7 +105,7 @@ int Socket::close() {
 	int re = 0;
 	if (this->sockFd > 0) {
 		this->shutdown();
-#if defined(__WINNT__) || defined(__MINGW32__)
+#if defined(WIN32) || defined(__MINGW32__)
 		re = ::closesocket(this->sockFd);
 #else
 		re = ::close(this->sockFd);
@@ -110,7 +123,7 @@ int Socket::createUdp() {
 	return this->create(AF_INET, SOCK_DGRAM);
 }
 
-int Socket::connect(string ip, int port) {
+int Socket::connect(string ip, int port, int msTimeout) {
 	if (this->sockFd <= 0) {
 		return -1;
 	}
@@ -132,26 +145,23 @@ int Socket::connect(string ip, int port) {
 	}
 	addr.sin_addr.s_addr = inet_addr(ip.c_str());
 
-	//设置为非阻塞模式
-#if defined(__WINNT__) || defined(__MINGW32__)
-	unsigned long isFIONBIO = 1;
-	ioctlsocket(this->sockFd, FIONBIO, &isFIONBIO);
-#else
-	int opts = fcntl(this->sockFd, F_GETFL);
-	opts |= O_NONBLOCK;
-	fcntl(this->sockFd, F_SETFL, opts);
-#endif
+	bool nonBlock = this->isNonBlocking();
+	this->setBlocking(true);
 
 	if (-1 == ::connect(this->sockFd, (sockaddr*) &addr, sizeof(sockaddr))) {
 		timeval tm;
+		timeval* ptm = NULL;
 		fd_set set;
 		int error = -1;
-		tm.tv_sec = 3;
-		tm.tv_usec = 0;
+		if (msTimeout >= 0) {
+			ptm = &tm;
+			tm.tv_sec = msTimeout / 1000;
+			tm.tv_usec = (msTimeout % 1000) * 1000;
+		}
 		FD_ZERO(&set);
 		FD_SET(this->sockFd, &set);
 		do {
-			re = select(this->sockFd + 1, NULL, &set, NULL, &tm);
+			re = select(this->sockFd + 1, NULL, &set, NULL, ptm);
 		} while (re < 0 && EINTR == errno);
 
 		if (1 == re) {
@@ -167,31 +177,24 @@ int Socket::connect(string ip, int port) {
 			re = -1;
 		}
 	}
-
-	//设置为阻塞模式
-#if defined(__WINNT__) || defined(__MINGW32__)
-	isFIONBIO = 0;
-	ioctlsocket(this->sockFd, FIONBIO, &isFIONBIO);
-#else
-	opts = fcntl(this->sockFd, F_GETFL);
-	opts &= ~O_NONBLOCK;
-	fcntl(this->sockFd, F_SETFL, opts);
-#endif
-
+	this->setBlocking(nonBlock);
 	return re;
 }
 
-int Socket::bind(string ip, int port) {
+void Socket::bind(string ip, int port) {
 	int re = -1;
 	if (this->sockFd > 0) {
-		if (port <= 0)
-			return false;
+		if (port <= 0) {
+			THROW_EXCEPTION(SocketBindException,
+					string("invalid binding port: ") + (string)Variant(port) + "." + strerror(errno),
+					errno);
+		}
 
 		sockaddr_in addr;
 		addr.sin_family = AF_INET;
 		addr.sin_port = htons(port);
 		if (!ip.empty()) {
-#if defined(__WINNT__) || defined(__MINGW32__)
+#if defined(WIN32) || defined(__MINGW32__)
 			addr.sin_addr.s_addr = inet_addr(ip.c_str());
 #else
 			inet_aton(ip.c_str(), &addr.sin_addr);
@@ -206,18 +209,19 @@ int Socket::bind(string ip, int port) {
 		re = ::bind(this->sockFd, (sockaddr*) &addr, sizeof(sockaddr));
 		if (re < 0) {
 			THROW_EXCEPTION(SocketBindException,
-					string("bind socket failed.") + strerror(errno), errno);
+					"bind [" + ip+ ":" + (string)Variant(port) + "] failed." + strerror(errno),
+					errno);
 		}
 	}
-	return re;
 }
 
-int Socket::listen(int n) {
-	int re = -1;
+void Socket::listen(int n) {
 	if (this->sockFd > 0) {
-		re = ::listen(this->sockFd, n);
+		if (0 != ::listen(this->sockFd, n)) {
+			THROW_EXCEPTION(SocketBindException,
+					string("listen failed.") + strerror(errno), errno);
+		}
 	}
-	return re;
 }
 
 int Socket::accept(sockaddr_in& addr) {
@@ -232,16 +236,19 @@ int Socket::accept(sockaddr_in& addr) {
 int Socket::send(const char* buf, socklen_t bufLen) {
 	int re = -1;
 	if (this->sockFd > 0) {
-		fd_set fs_send;
-		timeval tv;
-		tv.tv_sec = 5;
-		tv.tv_usec = 0;
-		FD_ZERO(&fs_send);
-		FD_SET(this->sockFd, &fs_send);
-		re = ::select(this->sockFd + 1, 0, &fs_send, 0, &tv);
-		if (re > 0) {
-			re = ::send(this->sockFd, buf, bufLen, 0);
+		if (this->userSelect) {
+			fd_set fs_send;
+			timeval tv;
+			tv.tv_sec = 5;
+			tv.tv_usec = 0;
+			FD_ZERO(&fs_send);
+			FD_SET(this->sockFd, &fs_send);
+			re = ::select(this->sockFd + 1, 0, &fs_send, 0, &tv);
+			if (re <= 0) {
+				return re;
+			}
 		}
+		re = ::send(this->sockFd, buf, bufLen, 0);
 	}
 	return re;
 }
@@ -249,28 +256,48 @@ int Socket::send(const char* buf, socklen_t bufLen) {
 int Socket::read(char* buf, socklen_t readBytes, int timeoutSec) {
 	int re = -1;
 	if (this->sockFd > 0) {
-		fd_set fs_read;
-		timeval tv;
-		tv.tv_sec = timeoutSec;
-		tv.tv_usec = 0;
-		FD_ZERO(&fs_read);
-		FD_SET(this->sockFd, &fs_read);
-		re = ::select(this->sockFd + 1, &fs_read, 0, 0,
-				(-1 == timeoutSec ? 0 : &tv));
-		if (re > 0) {
-#if defined(__WINNT__) || defined(__MINGW32__)
-			re = ::recv(this->sockFd, buf, readBytes, 0);
-#else
-			re = ::read(this->sockFd, buf, readBytes);
-#endif
+		if (this->userSelect) {
+			fd_set fs_read;
+			timeval tv;
+			tv.tv_sec = timeoutSec;
+			tv.tv_usec = 0;
+			FD_ZERO(&fs_read);
+			FD_SET(this->sockFd, &fs_read);
+			re = ::select(this->sockFd + 1, &fs_read, 0, 0,
+					(-1 == timeoutSec ? 0 : &tv));
+			if (re <= 0) {
+				return re;
+			}
 		}
+
+#if defined(WIN32) || defined(__MINGW32__)
+		re = ::recv(this->sockFd, buf, readBytes, 0);
+#else
+		re = ::read(this->sockFd, buf, readBytes);
+#endif
 	}
 	return re;
 }
 
 int Socket::sendTo(const char* buf, socklen_t bufLen, const sockaddr_in& addr) {
-	return ::sendto(this->sockFd, buf, bufLen, 0, (sockaddr*) &addr,
-			sizeof(sockaddr));
+	int re = -1;
+	if (this->sockFd > 0) {
+		if (this->userSelect) {
+			fd_set fs_send;
+			timeval tv;
+			tv.tv_sec = 5;
+			tv.tv_usec = 0;
+			FD_ZERO(&fs_send);
+			FD_SET(this->sockFd, &fs_send);
+			re = ::select(this->sockFd + 1, 0, &fs_send, 0, &tv);
+			if (re <= 0) {
+				return re;
+			}
+		}
+		re = ::sendto(this->sockFd, buf, bufLen, 0, (sockaddr*) &addr,
+				sizeof(sockaddr));
+	}
+	return re;
 }
 
 bool Socket::isConnected() {
@@ -309,7 +336,7 @@ int Socket::getSocketType() {
 	if (this->sockFd <= 0) {
 		return -1;
 	}
-#if defined(__WINNT__) || defined(__MINGW32__)
+#if defined(WIN32) || defined(__MINGW32__)
 	char type = -1;
 #else
 	int type = -1;
@@ -349,20 +376,24 @@ int Socket::recvFrom(char* buf, socklen_t readBytes, sockaddr_in& addr,
 		int timeoutSec) {
 	int re = -1;
 	if (this->sockFd > 0) {
-		fd_set fs_read;
-		timeval tv;
-		tv.tv_sec = timeoutSec;
-		tv.tv_usec = 0;
-		FD_ZERO(&fs_read);
-		FD_SET(this->sockFd, &fs_read);
-		re = ::select(this->sockFd + 1, &fs_read, 0, 0,
-				(-1 == timeoutSec ? 0 : &tv));
-		if (re > 0) {
-			memset(&addr, 0, sizeof(addr));
-			socklen_t addrSize = sizeof(addr);
-			re = ::recvfrom(this->sockFd, buf, readBytes, 0, (sockaddr*) &addr,
-					&addrSize);
+		if (this->userSelect) {
+			fd_set fs_read;
+			timeval tv;
+			tv.tv_sec = timeoutSec;
+			tv.tv_usec = 0;
+			FD_ZERO(&fs_read);
+			FD_SET(this->sockFd, &fs_read);
+			re = ::select(this->sockFd + 1, &fs_read, 0, 0,
+					(-1 == timeoutSec ? 0 : &tv));
+			if (re <= 0) {
+				return re;
+			}
 		}
+
+		memset(&addr, 0, sizeof(addr));
+		socklen_t addrSize = sizeof(addr);
+		re = ::recvfrom(this->sockFd, buf, readBytes, 0, (sockaddr*) &addr,
+				&addrSize);
 	}
 	return re;
 }
@@ -380,6 +411,47 @@ int Socket::recvFrom(char* buf, socklen_t readBytes, string& ip, int& port,
 	}
 
 	return re;
+}
+
+bool Socket::SetBlocking(int sockFd, bool isNonBlocking) {
+#if defined(WIN32) || defined(__MINGW32__)
+	unsigned long isFIONBIO = 1;
+	return (0 == ioctlsocket(sockFd, FIONBIO, &isFIONBIO));
+#else
+	int opts = fcntl(sockFd, F_GETFL);
+	if (opts < 0) {
+		return false;
+	}
+	if (isNonBlocking) {
+		opts |= O_NONBLOCK;
+	} else {
+		opts &= ~O_NONBLOCK;
+	}
+
+	return (fcntl(sockFd, F_SETFL, opts) >= 0);
+#endif
+}
+
+bool Socket::IsNonBlocking(int sockFd) {
+#if defined(WIN32) || defined(__MINGW32__)
+	unsigned long isFIONBIO = 1;
+	if(-1 == ioctlsocket(sockFd, FIONREAD, &isFIONBIO)) return false;
+	return (1 == isFIONBIO);
+#else
+	int opts = fcntl(sockFd, F_GETFL);
+	if (opts < 0) {
+		return false;
+	}
+	return (O_NONBLOCK == (opts * O_NONBLOCK));
+#endif
+}
+
+bool Socket::isUserSelect() const {
+	return userSelect;
+}
+
+void Socket::setUserSelect(bool userSelect) {
+	this->userSelect = userSelect;
 }
 
 } /* namespace network */
