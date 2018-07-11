@@ -12,7 +12,6 @@
 #include <cstring>
 #include <ducky/Object.h>
 #include <ducky/exception/Exception.h>
-#include <ducky/thread/Mutex.h>
 #include <ducky/thread/Runnable.h>
 #include <pthread.h>
 
@@ -61,14 +60,14 @@ public:
 
 	template<typename F>
 	Thread(F f) :
-			running(false), _canStop(false), freeOnTerminated(false) {
+			_canStop(false), freeOnTerminated(false) {
 		memset(&this->threadId, 0, sizeof(this->threadId));
 		this->runnable = new ThreadFuncWraper<F>(f);
 	}
 
 	template<typename F, class C>
 	Thread(F f, C* c) :
-			running(false), _canStop(false), freeOnTerminated(false) {
+			_canStop(false), freeOnTerminated(false) {
 		memset(&this->threadId, 0, sizeof(this->threadId));
 		this->runnable = new ThreadMFuncWraper<F, C>(f, c);
 	}
@@ -77,8 +76,8 @@ public:
 
 	bool start();	//启动线程
 	bool stop();	//设置停止标志
-	void detach();	//分离线程
-	void join();	//等待线程结束
+	bool detach();	//分离线程
+	bool join();	//等待线程结束
 	bool isRunning() const;	//线程是否正在执行
 
 	pthread_t getThreadId();
@@ -115,10 +114,8 @@ protected:
 private:
 	pthread_t threadId;
 	Runnable* runnable;
-	bool running;
 	bool _canStop;
 	bool freeOnTerminated;
-	Mutex mutex;
 	static void* ThreadFunc(Thread* pThread);
 
 #ifdef __linux__

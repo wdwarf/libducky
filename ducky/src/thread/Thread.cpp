@@ -22,13 +22,22 @@ using namespace std;
 namespace ducky {
 namespace thread {
 
+static bool IsValidThreadId(const pthread_t& threadId) {
+	const char* p = (const char*) &threadId;
+	for (size_t i = 0; i < sizeof(threadId); ++i) {
+		if (0 != p[i])
+			return true;
+	}
+	return false;
+}
+
 Thread::Thread() :
-		runnable(this), running(false), _canStop(false), freeOnTerminated(false) {
+		runnable(this), _canStop(false), freeOnTerminated(false) {
 	memset(&this->threadId, 0, sizeof(this->threadId));
 }
 
 Thread::Thread(Runnable& r) :
-		runnable(&r), running(false), _canStop(false), freeOnTerminated(false) {
+		runnable(&r), _canStop(false), freeOnTerminated(false) {
 	memset(&this->threadId, 0, sizeof(this->threadId));
 }
 
@@ -49,23 +58,24 @@ Thread::~Thread() {
 void* Thread::ThreadFunc(Thread* pThread) {
 	assert(pThread);
 
-	cout << "thread " << pThread->threadId << ", " << pThread->getClassName() << " started" << endl;
+	cout << "thread " << pThread->threadId << ", " << pThread->getClassName()
+			<< " started" << endl;
 
 #ifdef __linux__
 	pthread_cleanup_push((void (*)(void*))Thread::ThreadCancelFunc, pThread);
 #endif
 
-	try {
-		assert(pThread->isInCurrentThread());
-		pThread->getRunnable()->run();
-	} catch (std::exception& e) {
-		cerr << e.what() << endl;
-	} catch (...) {
-		throw;
-	}
+		try {
+			assert(pThread->isInCurrentThread());
+			pThread->getRunnable()->run();
+		} catch (std::exception& e) {
+			cerr << e.what() << endl;
+		} catch (...) {
+			throw;
+		}
 
 #ifdef __linux__
-	pthread_cleanup_pop(0);
+		pthread_cleanup_pop(0);
 #endif
 
 	try {
@@ -75,12 +85,9 @@ void* Thread::ThreadFunc(Thread* pThread) {
 	} catch (...) {
 	}
 
-	cout << "thread " << pThread->threadId << ", " << pThread->getClassName() << " stoped" << endl;
+	cout << "thread " << pThread->threadId << ", " << pThread->getClassName()
+			<< " stoped" << endl;
 
-	{
-		MutexLocker lk(pThread->mutex);
-		pThread->running = false;
-	}
 	if (pThread->freeOnTerminated) {
 #ifdef __OBJ_DELETE_THIS__
 		pThread->deleteThis();
@@ -104,10 +111,6 @@ void Thread::ThreadCancelFunc(Thread* pThread) {
 	} catch (...) {
 	}
 
-	{
-		MutexLocker lk(pThread->mutex);
-		pThread->running = false;
-	}
 	if (pThread->freeOnTerminated) {
 #ifdef __OBJ_DELETE_THIS__
 		pThread->deleteThis();
@@ -125,20 +128,18 @@ bool Thread::start() {
 
 	this->_canStop = false;
 
-	bool re = (this->beforeStart() && (0 == pthread_create(&this->threadId, NULL, (void* (*)(void*))Thread::ThreadFunc, this)));
+	bool re = (this->beforeStart()
+			&& (0
+					== pthread_create(&this->threadId, NULL,
+							(void* (*)(void*))Thread::ThreadFunc, this)));
 	if (!re) {
 		THROW_EXCEPTION(ThreadException, "thread create failed..", errno);
-	}
-
-	{
-		MutexLocker lk(this->mutex);
-		this->running = true;
 	}
 
 	return true;
 }
 
-bool Thread::beforeStart(){
+bool Thread::beforeStart() {
 	return true;
 }
 
@@ -151,7 +152,7 @@ bool Thread::stop() {
 	return true;
 }
 
-bool Thread::beforeStop(){
+bool Thread::beforeStop() {
 	return true;
 }
 
@@ -159,14 +160,8 @@ void Thread::run() {
 	cout << "empty thread run method..." << endl;
 }
 
-void Thread::detach() {
-	if (!this->isRunning()) {
-		THROW_EXCEPTION(ThreadException, "thread is not running..", 0);
-	}
-
-	if (0 != pthread_detach(this->threadId)) {
-		THROW_EXCEPTION(ThreadException, "thread detach failed..", errno);
-	}
+bool Thread::detach() {
+	return (IsValidThreadId(this->threadId) && (0 == pthread_detach(this->threadId)));
 }
 
 #ifdef __linux__
@@ -190,21 +185,16 @@ bool Thread::isInCurrentThread() const {
 }
 
 bool Thread::isRunning() const {
-	return (this->running && (0 == pthread_kill(this->threadId, 0)));
+	return (IsValidThreadId(this->threadId) && (0 == pthread_kill(this->threadId, 0)));
 }
 
 bool Thread::canStop() const {
 	return this->_canStop;
 }
 
-void Thread::join() {
-	if (!this->isRunning()) {
-		return;
-	}
-
-	if (0 != pthread_join(this->threadId, NULL)) {
-		THROW_EXCEPTION(ThreadException, "thread join failed..", errno);
-	}
+bool Thread::join() {
+	return (IsValidThreadId(this->threadId)
+			&& (0 == pthread_join(this->threadId, NULL)));
 }
 
 void Thread::Sleep(unsigned int ms) {
