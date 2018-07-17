@@ -33,7 +33,7 @@ public:
 	}
 	virtual ~_ICreator() {
 	}
-	virtual void* createObject() = 0;
+	virtual Object* createObject() = 0;
 	virtual bool IsSingleton() = 0;
 };
 
@@ -41,7 +41,7 @@ public:
 template<typename T>
 class _NewCreator: public _ICreator {
 public:
-	virtual void* createObject() {
+	virtual Object* createObject() {
 		return new T();
 	}
 
@@ -57,7 +57,7 @@ public:
 			obj(NULL) {
 	}
 
-	virtual void* createObject() {
+	virtual Object* createObject() {
 		if (!obj) {
 			obj = new T();
 		}
@@ -108,8 +108,8 @@ public:
 						make_pair(className, new _NewCreator<T>()));
 			}
 		} else {
-			_THROW(FactoryException,
-					"Class \"" + className + "\" Has Registered", 0);
+			THROW_EXCEPTION(FactoryException,
+					"Class \"" + className + "\" has registered", 0);
 		}
 	}
 
@@ -126,15 +126,15 @@ public:
 	}
 
 	//创建对象
-	void* createObject(string className) {
+	Object* createObject(string className) {
 		thread::MutexLocker lk(this->mutex);
 		CreatorMap::iterator it = this->creatorMap.find(className);
 		if (it != this->creatorMap.end()) {
 			return it->second->createObject();
 		}
 
-		_THROW(FactoryException, "Class \"" + className + "\" Not Registered",
-				0);
+		THROW_EXCEPTION(FactoryException,
+				"Class \"" + className + "\" not registered", 0);
 	}
 
 	//创建对象，并强转为T类指针
@@ -143,11 +143,16 @@ public:
 		thread::MutexLocker lk(this->mutex);
 		CreatorMap::iterator it = this->creatorMap.find(className);
 		if (it != this->creatorMap.end()) {
-			return (T*) it->second->createObject();
+			T* obj = dynamic_cast<T*>(it->second->createObject());
+			if (NULL == obj) {
+				THROW_EXCEPTION(FactoryException,
+						"Can not convert to class \"" + className + "\"", 0);
+			}
+			return obj;
 		}
 
-		_THROW(FactoryException, "Class \"" + className + "\" Not Registered",
-				0);
+		THROW_EXCEPTION(FactoryException,
+				"Class \"" + className + "\" not registered", 0);
 	}
 
 	//查询指定类是否是单例
@@ -158,8 +163,8 @@ public:
 			return it->second->IsSingleton();
 		}
 
-		_THROW(FactoryException, "Class \"" + className + "\" Not Registered",
-				0);
+		THROW_EXCEPTION(FactoryException,
+				"Class \"" + className + "\" not registered", 0);
 	}
 
 private:

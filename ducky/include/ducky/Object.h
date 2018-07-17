@@ -16,6 +16,7 @@ namespace ducky {
 class Object {
 public:
 	virtual std::string getClassName() const;
+	virtual std::string getFullClassName() const;
 
 #if __cplusplus < 201103L
 	static void* operator new(std::size_t size) throw (std::bad_alloc);
