@@ -17,12 +17,12 @@ namespace ducky {
 namespace system {
 
 Environment::Environment() {
-	// TODO Auto-generated constructor stub
+	
 	this->refresh();
 }
 
 Environment::~Environment() {
-	// TODO Auto-generated destructor stub
+	
 }
 
 void Environment::refresh() {

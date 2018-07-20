@@ -21,12 +21,12 @@ namespace network {
 class IClientSession;
 ClientSessionBase::ClientSessionBase() :
 		sock(0), epfd(0), localPort(0), remotePort(0) {
-	// TODO Auto-generated constructor stub
+	
 
 }
 
 ClientSessionBase::~ClientSessionBase() {
-	// TODO Auto-generated destructor stub
+	
 }
 
 void ClientSessionBase::init(int sock, int epfd) {

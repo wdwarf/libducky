@@ -66,7 +66,7 @@ UserInfo::UserInfoImpl::UserInfoImpl(const string& userName) :
 }
 
 UserInfo::UserInfoImpl::~UserInfoImpl() {
-	// TODO Auto-generated destructor stub
+	
 }
 
 void UserInfo::UserInfoImpl::loadUserInfo(uid_t uid) {
@@ -164,7 +164,7 @@ UserInfo::UserInfo(const string& userName) :
 }
 
 UserInfo::~UserInfo() {
-	// TODO Auto-generated destructor stub
+	
 }
 
 uid_t UserInfo::getCurrentUID() {

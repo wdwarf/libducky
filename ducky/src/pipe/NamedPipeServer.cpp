@@ -199,12 +199,12 @@ void NamedPipeServer::NamedPipeServerImpl::onSend(char* buf, int size) {
 
 NamedPipeServer::NamedPipeServer() :
 		impl(new NamedPipeServerImpl(this)) {
-// TODO Auto-generated constructor stub
+
 
 }
 
 NamedPipeServer::~NamedPipeServer() {
-// TODO Auto-generated destructor stub
+
 	if (this->impl) {
 		delete this->impl;
 	}

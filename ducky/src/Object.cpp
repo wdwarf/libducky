@@ -24,11 +24,11 @@ static set<const void*> __heabObjs__;
 #endif
 
 Object::Object() {
-	// TODO Auto-generated constructor stub
+	
 }
 
 Object::~Object() {
-	// TODO Auto-generated destructor stub
+	
 }
 
 std::string Object::getClassName() const {

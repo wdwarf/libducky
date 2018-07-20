@@ -183,12 +183,12 @@ int NamedPipe::NamedPipeImpl::write(const char* buf, int size, int timeoutMs)
 
 NamedPipe::NamedPipe() :
 		impl(new NamedPipeImpl) {
-	// TODO Auto-generated constructor stub
+	
 
 }
 
 NamedPipe::~NamedPipe() {
-	// TODO Auto-generated destructor stub
+	
 	if (this->impl) {
 		delete this->impl;
 	}

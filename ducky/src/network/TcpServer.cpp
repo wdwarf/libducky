@@ -154,11 +154,11 @@ void _TcpServerWorkThread::run() {
 _TcpServer::_TcpServerImpl::_TcpServerImpl(_TcpServer* tcpServer) :
 		port(0), sock(0), epfd(0), eventCount(500), workThreadCount(10), _tcpServer(
 				tcpServer) {
-	// TODO Auto-generated constructor stub
+	
 }
 
 _TcpServer::_TcpServerImpl::~_TcpServerImpl() {
-	// TODO Auto-generated destructor stub
+	
 	this->stop(true);
 }
 

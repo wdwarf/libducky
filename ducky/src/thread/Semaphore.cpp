@@ -15,7 +15,7 @@ namespace thread {
 
 Semaphore::Semaphore() :
 		sem(new sem_t), named(false) {
-	// TODO Auto-generated constructor stub
+	
 	sem_init(this->sem, 0, 0);
 }
 
@@ -29,7 +29,7 @@ Semaphore::Semaphore(const string& name, int flag, ...) :
 }
 
 Semaphore::~Semaphore() {
-	// TODO Auto-generated destructor stub
+	
 	if (this->named) {
 		sem_close(this->sem);
 	} else {

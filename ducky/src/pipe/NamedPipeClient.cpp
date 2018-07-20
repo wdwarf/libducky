@@ -200,12 +200,12 @@ void NamedPipeClient::NamedPipeClientImpl::onSend(char* buf, int size) {
 
 NamedPipeClient::NamedPipeClient() :
 		impl(new NamedPipeClientImpl(this)) {
-// TODO Auto-generated constructor stub
+
 
 }
 
 NamedPipeClient::~NamedPipeClient() {
-// TODO Auto-generated destructor stub
+
 	if (this->impl) {
 		delete this->impl;
 	}

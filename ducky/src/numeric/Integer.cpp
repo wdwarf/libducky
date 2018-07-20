@@ -16,7 +16,7 @@ namespace numeric {
 
 Integer::Integer() :
 		value(0) {
-	// TODO Auto-generated constructor stub
+	
 
 }
 
@@ -49,7 +49,7 @@ int Integer::getValue() const {
 }
 
 Integer::~Integer() {
-	// TODO Auto-generated destructor stub
+	
 }
 
 string Integer::toString(bool toHex) const {

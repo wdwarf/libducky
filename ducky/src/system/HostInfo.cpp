@@ -40,7 +40,7 @@ private:
 };
 
 HostInfo::HostInfoImpl::HostInfoImpl() {
-	// TODO Auto-generated constructor stub
+	
 	char bufHostName[256] = { 0 };
 	struct utsname uts = { 0 };
 
@@ -59,7 +59,7 @@ HostInfo::HostInfoImpl::HostInfoImpl() {
 }
 
 HostInfo::HostInfoImpl::~HostInfoImpl() {
-	// TODO Auto-generated destructor stub
+	
 }
 
 long HostInfo::HostInfoImpl::getHostid() const {
@@ -96,7 +96,7 @@ HostInfo::HostInfo() :
 }
 
 HostInfo::~HostInfo() {
-	// TODO Auto-generated destructor stub
+	
 }
 
 long HostInfo::getHostid() const {

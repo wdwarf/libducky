@@ -17,6 +17,8 @@ using namespace std;
 namespace ducky {
 namespace buffer {
 
+const static float BUF_INC_RATIO = 1.5;
+
 #define BUF_IN_OPERATOR_IMPL(T) ducky::buffer::Buffer& ducky::buffer::Buffer::operator<<(const T& t) {\
 		this->append((const char*) &t, sizeof(T));\
 		return *this;\
@@ -50,53 +52,62 @@ public:
 	void clear();
 	bool isEmpty() const;
 	void reverse();
-	void alloc(int size);
+	void alloc(unsigned int size);
+	unsigned int capacity() const;
+	void zero();
 
 	string toString();
-	int read(void* buf, int size) const;
+	int read(void* buf, unsigned int size) const;
 	void resetReadPos() const;
 
 private:
 	char* data;
 	unsigned int size;
+	unsigned int capacitySize;
 	mutable unsigned int readPos;
 };
 
 Buffer::BufferImpl::BufferImpl() :
-		data(NULL), size(0), readPos(0) {
+		data(NULL), size(0), capacitySize(0), readPos(0) {
 
 }
 
 Buffer::BufferImpl::BufferImpl(unsigned int initSize) :
-		data(NULL), size(0), readPos(0) {
-	this->size = initSize;
-	this->data = new char[this->size];
+		data(NULL), size(0), capacitySize(0), readPos(0) {
+	this->alloc(initSize);
 }
 
 Buffer::BufferImpl::BufferImpl(const char* data, unsigned int size) :
-		data(NULL), size(0), readPos(0) {
+		data(NULL), size(0), capacitySize(0), readPos(0) {
 	this->setData(data, size);
 }
 
 Buffer::BufferImpl::BufferImpl(const Buffer::BufferImpl& buffer) :
-		data(NULL), size(0), readPos(0) {
+		data(NULL), size(0), capacitySize(0), readPos(0) {
 	this->setData(buffer.getData(), buffer.getSize());
 }
 
-int Buffer::BufferImpl::read(void* buf, int size) const {
-	int avaliableSize = this->getSize() - this->readPos;
+int Buffer::BufferImpl::read(void* buf, unsigned int size) const {
+	long avaliableSize = this->getSize() - this->readPos;
 	if (avaliableSize <= 0)
 		return 0;
 
-	int readSzie = avaliableSize > size ? size : avaliableSize;
+	unsigned int readSzie = avaliableSize > size ? size : avaliableSize;
 	memcpy(buf, this->data + this->readPos, readSzie);
 	this->readPos += readSzie;
 	return readSzie;
 }
 
+void Buffer::BufferImpl::zero() {
+	if (this->capacitySize > 0) {
+		memset(this->data, 0, this->capacitySize);
+	}
+}
+
 void Buffer::BufferImpl::resetReadPos() const {
 	this->readPos = 0;
 }
+
 Buffer::BufferImpl& Buffer::BufferImpl::operator=(
 		const Buffer::BufferImpl& buffer) {
 	this->setData(buffer.getData(), buffer.getSize());
@@ -115,7 +126,15 @@ void Buffer::BufferImpl::append(const char* data, unsigned int size) {
 	if ((NULL == data) || (size <= 0))
 		return;
 
-	char* newData = new char[this->size + size];
+	unsigned int reserveSize = this->capacitySize - this->size;
+	if (size <= reserveSize) {
+		memcpy(this->data + this->size, data, size);
+		this->size += size;
+		return;
+	}
+
+	this->capacitySize = (this->size + size) * BUF_INC_RATIO;
+	char* newData = new char[this->capacitySize];
 	memcpy(newData, this->data, this->size);
 	memcpy(newData + this->size, data, size);
 
@@ -126,18 +145,7 @@ void Buffer::BufferImpl::append(const char* data, unsigned int size) {
 }
 
 void Buffer::BufferImpl::append(const BufferImpl& buffer) {
-	if (buffer.isEmpty())
-		return;
-
-	char* newData = new char[this->size + buffer.getSize()];
-	memcpy(newData, this->data, this->size);
-	memcpy(newData + this->size, buffer.getData(), buffer.getSize());
-
-	if (NULL != this->data)
-		delete[] this->data;
-
-	this->data = newData;
-	this->size += buffer.getSize();
+	this->append(buffer.data, buffer.size);
 }
 
 void Buffer::ReverseBytes(char* buf, int size) {
@@ -162,7 +170,7 @@ void Buffer::BufferImpl::reverse() {
 	this->resetReadPos();
 }
 
-void Buffer::BufferImpl::alloc(int size) {
+void Buffer::BufferImpl::alloc(unsigned int size) {
 	this->clear();
 
 	if (size <= 0) {
@@ -170,14 +178,19 @@ void Buffer::BufferImpl::alloc(int size) {
 	}
 
 	this->size = size;
-	this->data = new char[this->size];
+	this->capacitySize = this->size * BUF_INC_RATIO;
+	this->data = new char[this->capacitySize];
 	if (!this->data) {
 		this->size = 0;
 		throw MK_EXCEPTION(BufferException, "Alloc buffer failed", size);
 	}
-	memset(this->data, 0, this->size);
+	this->zero();
 
 	this->resetReadPos();
+}
+
+unsigned int Buffer::BufferImpl::capacity() const{
+	return this->capacitySize;
 }
 
 char& Buffer::BufferImpl::operator[](unsigned index) {
@@ -198,11 +211,17 @@ void Buffer::BufferImpl::setData(const char* data, unsigned int size) {
 	char* oldData = this->data;
 	if ((NULL != data) && (size > 0)) {
 		this->size = size;
-		this->data = new char[this->size];
+		this->capacitySize = this->size * BUF_INC_RATIO;
+		this->data = new char[this->capacitySize];
+		if (!this->data) {
+			this->size = 0;
+			throw MK_EXCEPTION(BufferException, "Alloc buffer failed", size);
+		}
 		memcpy(this->data, data, this->size);
 	} else {
 		this->size = 0;
 		this->data = NULL;
+		this->capacitySize = 0;
 	}
 
 	this->resetReadPos();
@@ -232,6 +251,7 @@ void Buffer::BufferImpl::clear() {
 		delete[] this->data;
 		this->data = NULL;
 		this->size = 0;
+		this->capacitySize = 0;
 
 		this->resetReadPos();
 	}
@@ -340,17 +360,49 @@ Buffer& Buffer::reverse() {
 	return *this;
 }
 
-void Buffer::alloc(int size) {
+void Buffer::alloc(unsigned int size) {
 	this->impl->alloc(size);
 }
 
-int Buffer::read(void* buf, int size) const {
+unsigned int Buffer::capacity() const{
+	return this->impl->capacity();
+}
+
+void Buffer::zero() {
+	this->impl->zero();
+}
+
+int Buffer::read(void* buf, unsigned int size) const {
 	return this->impl->read(buf, size);
 }
 
 void Buffer::resetReadPos() const {
 	this->impl->resetReadPos();
 }
+
+Buffer& Buffer::operator<<(const Buffer& in_buffer) {
+	this->append(in_buffer);
+	return *this;
+}
+
+Buffer& Buffer::operator<<(istream& i) {
+	istream::pos_type pos = i.tellg();
+	i.seekg(0, ios::end);
+	istream::pos_type endPos = i.tellg();
+	i.seekg(pos, ios::beg);
+	istream::pos_type len = endPos - pos;
+	vector<char> v(len);
+	i.read(&v[0], len);
+	this->append(&v[0], len);
+
+	return *this;
+}
+
+Buffer& Buffer::operator<<(const string& s) {
+	this->append(s.c_str(), s.length());
+	return *this;
+}
+
 
 BUF_IN_OPERATOR_IMPL(long long);
 BUF_IN_OPERATOR_IMPL(long);
@@ -384,24 +436,5 @@ BUF_OUT_OPERATOR_IMPL(double);
 ostream& operator<<(ostream& o, const ducky::buffer::Buffer& buffer) {
 	o << buffer.toString();
 	return o;
-}
-
-ducky::buffer::Buffer& operator<<(ducky::buffer::Buffer& buffer,
-		const ducky::buffer::Buffer& in_buffer) {
-	buffer.append(in_buffer);
-	return buffer;
-}
-
-ducky::buffer::Buffer& operator<<(ducky::buffer::Buffer& buffer, istream& i) {
-	istream::pos_type pos = i.tellg();
-	i.seekg(0, ios::end);
-	istream::pos_type endPos = i.tellg();
-	i.seekg(pos, ios::beg);
-	istream::pos_type len = endPos - pos;
-	vector<char> v(len);
-	i.read(&v[0], len);
-	buffer.append(&v[0], len);
-
-	return buffer;
 }
 

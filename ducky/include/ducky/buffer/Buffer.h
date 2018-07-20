@@ -48,10 +48,12 @@ public:
 	void clear();
 	bool isEmpty() const;
 	Buffer& reverse();
-	void alloc(int size);
+	void alloc(unsigned int size);
+	unsigned int capacity() const;
+	void zero();
 
 	string toString() const;
-	int read(void* buf, int size) const;
+	int read(void* buf, unsigned int size) const;
 	void resetReadPos() const;
 
 	BUF_IN_OPERATOR_DEF(long long);
@@ -80,6 +82,10 @@ public:
 	BUF_OUT_OPERATOR_DEF(float);
 	BUF_OUT_OPERATOR_DEF(double);
 
+	ducky::buffer::Buffer& operator<<(const ducky::buffer::Buffer& in_buffer);
+	ducky::buffer::Buffer& operator<<(istream& i);
+	ducky::buffer::Buffer& operator<<(const std::string& s);
+
 	static void ReverseBytes(char* buf, int size);
 private:
 	class BufferImpl;
@@ -91,9 +97,5 @@ private:
 } /* namespace ducky */
 
 ostream& operator<<(ostream& o, const ducky::buffer::Buffer& buffer);
-
-ducky::buffer::Buffer& operator<<(ducky::buffer::Buffer& buffer,
-		const ducky::buffer::Buffer& in_buffer);
-ducky::buffer::Buffer& operator<<(ducky::buffer::Buffer& buffer, istream& i);
 
 #endif /* DUCKY_BUFFER_BUFFER_H_ */

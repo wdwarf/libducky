@@ -91,6 +91,7 @@ public:
 	Variant& operator=(const string& v);
 	Variant& operator=(const buffer::Buffer& v);
 	void setValue(const void* v);
+	void setValue(const void* v, unsigned long size);
 	void setValue(const void* v, VariantType type);
 	void setValue(const void* v, const string& typeName);
 

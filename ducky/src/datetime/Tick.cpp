@@ -18,12 +18,12 @@ namespace datetime {
 
 Tick::Tick() :
 		tick(0) {
-	// TODO Auto-generated constructor stub
+	
 
 }
 
 Tick::~Tick() {
-	// TODO Auto-generated destructor stub
+	
 }
 
 unsigned long Tick::GetTickCount() {

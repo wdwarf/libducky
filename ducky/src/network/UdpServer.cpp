@@ -679,12 +679,12 @@ void UdpServerImpl::run() {
 
 _UdpServer::_UdpServer() :
 		impl(new UdpServerImpl(this)) {
-	// TODO Auto-generated constructor stub
+	
 
 }
 
 _UdpServer::~_UdpServer() {
-	// TODO Auto-generated destructor stub
+	
 	delete this->impl;
 }
 

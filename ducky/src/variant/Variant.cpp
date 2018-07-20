@@ -1,7 +1,7 @@
 /*
  * Variant.cpp
  *
- *  Created on: 2016��12��1��
+ *  Created on: 2016-12-01
  *      Author: liyawu
  */
 
@@ -9,6 +9,7 @@
 #include <ducky/algorithm/String.h>
 #include <sstream>
 #include <cstring>
+#include <cmath>
 
 using namespace std;
 using namespace ducky::algorithm;
@@ -18,7 +19,6 @@ namespace variant {
 
 Variant::Variant() :
 		vt(VT_UNKNOWN), size(0) {
-	// TODO Auto-generated constructor stub
 	memset(&this->value, 0, sizeof(this->value));
 }
 
@@ -135,7 +135,6 @@ Variant::Variant(const buffer::Buffer& v) {
 }
 
 Variant::~Variant() {
-	// TODO Auto-generated destructor stub
 	this->clear();
 }
 
@@ -696,6 +695,87 @@ void Variant::setValue(const void* v) {
 		memcpy(this->value.valPtr, v, this->size);
 		break;
 	}
+	}
+}
+
+void Variant::setValue(const void* v, unsigned long size) {
+	if (VT_UNKNOWN == this->vt)
+		return;
+
+	unsigned int s = min(this->size, size);
+
+	if (VT_CARRAY == this->vt) {
+		memset(this->value.valPtr, 0, this->size);
+		memcpy(this->value.valPtr, v, s);
+		return;
+	}
+
+	if (VT_STRING == this->size) {
+		if (size != this->size) {
+			this->setSize(size);
+		}
+		if (this->size > 0)
+			memcpy(this->value.valPtr, v, this->size);
+		return;
+	}
+
+	memset(&this->value, 0, sizeof(this->value));
+
+	switch (this->vt) {
+	case VT_BOOLEAN: {
+		memcpy(&this->value.valBool, v, s);
+		break;
+	}
+	case VT_UCHAR: {
+		memcpy(&this->value.valUChar, v, s);
+		break;
+	}
+	case VT_USHORT: {
+		memcpy(&this->value.valUShort, v, s);
+		break;
+	}
+	case VT_UINT: {
+		memcpy(&this->value.valUInt, v, s);
+		break;
+	}
+	case VT_ULONG: {
+		memcpy(&this->value.valULong, v, s);
+		break;
+	}
+	case VT_ULONGLONG: {
+		memcpy(&this->value.valULongLong, v, s);
+		break;
+	}
+	case VT_CHAR: {
+		memcpy(&this->value.valChar, v, s);
+		break;
+	}
+	case VT_SHORT: {
+		memcpy(&this->value.valShort, v, s);
+		break;
+	}
+	case VT_INT: {
+		memcpy(&this->value.valInt, v, s);
+		break;
+	}
+	case VT_LONG: {
+		memcpy(&this->value.valLong, v, s);
+		break;
+	}
+	case VT_LONGLONG: {
+		memcpy(&this->value.valLongLong, v, s);
+		break;
+	}
+	case VT_FLOAT: {
+		memcpy(&this->value.valFloat, v, s);
+		break;
+	}
+	case VT_DOUBLE: {
+		memcpy(&this->value.valDouble, v, s);
+		break;
+	}
+	default:
+		break;
 	}
 }
 
