@@ -28,11 +28,13 @@ public:
 	int run();
 	void exit(int code = 0);
 	int getExitCode() const;
+
 	virtual void onInitialize(){}
 	virtual void onRun() = 0;
 	virtual void onUninitialize(){}
 
 	const std::vector<std::string>& getCommandLines() const;
+	const std::string& getCommandLine(int index) const;
 	int getCommandLineCount() const;
 
 	const ducky::variant::Variant& getValue(const std::string& key) const;
@@ -43,6 +45,9 @@ public:
 	void saveSettings(const std::string& file);
 	void loadSettings(const std::string& file);
 
+	static std::string GetApplicationName();
+	static std::string GetApplicationPath();
+	static std::string GetCurrentWorkDir();
 private:
 	class ApplicationImpl;
 	ApplicationImpl* impl;

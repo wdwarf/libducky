@@ -152,7 +152,7 @@ Variant& Variant::operator=(const Variant& v) {
 	this->vt = v.vt;
 	this->size = v.size;
 	this->value = v.value;
-	if (VT_CARRAY == this->vt || VT_STRING == this->vt) {
+	if ((VT_CARRAY == this->vt || VT_STRING == this->vt) && (this->size > 0)) {
 		this->value.valPtr = new char[this->size];
 		memcpy(this->value.valPtr, v.value.valPtr, this->size);
 	}

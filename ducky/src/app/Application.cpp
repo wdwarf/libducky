@@ -10,14 +10,17 @@
 #include <ducky/thread/Thread.h>
 #include <ducky/thread/Mutex.h>
 #include <ducky/thread/Semaphore.h>
+#include <ducky/file/File.h>
 #include <cassert>
 #include <vector>
 #include <string>
 #include <set>
+#include <unistd.h>
 
 using namespace std;
 using namespace ducky::thread;
 using namespace ducky::settings;
+using namespace ducky::file;
 
 namespace ducky {
 namespace app {
@@ -25,7 +28,7 @@ namespace app {
 class Application::ApplicationImpl: public ducky::settings::Settings {
 public:
 	ApplicationImpl(Application* _app, int argc, char** argv) :
-			app(_app), runThread(&Application::ApplicationImpl::execute, this), exitCode(
+			app(_app), exitCode(
 					0), running(false) {
 		for (int i = 0; i < argc; ++i) {
 			cmdLines.push_back(argv[i]);
@@ -46,13 +49,11 @@ public:
 		}
 
 		this->app->onInitialize();
-
-		this->runThread.start();
+		this->app->run();
 
 		sem.wait();
 
 		this->app->onUninitialize();
-		this->runThread.join();
 
 		MutexLocker lk(this->mutex);
 		this->running = false;
@@ -79,6 +80,10 @@ public:
 
 	const std::vector<std::string>& getCommandLines() const {
 		return this->cmdLines;
+	}
+
+	const std::string& getCommandLine(int index) const{
+		return this->cmdLines[index];
 	}
 
 	int getCommandLineCount() const {
@@ -108,11 +113,30 @@ public:
 		this->settings.loadFromFile(file);
 	}
 
+	static std::string GetApplicationPath()
+	{
+		char path[256] = { 0 };
+		if (::readlink("/proc/self/exe", path, 256) <= 0)
+		{
+			return "";
+		}
+		return path;
+	}
+
+	static std::string GetApplicationName()
+	{
+		return File(ApplicationImpl::GetApplicationPath()).getName();
+	}
+
+	static std::string GetCurrentWorkDir()
+	{
+		return ::getcwd(NULL, 0);
+	}
+
 private:
 	Application* app;
 	Settings settings;
 	vector<string> cmdLines;
-	Thread runThread;
 	Mutex mutex;
 	Semaphore sem;
 	int exitCode;
@@ -147,6 +171,10 @@ int Application::run() {
 
 const std::vector<std::string>& Application::getCommandLines() const {
 	return this->impl->getCommandLines();
+}
+
+const std::string& Application::getCommandLine(int index) const{
+	return this->impl->getCommandLine(index);
 }
 
 int Application::getCommandLineCount() const {
@@ -189,6 +217,21 @@ void Application::exit(int code) {
 
 int Application::getExitCode() const {
 	return this->impl->getExitCode();
+}
+
+std::string Application::GetApplicationName()
+{
+	return Application::ApplicationImpl::GetApplicationName();
+}
+
+std::string Application::GetApplicationPath()
+{
+	return Application::ApplicationImpl::GetApplicationPath();
+}
+
+std::string Application::GetCurrentWorkDir()
+{
+	return Application::ApplicationImpl::GetCurrentWorkDir();
 }
 
 } /* namespace app */

@@ -49,11 +49,12 @@ public:
 	void setData(const char* data, unsigned int size);
 	char* getData() const;
 	unsigned int getSize() const;
+	void resize(unsigned int size);
 	void clear();
 	bool isEmpty() const;
 	void reverse();
 	void alloc(unsigned int size);
-	unsigned int capacity() const;
+	unsigned int getCapacity() const;
 	void zero();
 
 	string toString();
@@ -63,27 +64,27 @@ public:
 private:
 	char* data;
 	unsigned int size;
-	unsigned int capacitySize;
+	unsigned int capacity;
 	mutable unsigned int readPos;
 };
 
 Buffer::BufferImpl::BufferImpl() :
-		data(NULL), size(0), capacitySize(0), readPos(0) {
+		data(NULL), size(0), capacity(0), readPos(0) {
 
 }
 
 Buffer::BufferImpl::BufferImpl(unsigned int initSize) :
-		data(NULL), size(0), capacitySize(0), readPos(0) {
+		data(NULL), size(0), capacity(0), readPos(0) {
 	this->alloc(initSize);
 }
 
 Buffer::BufferImpl::BufferImpl(const char* data, unsigned int size) :
-		data(NULL), size(0), capacitySize(0), readPos(0) {
+		data(NULL), size(0), capacity(0), readPos(0) {
 	this->setData(data, size);
 }
 
 Buffer::BufferImpl::BufferImpl(const Buffer::BufferImpl& buffer) :
-		data(NULL), size(0), capacitySize(0), readPos(0) {
+		data(NULL), size(0), capacity(0), readPos(0) {
 	this->setData(buffer.getData(), buffer.getSize());
 }
 
@@ -99,8 +100,8 @@ int Buffer::BufferImpl::read(void* buf, unsigned int size) const {
 }
 
 void Buffer::BufferImpl::zero() {
-	if (this->capacitySize > 0) {
-		memset(this->data, 0, this->capacitySize);
+	if (this->capacity > 0) {
+		memset(this->data, 0, this->capacity);
 	}
 }
 
@@ -126,15 +127,15 @@ void Buffer::BufferImpl::append(const char* data, unsigned int size) {
 	if ((NULL == data) || (size <= 0))
 		return;
 
-	unsigned int reserveSize = this->capacitySize - this->size;
+	unsigned int reserveSize = this->capacity - this->size;
 	if (size <= reserveSize) {
 		memcpy(this->data + this->size, data, size);
 		this->size += size;
 		return;
 	}
 
-	this->capacitySize = (this->size + size) * BUF_INC_RATIO;
-	char* newData = new char[this->capacitySize];
+	this->capacity = (this->size + size) * BUF_INC_RATIO;
+	char* newData = new char[this->capacity];
 	memcpy(newData, this->data, this->size);
 	memcpy(newData + this->size, data, size);
 
@@ -178,8 +179,8 @@ void Buffer::BufferImpl::alloc(unsigned int size) {
 	}
 
 	this->size = size;
-	this->capacitySize = this->size * BUF_INC_RATIO;
-	this->data = new char[this->capacitySize];
+	this->capacity = this->size * BUF_INC_RATIO;
+	this->data = new char[this->capacity];
 	if (!this->data) {
 		this->size = 0;
 		throw MK_EXCEPTION(BufferException, "Alloc buffer failed", size);
@@ -189,8 +190,8 @@ void Buffer::BufferImpl::alloc(unsigned int size) {
 	this->resetReadPos();
 }
 
-unsigned int Buffer::BufferImpl::capacity() const{
-	return this->capacitySize;
+unsigned int Buffer::BufferImpl::getCapacity() const {
+	return this->capacity;
 }
 
 char& Buffer::BufferImpl::operator[](unsigned index) {
@@ -211,8 +212,8 @@ void Buffer::BufferImpl::setData(const char* data, unsigned int size) {
 	char* oldData = this->data;
 	if ((NULL != data) && (size > 0)) {
 		this->size = size;
-		this->capacitySize = this->size * BUF_INC_RATIO;
-		this->data = new char[this->capacitySize];
+		this->capacity = this->size * BUF_INC_RATIO;
+		this->data = new char[this->capacity];
 		if (!this->data) {
 			this->size = 0;
 			throw MK_EXCEPTION(BufferException, "Alloc buffer failed", size);
@@ -221,7 +222,7 @@ void Buffer::BufferImpl::setData(const char* data, unsigned int size) {
 	} else {
 		this->size = 0;
 		this->data = NULL;
-		this->capacitySize = 0;
+		this->capacity = 0;
 	}
 
 	this->resetReadPos();
@@ -246,12 +247,32 @@ unsigned int Buffer::BufferImpl::getSize() const {
 	return this->size;
 }
 
+void Buffer::BufferImpl::resize(unsigned int size) {
+	if (this->capacity >= size) {
+		this->size = size;
+		return;
+	}
+
+	this->capacity = size * BUF_INC_RATIO;
+	char* newData = new char[this->capacity];
+	if (!newData) {
+		this->size = 0;
+		throw MK_EXCEPTION(BufferException, "Alloc buffer failed", size);
+	}
+	memcpy(newData, this->data, size);
+
+	if (NULL != this->data)
+		delete[] this->data;
+	this->data = newData;
+	this->size = size;
+}
+
 void Buffer::BufferImpl::clear() {
 	if (NULL != this->data) {
 		delete[] this->data;
 		this->data = NULL;
 		this->size = 0;
-		this->capacitySize = 0;
+		this->capacity = 0;
 
 		this->resetReadPos();
 	}
@@ -343,6 +364,10 @@ unsigned int Buffer::getSize() const {
 	return this->impl->getSize();
 }
 
+void Buffer::resize(unsigned int size) {
+	this->impl->resize(size);
+}
+
 void Buffer::clear() {
 	this->impl->clear();
 }
@@ -364,8 +389,8 @@ void Buffer::alloc(unsigned int size) {
 	this->impl->alloc(size);
 }
 
-unsigned int Buffer::capacity() const{
-	return this->impl->capacity();
+unsigned int Buffer::getCapacity() const {
+	return this->impl->getCapacity();
 }
 
 void Buffer::zero() {
@@ -402,7 +427,6 @@ Buffer& Buffer::operator<<(const string& s) {
 	this->append(s.c_str(), s.length());
 	return *this;
 }
-
 
 BUF_IN_OPERATOR_IMPL(long long);
 BUF_IN_OPERATOR_IMPL(long);

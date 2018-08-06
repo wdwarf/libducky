@@ -45,11 +45,12 @@ public:
 	void setData(const char* data, unsigned int size);
 	char* getData() const;
 	unsigned int getSize() const;
+	void resize(unsigned int size);
 	void clear();
 	bool isEmpty() const;
 	Buffer& reverse();
 	void alloc(unsigned int size);
-	unsigned int capacity() const;
+	unsigned int getCapacity() const;
 	void zero();
 
 	string toString() const;
