@@ -1,493 +1,505 @@
+/*
+ * TaskService.cpp
+ *
+ *  Created on: 2018年8月14日
+ *      Author: liyawu
+ */
+
 #include <ducky/task/TaskService.h>
-#include <sstream>
 #include <sys/time.h>
-
-#include <set>
-#include <ctime>
-#include <iostream>
-
 #include <ducky/thread/Thread.h>
-#include <ducky/thread/Mutex.h>
-#include <ducky/thread/Semaphore.h>
 
 using namespace ducky::thread;
-using namespace std;
 
-namespace ducky {
-namespace task {
+namespace ducky
+{
+namespace task
+{
 
-class ITask::ITaskImpl {
+//=======================================================
+// class FuncTask
+//=======================================================
+class FuncTask: public ITask
+{
 public:
-	ITaskImpl() :
-			startTime(0), timeout(-1), repeatTask(false), freeAfterExecute(true), canceled(false), taskService(
-					NULL) {
+	FuncTask(const TaskCallbackFunc& func, const std::string& taskName) :
+			ITask(taskName, true), m_func(func)
+	{
 
 	}
 
-	void setTimeout(int timeoutSec) {
-		this->timeout = timeoutSec;
-	}
-
-	int getTimeout() const {
-		return this->timeout;
-	}
-
-	void setStartTime(unsigned long long startTime) {
-		this->startTime = startTime;
-	}
-
-	unsigned long long getStartTime() const {
-		return this->startTime;
-	}
-
-	void setRepeat(bool repeatTask) {
-		this->repeatTask = repeatTask;
-	}
-
-	bool isRepeat() const {
-		return this->repeatTask;
-	}
-
-	void setFreeAfterExecute(bool freeAfterExecute) {
-		this->freeAfterExecute = freeAfterExecute;
-	}
-
-	bool isFreeAfterExecute() const {
-		return freeAfterExecute;
-	}
-
-	void cancel() {
-		this->canceled = true;
-	}
-
-	bool isCanceled() const {
-		return this->canceled;
-	}
-
-	TaskService* getTaskService() const {
-		return this->taskService;
+	void execute()
+	{
+		try
+		{
+			this->m_func();
+		} catch (...)
+		{
+		}
 	}
 
 private:
-	unsigned long long startTime;
-	int timeout;
-	bool repeatTask;
-	bool freeAfterExecute;
-	bool canceled;
-
-	friend class TaskService;
-	TaskService* taskService;
+	TaskCallbackFunc m_func;
 };
 
-ITask::ITask() :
-		impl(new ITask::ITaskImpl) {
+//=======================================================
+// class ITask
+//=======================================================
+ITask::ITask(const std::string& taskName, bool freeOnFinished) :
+		m_taskName(taskName), m_freeOnFinished(freeOnFinished), m_timeout(0), m_StartTime(0), m_repeat(false), m_handling(false), m_Canceled(false), m_finished(
+				false), m_taskService(
+		NULL)
+{
 }
 
-ITask::~ITask() {
-	delete this->impl;
+ITask::~ITask()
+{
 }
 
-void ITask::setTimeout(int timeoutMSec) {
-	this->impl->setTimeout(timeoutMSec);
+const std::string& ITask::getTaskName() const
+{
+	return m_taskName;
 }
 
-int ITask::getTimeout() const {
-	return this->impl->getTimeout();
+void ITask::setTaskName(const std::string& taskName)
+{
+	this->m_taskName = taskName;
 }
 
-void ITask::setRepeat(bool repeatTask) {
-	this->impl->setRepeat(repeatTask);
+bool ITask::isFreeOnFinished() const
+{
+	return m_freeOnFinished;
 }
 
-bool ITask::isRepeat() const {
-	return this->impl->isRepeat();
+bool ITask::isRepeat() const
+{
+	return m_repeat;
 }
 
-void ITask::setStartTime(unsigned long long startTime) {
-	this->impl->setStartTime(startTime);
+void ITask::setRepeat(bool repeat)
+{
+	m_repeat = repeat;
 }
 
-unsigned long long ITask::getStartTime() const {
-	return this->impl->getStartTime();
+long ITask::getTimeout() const
+{
+	return m_timeout;
 }
 
-void ITask::setFreeAfterExecute(bool freeAfterExecute) {
-	this->impl->setFreeAfterExecute(freeAfterExecute);
+void ITask::setTimeout(long timeout)
+{
+	m_timeout = timeout;
 }
 
-bool ITask::isFreeAfterExecute() const {
-	return this->impl->isFreeAfterExecute();
+TaskService* ITask::getTaskService()
+{
+	return m_taskService;
 }
 
-void ITask::cancel() {
-	this->impl->cancel();
+void ITask::cancel()
+{
+	this->setCanceled(true);
 }
 
-bool ITask::isCanceled() const {
-	return this->impl->isCanceled();
+void ITask::onCanceled()
+{
 }
 
-TaskService* ITask::getTaskService() const {
-	return this->impl->getTaskService();
+void ITask::onFinished()
+{
 }
 
-//=================================================
-//=================================================
+bool ITask::isHandling() const
+{
+	return m_handling;
+}
 
-class TaskService::TaskServiceImpl: public ducky::thread::Thread {
-public:
-	TaskServiceImpl(TaskService* taskService);
-	virtual ~TaskServiceImpl();
+void ITask::setHandling(bool handling)
+{
+	m_handling = handling;
+}
 
-	void addTask(ITask* task, bool removeWorkingTasks = false);
-	void cancelTask(ITask* task);
-	bool hasTask(ITask* task);
-	void removeWorkingTask(ITask* task);
-	void setWorkThreadPoolSize(int workThreadPoolSize);
-	int getWorkThreadPoolSize() const;
-	virtual void stop();
+bool ITask::isCanceled() const
+{
+	return m_Canceled;
+}
 
-private:
-	void run();
+void ITask::setCanceled(bool Canceled)
+{
+	m_Canceled = Canceled;
+}
 
-	class TaskServiceWorkThread: public Thread {
-	public:
-		TaskServiceWorkThread(TaskService::TaskServiceImpl* service) :
-				pTaskService(service), task(NULL) {
-			this->setFreeOnTerminated(true);
-		}
+bool ITask::isFinished() const
+{
+	return m_finished;
+}
 
-		virtual ~TaskServiceWorkThread() {
-		}
+void ITask::setFinished(bool finished)
+{
+	m_finished = finished;
+}
 
-		void execute(ITask* task) {
-			if (this->task) {
-				return;
-			}
-			this->task = task;
-			this->sem.release();
-		}
+unsigned long long ITask::getStartTime() const
+{
+	return m_StartTime;
+}
 
-		virtual void stop() {
-			Thread::stop();
-			this->sem.release();
-		}
+void ITask::setStartTime(unsigned long long StartTime)
+{
+	m_StartTime = StartTime;
+}
 
-	private:
-		void run() {
-			while (!this->canStop()) {
-				sem.wait();
-				if (this->canStop()) {
-					break;
-				}
-				if (!this->task) {
-					continue;
-				}
+void ITask::setTaskService(TaskService* taskService)
+{
+	m_taskService = taskService;
+}
 
-				try {
-					if (!this->task->isCanceled()) {
-						this->task->execute();
-					}
-				} catch (...) {
-				}
-
-				if (!this->task->isCanceled() && this->task->isRepeat()) {
-					this->pTaskService->addTask(this->task, true);
-				} else if (this->task->isFreeAfterExecute()) {
-					this->pTaskService->removeWorkingTask(this->task);
-					this->task->onDone();
-					delete this->task;
-				}else{
-					this->pTaskService->removeWorkingTask(this->task);
-					this->task->onDone();
-				}
-				this->task = NULL;
-
-				this->pTaskService->recycleWorkThread(this);
-			}
-		}
-
-	private:
-		TaskService::TaskServiceImpl* pTaskService;
-		ITask* task;
-		ducky::thread::Semaphore sem;
-	};
-
-	class TaskServiceWorkThread;
-	friend class TaskServiceWorkThread;
-	TaskServiceWorkThread* getWorkThread();
-	void recycleWorkThread(TaskServiceWorkThread*);
-
-	TaskService* taskService;
-	int msecWait;
-	int workThreadPoolSize;
-	unsigned int currentThreadCount;
-	ducky::thread::Mutex mutex;
-	ducky::thread::Semaphore semWait;
-	std::set<ITask*> taskList;
-	std::set<ITask*> workingTaskList;
-	std::set<TaskServiceWorkThread*> workThreads;
-};
-
-TaskService::TaskServiceImpl::TaskServiceImpl(TaskService* service) :
-		taskService(service), msecWait(-1), workThreadPoolSize(5), currentThreadCount(0), mutex(
-				true) {
+//=======================================================
+// class TaskService
+//=======================================================
+TaskService::TaskService() :
+		m_serviceThread(this), m_workThreadCount(10), m_maxWorkThreadCount(1000)
+{
+	//
 
 }
 
-TaskService::TaskServiceImpl::~TaskServiceImpl() {
-	if (this->isRunning()) {
-		this->stop();
+TaskService::~TaskService()
+{
+	//
+}
+
+void TaskService::start()
+{
+	this->m_serviceThread.start();
+}
+
+void TaskService::stop()
+{
+	this->m_serviceThread.stop();
+	this->notify();
+}
+
+void TaskService::join()
+{
+	this->m_serviceThread.join();
+}
+
+unsigned int TaskService::getTaskCount() const
+{
+	return this->m_tasks.size();
+}
+
+std::list<std::string> TaskService::getTaskNames() const
+{
+	std::list<std::string> taskNames;
+
+	MutexLocker lk(this->m_mutex);
+	for (TaskList::const_iterator it = this->m_tasks.begin(); it != this->m_tasks.end(); ++it)
+	{
+		taskNames.push_back((*it)->getTaskName());
 	}
+	return taskNames;
 }
 
-void TaskService::TaskServiceImpl::stop() {
-	Thread::stop();
-	this->semWait.release();
-}
-
-void TaskService::TaskServiceImpl::setWorkThreadPoolSize(int workThreadPoolSize) {
-	if (workThreadPoolSize < 0) {
-		stringstream str;
-		str << "invalid work thread pool size: " << workThreadPoolSize;
-		THROW_EXCEPTION(TaskException, str.str(), workThreadPoolSize);
-	}
-
-	MutexLocker lk(this->mutex);
-	this->workThreadPoolSize = workThreadPoolSize;
-	while (this->workThreads.size() >= this->workThreadPoolSize) {
-		TaskServiceWorkThread* workThread = *this->workThreads.begin();
-		this->workThreads.erase(this->workThreads.begin());
-		workThread->stop();
-		--currentThreadCount;
+void TaskService::addTask(PTask task)
+{
+	MutexLocker lk(this->m_mutex);
+	if (this->m_tasks.find(task) != this->m_tasks.end())
 		return;
+
+	task->setTaskService(this);
+	task->setHandling(false);
+	task->setCanceled(false);
+	task->setFinished(false);
+
+	timeval tv;
+	gettimeofday(&tv, NULL);
+	task->setStartTime(tv.tv_sec * 1000 + tv.tv_usec / 1000);
+	this->m_tasks.insert(task);
+
+	this->notify();
+}
+
+void TaskService::addTask(const TaskCallbackFunc& func, const std::string& taskName, long timeout, bool repeat)
+{
+	ITask* task = new FuncTask(func, taskName);
+	task->setTimeout(timeout);
+	task->setRepeat(repeat);
+	this->addTask(task);
+}
+
+void TaskService::cancelTask(PTask task)
+{
+	MutexLocker lk(this->m_mutex);
+	TaskList::iterator it = this->m_tasks.find(task);
+	if (it != this->m_tasks.end())
+	{
+		task->cancel();
 	}
+	this->notify();
 }
 
-int TaskService::TaskServiceImpl::getWorkThreadPoolSize() const {
-	return this->workThreadPoolSize;
-}
-
-TaskService::TaskServiceImpl::TaskServiceWorkThread* TaskService::TaskServiceImpl::getWorkThread() {
-	MutexLocker lk(this->mutex);
-	TaskServiceWorkThread* workThread;
-	if (!this->workThreads.empty()) {
-		workThread = *this->workThreads.begin();
-		this->workThreads.erase(this->workThreads.begin());
-	} else {
-		workThread = new TaskServiceWorkThread(this);
-		try {
-			workThread->start();
-		} catch (...) {
-			delete workThread;
-			return NULL;
+void TaskService::cancelTask(const std::string& taskName)
+{
+	MutexLocker lk(this->m_mutex);
+	for (TaskList::iterator it = this->m_tasks.begin(); it != this->m_tasks.end(); ++it)
+	{
+		PTask task = *it;
+		if (task->getTaskName() == taskName)
+		{
+			task->cancel();
 		}
-		++currentThreadCount;
+	}
+	this->notify();
+}
+
+TaskService::WorkThread* TaskService::getWorkThread()
+{
+	TaskService::WorkThread* workThread = NULL;
+
+	if (WorkThread::GetWorkThreadCount() > this->m_maxWorkThreadCount)
+	{
+		return NULL;
+	}
+
+	MutexLocker lk(this->m_mutexWorkThread);
+	if (!this->m_workThreads.empty())
+	{
+		workThread = this->m_workThreads.front();
+		this->m_workThreads.pop_front();
+	}
+	else
+	{
+		workThread = new WorkThread(this);
+		try
+		{
+			workThread->start();
+		} catch (...)
+		{
+			delete workThread;
+			workThread = NULL;
+		}
 	}
 
 	return workThread;
 }
 
-void TaskService::TaskServiceImpl::recycleWorkThread(TaskServiceWorkThread* workThread) {
-	if (NULL == workThread)
-		return;
-
-	MutexLocker lk(this->mutex);
-	if (this->workThreads.size() >= this->workThreadPoolSize) {
+void TaskService::addWorkThread(WorkThread* workThread)
+{
+	MutexLocker lk(this->m_mutexWorkThread);
+	if (this->m_workThreads.size() >= m_workThreadCount)
+	{
 		workThread->stop();
-		--currentThreadCount;
 		return;
 	}
-
-	this->workThreads.insert(workThread);
-	this->semWait.release();
+	this->m_workThreads.push_back(workThread);
 }
 
-void TaskService::TaskServiceImpl::addTask(ITask* task, bool removeWorkingTasks) {
-	if (NULL == task){
-		return;
+void TaskService::onStop()
+{
+	while (WorkThread::GetWorkThreadCount() > 0)
+	{
+		Thread::Sleep(100);
+		this->clearWorkThreads();
 	}
-	MutexLocker lk(this->mutex);
 
-	if (this->canStop()) {
-		if (task->isFreeAfterExecute()) {
+	MutexLocker lk(this->m_mutex);
+	for (TaskList::iterator it = this->m_tasks.begin(); it != this->m_tasks.end(); ++it)
+	{
+		PTask task = *it;
+		if (task->isFreeOnFinished())
 			delete task;
-		}
-		return;
 	}
+	this->m_tasks.clear();
+}
 
-	if (this->taskList.find(task) != this->taskList.end()) {
-		return;
+void TaskService::clearWorkThreads()
+{
+	MutexLocker lk(this->m_mutexWorkThread);
+	for (std::list<WorkThread*>::iterator it = this->m_workThreads.begin(); it != this->m_workThreads.end(); ++it)
+	{
+		(*it)->stop();
 	}
+	this->m_workThreads.clear();
+}
 
-	if (removeWorkingTasks) {
-		this->workingTaskList.erase(task);
-	} else {
-		if (this->workingTaskList.find(task) != this->workingTaskList.end()) {
-			return;
-		}
-	}
+void TaskService::notify()
+{
+	this->m_sem.release();
+}
 
-	if (task->isCanceled()) {
-		if (task->isFreeAfterExecute()){
-			task->onDone();
-			delete task;
-		}
-		return;
-	}
-
+void TaskService::handleTask()
+{
+	time_t timeWait = -1;
 	timeval tv;
 	gettimeofday(&tv, NULL);
-	task->setStartTime(tv.tv_sec * 1000 + tv.tv_usec / 1000);
-	task->impl->taskService = this->taskService;
 
-	if (-1 == task->getTimeout()) {
-		TaskServiceWorkThread* workThread = this->getWorkThread();
-		if (workThread) {
-			this->workingTaskList.insert(task);
-			workThread->execute(task);
-			return;
-		}
-	}
-
-	this->taskList.insert(task);
-
-	int timeout = task->getTimeout();
-	unsigned long long t = timeout - (tv.tv_sec * 1000 + tv.tv_usec / 1000 - task->getStartTime());
-
-	if ((-1 == msecWait) || (t < msecWait)) {
-		this->semWait.release();
-	}
-}
-
-void TaskService::TaskServiceImpl::cancelTask(ITask* task) {
-	if(!task) return;
-
-	MutexLocker lk(this->mutex);
-
-	if (this->workingTaskList.find(task) != this->workingTaskList.end()) {
-		task->cancel();
-	} else if (this->taskList.find(task) != this->taskList.end()) {
-		task->cancel();
-		this->semWait.release();
-	}
-}
-
-bool TaskService::TaskServiceImpl::hasTask(ITask* task) {
-	MutexLocker lk(this->mutex);
-
-	return (this->workingTaskList.find(task) != this->workingTaskList.end())
-			|| (this->taskList.find(task) != this->taskList.end());
-}
-
-void TaskService::TaskServiceImpl::removeWorkingTask(ITask* task) {
-	MutexLocker lk(this->mutex);
-	this->workingTaskList.erase(task);
-}
-
-void TaskService::TaskServiceImpl::run() {
-	while (!this->canStop()) {
+	{
+		MutexLocker lk(this->m_mutex);
+		for (TaskList::iterator it = this->m_tasks.begin(); it != this->m_tasks.end();)
 		{
-			MutexLocker lk(this->mutex);
-			msecWait = -1;
-			timeval tv;
-			gettimeofday(&tv, NULL);
-			for (set<ITask*>::iterator it = this->taskList.begin(); it != this->taskList.end();
-					++it) {
-				ITask* task = *it;
+			PTask task = *it;
 
-				int timeout = task->getTimeout();
-				unsigned long long t = tv.tv_sec * 1000 + tv.tv_usec / 1000 - task->getStartTime();
+			if (task->isHandling())
+			{
+				++it;
+				continue;
+			}
 
-				if (task->isCanceled() || (timeout <= 0) || (t >= timeout)) {
-					set<ITask*>::iterator itPrev = it;
-					--itPrev;
-					TaskServiceWorkThread* workThread = this->getWorkThread();
-					if (workThread) {
-						workThread->execute(task);
-						this->workingTaskList.insert(task);
-						this->taskList.erase(it);
-						it = itPrev;
-					}
-				} else {
-					t = timeout - t;
-					if (-1 == msecWait) {
-						msecWait = t;
-					} else {
-						msecWait = t < msecWait ? t : msecWait;
-					}
+			if (task->isFinished())
+			{
+				TaskList::iterator itTmp = it;
+				++itTmp;
+				this->m_tasks.erase(it);
+				it = itTmp;
+
+				if (task->isFreeOnFinished())
+					delete task;
+				continue;
+			}
+
+			long timeout = task->getTimeout();
+			time_t t = tv.tv_sec * 1000 + tv.tv_usec / 1000 - task->getStartTime();
+			if (task->isCanceled() || (timeout <= 0) || (t >= timeout))
+			{
+				WorkThread* workThread = this->getWorkThread();
+				if (workThread)
+				{
+					task->setHandling(true);
+					workThread->handleTask(task);
 				}
+				else
+				{
+					/** 工作线程不够，等待100毫秒 **/
+					timeWait = timeWait > 100 ? 100 : timeWait;
+				}
+				++it;
+				continue;
+			}
+			else
+			{
+				/** 取最小等待时间 **/
+				t = timeout - t;
+				if (-1 == timeWait)
+				{
+					timeWait = t;
+				}
+				else
+				{
+					timeWait = t < timeWait ? t : timeWait;
+				}
+				++it;
 			}
 		}
-
-		this->semWait.wait(msecWait);
 	}
 
-	while (true) {
-		MutexLocker lk(this->mutex);
-		if (currentThreadCount == this->workThreads.size()) {
-			while (!this->workThreads.empty()) {
-				TaskServiceWorkThread* workThread = *this->workThreads.begin();
-				this->workThreads.erase(this->workThreads.begin());
-				workThread->stop();
-				//workThread->join();
-			}
-			Thread::Sleep(500);
-			while (!this->taskList.empty()) {
-				ITask* task = *this->taskList.begin();
-				this->taskList.erase(this->taskList.begin());
-				delete task;
-			}
-			break;
+	this->m_sem.wait(timeWait);
+}
+
+//=======================================================
+// class TaskService::ServiceThread
+//=======================================================
+TaskService::ServiceThread::ServiceThread(TaskService* taskService) :
+		m_taskService(taskService)
+{
+}
+
+void TaskService::ServiceThread::run()
+{
+	while (!this->canStop())
+	{
+		this->m_taskService->handleTask();
+	}
+
+	this->m_taskService->onStop();
+}
+
+//=======================================================
+// class TaskService::WorkThread
+//=======================================================
+unsigned int TaskService::WorkThread::s_WorkThreadCount = 0;
+ducky::thread::Mutex TaskService::WorkThread::s_mutex;
+
+TaskService::WorkThread::WorkThread(TaskService* taskService) :
+		m_taskService(taskService), m_task(NULL)
+{
+	MutexLocker lk(TaskService::WorkThread::s_mutex);
+	++TaskService::WorkThread::s_WorkThreadCount;
+	this->setFreeOnTerminated(true);
+}
+
+TaskService::WorkThread::~WorkThread()
+{
+	//
+}
+
+void TaskService::WorkThread::handleTask(PTask task)
+{
+	MutexLocker lk(this->m_mutex);
+	this->m_task = task;
+	this->m_sem.release();
+}
+
+void TaskService::WorkThread::run()
+{
+	/** 分离工作线程 **/
+	this->detach();
+
+	while (!this->canStop())
+	{
+		this->m_sem.wait();
+
+		MutexLocker lk(this->m_mutex);
+		if (NULL == this->m_task)
+			continue;
+
+		if (this->m_task->isCanceled())
+		{
+			this->m_task->setFinished(true);
+			this->m_task->onCanceled();
+			this->handleFinished();
+			continue;
 		}
-		Thread::Sleep(100);
+
+		this->m_task->execute();
+		if (!this->m_task->isRepeat())
+		{
+			this->m_task->setFinished(true);
+			this->m_task->onFinished();
+		}
+
+		this->handleFinished();
 	}
+
+	MutexLocker lk(TaskService::WorkThread::s_mutex);
+	--TaskService::WorkThread::s_WorkThreadCount;
 }
 
-//=================================================
-//=================================================
+void TaskService::WorkThread::handleFinished()
+{
+	timeval tv;
+	gettimeofday(&tv, NULL);
 
-TaskService::TaskService() :
-		impl(new TaskService::TaskServiceImpl(this)) {
-
+	this->m_task->setStartTime(tv.tv_sec * 1000 + tv.tv_usec / 1000);
+	this->m_task->setHandling(false);
+	this->m_task = NULL;
+	this->m_taskService->addWorkThread(this);
+	this->m_taskService->notify();
 }
 
-TaskService::~TaskService() {
-	delete this->impl;
+bool TaskService::WorkThread::stop()
+{
+	Thread::stop();
+	this->m_sem.release();
+	return true;
 }
 
-void TaskService::addTask(ITask* task) {
-	this->impl->addTask(task);
+unsigned int TaskService::WorkThread::GetWorkThreadCount()
+{
+	MutexLocker lk(TaskService::WorkThread::s_mutex);
+	return TaskService::WorkThread::s_WorkThreadCount;
 }
 
-void TaskService::cancelTask(ITask* task) {
-	this->impl->cancelTask(task);
-}
-
-bool TaskService::hasTask(ITask* task) {
-	return this->impl->hasTask(task);
-}
-
-void TaskService::setWorkThreadPoolSize(int workThreadPoolSize) {
-	this->impl->setWorkThreadPoolSize(workThreadPoolSize);
-}
-
-int TaskService::getWorkThreadPoolSize() const {
-	return this->impl->getWorkThreadPoolSize();
-}
-
-void TaskService::start() {
-	this->impl->start();
-}
-
-void TaskService::stop() {
-	this->impl->stop();
-}
-
-void TaskService::join() {
-	this->impl->join();
-}
-
-}
-}
-
+} /* namespace Util */
+} /* namespace PLib */

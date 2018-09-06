@@ -9,1102 +9,3051 @@
 #define DUCKY_FUNCTION_FUNCTION_H_
 
 #include <ducky/function/FunctionException.h>
+#include <cassert>
+#include <iostream>
+
+using namespace std;
 
 namespace ducky {
 namespace function {
+
 template<class R>
-class FunctionBase0 {
-public:
-	typedef R (*Func)();
-	typedef FunctionBase0<R> ThisType;
-
-	FunctionBase0(const Func& f) {
-		memset(this->f, 0, sizeof(this->f));
-		this->f[0] = (void*) f;
+struct IFunction0 {
+	typedef IFunction0<R> ThisType;
+	virtual ~IFunction0() {
 	}
-	virtual ~FunctionBase0() {
+	virtual R operator()() = 0;
+	virtual bool equals(const ThisType* i) const = 0;
+	virtual bool isMemberFunction() const = 0;
+	bool operator==(const ThisType& i) const {
+		return this->equals(&i);
 	}
-
-	virtual R operator()() {
-		return ((Func) this->f[0])();
-	}
-
-	virtual ThisType* clone() {
-		return new ThisType((Func) this->f[0]);
-	}
-
-	<<<<<<< HEAD
-	bool compare(const ThisType* func) {
-		return (0 == memcmp(this->f, func->f, sizeof(this->f)));
-	}
-
-protected:
-	void* f[3];
-	FunctionBase0(const void* f) {
-		memcpy(this->f, f, sizeof(this->f));
-	}
-	=======
-	virtual bool compare(FunctionBase0* f) {
-		return (this->f == f->f);
-	}
-
-	virtual bool compare(FunctionBase0* f) {
-		return (this->f == f->f);
-	}
-
-private:
-	Func f;>>>>>>> f4207ded7cfbbe32d619ea7f67ddba451817fc94
+	virtual ThisType* clone() = 0;
 };
 
 template<class R, class P1>
-class FunctionBase1 {
-public:
-	typedef R (*Func)(P1);
-	typedef FunctionBase1<R, P1> ThisType;
-
-	FunctionBase1(const Func& f) {
-		memset(this->f, 0, sizeof(this->f));
-		this->f[0] = (void*) f;
+struct IFunction1 {
+	typedef IFunction1<R, P1> ThisType;
+	virtual ~IFunction1() {
 	}
-	virtual ~FunctionBase1() {
+	virtual R operator()(const P1&) = 0;
+	virtual bool equals(const ThisType* i) const = 0;
+	virtual bool isMemberFunction() const = 0;
+	bool operator==(const ThisType& i) const {
+		return this->equals(&i);
 	}
-
-	virtual R operator()(P1 p1) {
-		return ((Func) this->f[0])(p1);
-	}
-
-	virtual ThisType* clone() {
-		return new ThisType((Func) this->f[0]);
-	}
-
-	bool compare(const ThisType* func) {
-		return (0 == memcmp(this->f, func->f, sizeof(this->f)));
-	}
-
-protected:
-	void* f[3];
-	FunctionBase1(const void* f) {
-		memcpy(this->f, f, sizeof(this->f));
-	}
+	virtual ThisType* clone() = 0;
 };
 
 template<class R, class P1, class P2>
-class FunctionBase2 {
-public:
-	typedef R (*Func)(P1, P2);
-	typedef FunctionBase2<R, P1, P2> ThisType;
-
-	FunctionBase2(const Func& f) {
-		memset(this->f, 0, sizeof(this->f));
-		this->f[0] = (void*) f;
+struct IFunction2 {
+	typedef IFunction2<R, P1, P2> ThisType;
+	virtual ~IFunction2() {
 	}
-	virtual ~FunctionBase2() {
+	virtual R operator()(const P1&, const P2&) = 0;
+	virtual bool equals(const ThisType* i) const = 0;
+	virtual bool isMemberFunction() const = 0;
+	bool operator==(const ThisType& i) const {
+		return this->equals(&i);
 	}
-
-	virtual R operator()(P1 p1, P2 p2) {
-		return ((Func) this->f[0])(p1, p2);
-	}
-
-	virtual ThisType* clone() {
-		return new ThisType((Func) this->f[0]);
-	}
-
-	bool compare(const ThisType* func) {
-		return (0 == memcmp(this->f, func->f, sizeof(this->f)));
-	}
-
-protected:
-	void* f[3];
-	FunctionBase2(const void* f) {
-		memcpy(this->f, f, sizeof(this->f));
-	}
+	virtual ThisType* clone() = 0;
 };
 
 template<class R, class P1, class P2, class P3>
-class FunctionBase3 {
-public:
-	typedef R (*Func)(P1, P2, P3);
-	typedef FunctionBase3<R, P1, P2, P3> ThisType;
-
-	FunctionBase3(const Func& f) {
-		memset(this->f, 0, sizeof(this->f));
-		this->f[0] = (void*) f;
+struct IFunction3 {
+	typedef IFunction3<R, P1, P2, P3> ThisType;
+	virtual ~IFunction3() {
 	}
-	virtual ~FunctionBase3() {
+	virtual R operator()(const P1&, const P2&, const P3&) = 0;
+	virtual bool equals(const ThisType* i) const = 0;
+	virtual bool isMemberFunction() const = 0;
+	bool operator==(const ThisType& i) const {
+		return this->equals(&i);
 	}
-
-	virtual R operator()(P1 p1, P2 p2, P3 p3) {
-		return ((Func) this->f[0])(p1, p2, p3);
-	}
-
-	virtual ThisType* clone() {
-		return new ThisType((Func) this->f[0]);
-	}
-
-	bool compare(const ThisType* func) {
-		return (0 == memcmp(this->f, func->f, sizeof(this->f)));
-	}
-
-protected:
-	void* f[3];
-	FunctionBase3(const void* f) {
-		memcpy(this->f, f, sizeof(this->f));
-	}
+	virtual ThisType* clone() = 0;
 };
 
 template<class R, class P1, class P2, class P3, class P4>
-class FunctionBase4 {
-public:
-	typedef R (*Func)(P1, P2, P3, P4);
-	typedef FunctionBase4<R, P1, P2, P3, P4> ThisType;
-
-	FunctionBase4(const Func& f) {
-		memset(this->f, 0, sizeof(this->f));
-		this->f[0] = (void*) f;
+struct IFunction4 {
+	typedef IFunction4<R, P1, P2, P3, P4> ThisType;
+	virtual ~IFunction4() {
 	}
-	virtual ~FunctionBase4() {
+	virtual R operator()(const P1&, const P2&, const P3&, const P4&) = 0;
+	virtual bool equals(const ThisType* i) const = 0;
+	virtual bool isMemberFunction() const = 0;
+	bool operator==(const ThisType& i) const {
+		return this->equals(&i);
 	}
-
-	virtual R operator()(P1 p1, P2 p2, P3 p3, P4 p4) {
-		return ((Func) this->f[0])(p1, p2, p3, p4);
-	}
-
-	virtual ThisType* clone() {
-		return new ThisType((Func) this->f[0]);
-	}
-
-	bool compare(const ThisType* func) {
-		return (0 == memcmp(this->f, func->f, sizeof(this->f)));
-	}
-
-protected:
-	void* f[3];
-	FunctionBase4(const void* f) {
-		memcpy(this->f, f, sizeof(this->f));
-	}
+	virtual ThisType* clone() = 0;
 };
 
 template<class R, class P1, class P2, class P3, class P4, class P5>
-class FunctionBase5 {
-public:
-	typedef R (*Func)(P1, P2, P3, P4, P5);
-	typedef FunctionBase5<R, P1, P2, P3, P4, P5> ThisType;
-
-	FunctionBase5(const Func& f) {
-		memset(this->f, 0, sizeof(this->f));
-		this->f[0] = (void*) f;
+struct IFunction5 {
+	typedef IFunction5<R, P1, P2, P3, P4, P5> ThisType;
+	virtual ~IFunction5() {
 	}
-	virtual ~FunctionBase5() {
+	virtual R operator()(const P1&, const P2&, const P3&, const P4&, const P5&) = 0;
+	virtual bool equals(const ThisType* i) const = 0;
+	virtual bool isMemberFunction() const = 0;
+	bool operator==(const ThisType& i) const {
+		return this->equals(&i);
 	}
-
-	virtual R operator()(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5) {
-		return ((Func) this->f[0])(p1, p2, p3, p4, p5);
-	}
-
-	virtual ThisType* clone() {
-		return new ThisType((Func) this->f[0]);
-	}
-
-	bool compare(const ThisType* func) {
-		return (0 == memcmp(this->f, func->f, sizeof(this->f)));
-	}
-
-protected:
-	void* f[3];
-	FunctionBase5(const void* f) {
-		memcpy(this->f, f, sizeof(this->f));
-	}
+	virtual ThisType* clone() = 0;
 };
 
 template<class R, class P1, class P2, class P3, class P4, class P5, class P6>
-class FunctionBase6 {
-public:
-	typedef R (*Func)(P1, P2, P3, P4, P5, P6);
-	typedef FunctionBase6<R, P1, P2, P3, P4, P5, P6> ThisType;
-
-	FunctionBase6(const Func& f) {
-		memset(this->f, 0, sizeof(this->f));
-		this->f[0] = (void*) f;
+struct IFunction6 {
+	typedef IFunction6<R, P1, P2, P3, P4, P5, P6> ThisType;
+	virtual ~IFunction6() {
 	}
-	virtual ~FunctionBase6() {
+	virtual R operator()(const P1&, const P2&, const P3&, const P4&, const P5&, const P6&) = 0;
+	virtual bool equals(const ThisType* i) const = 0;
+	virtual bool isMemberFunction() const = 0;
+	bool operator==(const ThisType& i) const {
+		return this->equals(&i);
 	}
-
-	virtual R operator()(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6) {
-		return ((Func) this->f[0])(p1, p2, p3, p4, p5, p6);
-	}
-
-	virtual ThisType* clone() {
-		return new ThisType((Func) this->f[0]);
-	}
-
-	bool compare(const ThisType* func) {
-		return (0 == memcmp(this->f, func->f, sizeof(this->f)));
-	}
-
-protected:
-	void* f[3];
-	FunctionBase6(const void* f) {
-		memcpy(this->f, f, sizeof(this->f));
-	}
+	virtual ThisType* clone() = 0;
 };
 
-template<class R, class P1, class P2, class P3, class P4, class P5, class P6,
-		class P7>
-class FunctionBase7 {
-public:
-	typedef R (*Func)(P1, P2, P3, P4, P5, P6, P7);
-	typedef FunctionBase7<R, P1, P2, P3, P4, P5, P6, P7> ThisType;
-
-	FunctionBase7(const Func& f) {
-		memset(this->f, 0, sizeof(this->f));
-		this->f[0] = (void*) f;
+template<class R, class P1, class P2, class P3, class P4, class P5, class P6, class P7>
+struct IFunction7 {
+	typedef IFunction7<R, P1, P2, P3, P4, P5, P6, P7> ThisType;
+	virtual ~IFunction7() {
 	}
-	virtual ~FunctionBase7() {
+	virtual R operator()(const P1&, const P2&, const P3&, const P4&, const P5&, const P6&,
+			const P7&) = 0;
+	virtual bool equals(const ThisType* i) const = 0;
+	virtual bool isMemberFunction() const = 0;
+	bool operator==(const ThisType& i) const {
+		return this->equals(&i);
 	}
-
-	virtual R operator()(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7) {
-		return ((Func) this->f[0])(p1, p2, p3, p4, p5, p6, p7);
-	}
-
-	virtual ThisType* clone() {
-		return new ThisType((Func) this->f[0]);
-	}
-
-	bool compare(const ThisType* func) {
-		return (0 == memcmp(this->f, func->f, sizeof(this->f)));
-	}
-
-protected:
-	void* f[3];
-	FunctionBase7(const void* f) {
-		memcpy(this->f, f, sizeof(this->f));
-	}
+	virtual ThisType* clone() = 0;
 };
 
-template<class R, class P1, class P2, class P3, class P4, class P5, class P6,
-		class P7, class P8>
-class FunctionBase8 {
-public:
-	typedef R (*Func)(P1, P2, P3, P4, P5, P6, P7, P8);
-	typedef FunctionBase8<R, P1, P2, P3, P4, P5, P6, P7, P8> ThisType;
-
-	FunctionBase8(const Func& f) {
-		memset(this->f, 0, sizeof(this->f));
-		this->f[0] = (void*) f;
+template<class R, class P1, class P2, class P3, class P4, class P5, class P6, class P7, class P8>
+struct IFunction8 {
+	typedef IFunction8<R, P1, P2, P3, P4, P5, P6, P7, P8> ThisType;
+	virtual ~IFunction8() {
 	}
-	virtual ~FunctionBase8() {
+	virtual R operator()(const P1&, const P2&, const P3&, const P4&, const P5&, const P6&,
+			const P7&, const P8&) = 0;
+	virtual bool equals(const ThisType* i) const = 0;
+	virtual bool isMemberFunction() const = 0;
+	bool operator==(const ThisType& i) const {
+		return this->equals(&i);
 	}
-
-	virtual R operator()(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7,
-			P8 p8) {
-		return ((Func) this->f[0])(p1, p2, p3, p4, p5, p6, p7, p8);
-	}
-
-	virtual ThisType* clone() {
-		return new ThisType((Func) this->f[0]);
-	}
-
-	bool compare(const ThisType* func) {
-		return (0 == memcmp(this->f, func->f, sizeof(this->f)));
-	}
-
-protected:
-	void* f[3];
-	FunctionBase8(const void* f) {
-		memcpy(this->f, f, sizeof(this->f));
-	}
+	virtual ThisType* clone() = 0;
 };
 
-template<class R, class P1, class P2, class P3, class P4, class P5, class P6,
-		class P7, class P8, class P9>
-class FunctionBase9 {
+template<class R, class P1, class P2, class P3, class P4, class P5, class P6, class P7, class P8,
+		class P9>
+struct IFunction9 {
+	typedef IFunction9<R, P1, P2, P3, P4, P5, P6, P7, P8, P9> ThisType;
+	virtual ~IFunction9() {
+	}
+	virtual R operator()(const P1&, const P2&, const P3&, const P4&, const P5&, const P6&,
+			const P7&, const P8&, const P9&) = 0;
+	virtual bool equals(const ThisType* i) const = 0;
+	virtual bool isMemberFunction() const = 0;
+	bool operator==(const ThisType& i) const {
+		return this->equals(&i);
+	}
+	virtual ThisType* clone() = 0;
+};
+
+template<class FT>
+class IF {
 public:
-	typedef R (*Func)(P1, P2, P3, P4, P5, P6, P7, P8, P9);
-	typedef FunctionBase9<R, P1, P2, P3, P4, P5, P6, P7, P8, P9> ThisType;
-
-	FunctionBase9(const Func& f) {
-		memset(this->f, 0, sizeof(this->f));
-		this->f[0] = (void*) f;
+	typedef FT FuncType;
+	IF() :
+			func(NULL) {
 	}
-	virtual ~FunctionBase9() {
+	virtual ~IF() {
 	}
-
-	virtual R operator()(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7, P8 p8,
-			P9 p9) {
-		return ((Func) this->f[0])(p1, p2, p3, p4, p5, p6, p7, p8, p9);
+	FuncType getFunction() const {
+		return this->func;
 	}
-
-	virtual ThisType* clone() {
-		return new ThisType((Func) this->f[0]);
-	}
-
-	bool compare(const ThisType* func) {
-		return (0 == memcmp(this->f, func->f, sizeof(this->f)));
-	}
-
 protected:
-	void* f[3];
-	FunctionBase9(const void* f) {
-		memcpy(this->f, f, sizeof(this->f));
+	FuncType func;
+};
+
+template<class FT, class C>
+class IFMem {
+public:
+	typedef FT FuncType;
+	typedef C ClassType;
+	IFMem() :
+			func(NULL), obj(NULL) {
+	}
+	virtual ~IFMem() {
+	}
+	FuncType getFunction() const {
+		return this->func;
+	}
+protected:
+	FuncType func;
+	ClassType* obj;
+};
+
+template<class R>
+class F0: public IF<R (*)()>, public IFunction0<R> {
+public:
+	typedef IF<R (*)()> Parent;
+	typedef typename IFunction0<R>::ThisType PThisType;
+	typedef F0<R> ThisType;
+	F0(const typename Parent::FuncType& f) {
+		assert(f);
+		if (NULL == f) {
+			THROW_EXCEPTION(FunctionException, "NULL function pointer", 0);
+		}
+		this->func = f;
+	}
+
+	virtual ~F0() {
+	}
+
+	virtual R operator()() {
+		return this->func();
+	}
+	virtual PThisType* clone() {
+		return new ThisType(*this);
+	}
+	virtual bool equals(const PThisType* i) const {
+		if (i->isMemberFunction())
+			return false;
+		const ThisType* ifun = (const ThisType*) i;
+		if (NULL == ifun)
+			return false;
+		return (ifun->getFunction() == this->func);
+	}
+	virtual bool isMemberFunction() const {
+		return false;
 	}
 };
 
 template<class R, class C>
-class FunctionBaseM0: public FunctionBase0<R> {
+class F0Mem: public IFMem<R (C::*)(), C>, public IFunction0<R> {
 public:
-	typedef R (C::*Func)();
-	typedef FunctionBase0<R> IFuncType;
-	typedef FunctionBaseM0<R, C> ThisType;
-
-	FunctionBaseM0(const Func& f, C* c) :
-			FunctionBase0<R>((void*) &f) {
-		this->f[2] = (void*) c;
+	typedef IFMem<R (C::*)(), C> Parent;
+	typedef typename IFunction0<R>::ThisType PThisType;
+	typedef F0Mem<R, C> ThisType;
+	F0Mem(const typename Parent::FuncType& f, C* o) {
+		assert(f);
+		if (NULL == f) {
+			THROW_EXCEPTION(FunctionException, "NULL function pointer", 0);
+		}
+		this->func = f;
+		this->obj = o;
 	}
-	virtual ~FunctionBaseM0() {
+
+	virtual ~F0Mem() {
 	}
 
 	virtual R operator()() {
-		return (((C*) this->f[2])->**(Func*) this->f)();
+		return (this->obj->*this->func)();
+	}
+	virtual PThisType* clone() {
+		return new ThisType(*this);
+	}
+	virtual bool equals(const PThisType* i) const {
+		if (!i->isMemberFunction())
+			return false;
+		const ThisType* ifun = (const ThisType*) i;
+		if (NULL == ifun)
+			return false;
+		return (ifun->getFunction() == this->func);
+	}
+	virtual bool isMemberFunction() const {
+		return true;
+	}
+};
+
+template<class R, class C>
+class F0MemConst: public IFMem<R (C::*)() const, C>, public IFunction0<R> {
+public:
+	typedef IFMem<R (C::*)() const, C> Parent;
+	typedef typename IFunction0<R>::ThisType PThisType;
+	typedef F0MemConst<R, C> ThisType;
+	F0MemConst(const typename Parent::FuncType& f, C* o) {
+		assert(f);
+		if (NULL == f) {
+			THROW_EXCEPTION(FunctionException, "NULL function pointer", 0);
+		}
+		this->func = f;
+		this->obj = o;
 	}
 
-	virtual IFuncType* clone() {
-		return new ThisType(*(Func*) this->f, ((C*) this->f[2]));
+	virtual ~F0MemConst() {
 	}
 
+	virtual R operator()() {
+		return (this->obj->*this->func)();
+	}
+	virtual PThisType* clone() {
+		return new ThisType(*this);
+	}
+	virtual bool equals(const PThisType* i) const {
+		if (!i->isMemberFunction())
+			return false;
+		const ThisType* ifun = (const ThisType*) i;
+		if (NULL == ifun)
+			return false;
+		return (ifun->getFunction() == this->func);
+	}
+	virtual bool isMemberFunction() const {
+		return true;
+	}
+};
+
+template<class R, class P1>
+class F1: public IF<R (*)(P1)>, public IFunction1<R, P1> {
+public:
+	typedef IF<R (*)(P1)> Parent;
+	typedef typename IFunction1<R, P1>::ThisType PThisType;
+	typedef F1<R, P1> ThisType;
+	F1(const typename Parent::FuncType& f) {
+		assert(f);
+		if (NULL == f) {
+			THROW_EXCEPTION(FunctionException, "NULL function pointer", 0);
+		}
+		this->func = f;
+	}
+
+	virtual ~F1() {
+	}
+
+	virtual R operator()(const P1& p1) {
+		return this->func(p1);
+	}
+	virtual PThisType* clone() {
+		return new ThisType(*this);
+	}
+	virtual bool equals(const PThisType* i) const {
+		if (i->isMemberFunction())
+			return false;
+		const ThisType* ifun = (const ThisType*) i;
+		if (NULL == ifun)
+			return false;
+		return (ifun->getFunction() == this->func);
+	}
+	virtual bool isMemberFunction() const {
+		return false;
+	}
 };
 
 template<class R, class C, class P1>
-class FunctionBaseM1: public FunctionBase1<R, P1> {
+class F1Mem: public IFMem<R (C::*)(P1), C>, public IFunction1<R, P1> {
 public:
-	typedef R (C::*Func)(P1);
-	typedef FunctionBase1<R, P1> IFuncType;
-	typedef FunctionBaseM1<R, C, P1> ThisType;
-
-	FunctionBaseM1(const Func& f, C* c) :
-			FunctionBase1<R, P1>((void*) &f) {
-		this->f[2] = (void*) c;
-	}
-	virtual ~FunctionBaseM1() {
-	}
-
-	virtual R operator()(P1 p1) {
-		return (((C*) this->f[2])->**(Func*) this->f)(p1);
+	typedef IFMem<R (C::*)(P1), C> Parent;
+	typedef typename IFunction1<R, P1>::ThisType PThisType;
+	typedef F1Mem<R, C, P1> ThisType;
+	F1Mem(const typename Parent::FuncType& f, C* o) {
+		assert(f);
+		if (NULL == f) {
+			THROW_EXCEPTION(FunctionException, "NULL function pointer", 0);
+		}
+		this->func = f;
+		this->obj = o;
 	}
 
-	virtual IFuncType* clone() {
-		return new ThisType(*(Func*) this->f, ((C*) this->f[2]));
+	virtual ~F1Mem() {
 	}
 
+	virtual R operator()(const P1& p1) {
+		return (this->obj->*this->func)(p1);
+	}
+	virtual PThisType* clone() {
+		return new ThisType(*this);
+	}
+	virtual bool equals(const PThisType* i) const {
+		if (!i->isMemberFunction())
+			return false;
+		const ThisType* ifun = (const ThisType*) i;
+		if (NULL == ifun)
+			return false;
+		return (ifun->getFunction() == this->func);
+	}
+	virtual bool isMemberFunction() const {
+		return true;
+	}
+};
+
+template<class R, class C, class P1>
+class F1MemConst: public IFMem<R (C::*)(P1) const, C>, public IFunction1<R, P1> {
+public:
+	typedef IFMem<R (C::*)(P1) const, C> Parent;
+	typedef typename IFunction1<R, P1>::ThisType PThisType;
+	typedef F1MemConst<R, C, P1> ThisType;
+	F1MemConst(const typename Parent::FuncType& f, C* o) {
+		assert(f);
+		if (NULL == f) {
+			THROW_EXCEPTION(FunctionException, "NULL function pointer", 0);
+		}
+		this->func = f;
+		this->obj = o;
+	}
+
+	virtual ~F1MemConst() {
+	}
+
+	virtual R operator()(const P1& p1) {
+		return (this->obj->*this->func)(p1);
+	}
+	virtual PThisType* clone() {
+		return new ThisType(*this);
+	}
+	virtual bool equals(const PThisType* i) const {
+		if (!i->isMemberFunction())
+			return false;
+		const ThisType* ifun = (const ThisType*) i;
+		if (NULL == ifun)
+			return false;
+		return (ifun->getFunction() == this->func);
+	}
+	virtual bool isMemberFunction() const {
+		return true;
+	}
+};
+
+template<class R, class P1, class P2>
+class F2: public IF<R (*)(P1, P2)>, public IFunction2<R, P1, P2> {
+public:
+	typedef IF<R (*)(P1, P2)> Parent;
+	typedef typename IFunction2<R, P1, P2>::ThisType PThisType;
+	typedef F2<R, P1, P2> ThisType;
+	F2(const typename Parent::FuncType& f) {
+		assert(f);
+		if (NULL == f) {
+			THROW_EXCEPTION(FunctionException, "NULL function pointer", 0);
+		}
+		this->func = f;
+	}
+
+	virtual ~F2() {
+	}
+
+	virtual R operator()(const P1& p1, const P2& p2) {
+		return this->func(p1, p2);
+	}
+	virtual PThisType* clone() {
+		return new ThisType(*this);
+	}
+	virtual bool equals(const PThisType* i) const {
+		if (i->isMemberFunction())
+			return false;
+		const ThisType* ifun = (const ThisType*) i;
+		if (NULL == ifun)
+			return false;
+		return (ifun->getFunction() == this->func);
+	}
+	virtual bool isMemberFunction() const {
+		return false;
+	}
 };
 
 template<class R, class C, class P1, class P2>
-class FunctionBaseM2: public FunctionBase2<R, P1, P2> {
+class F2Mem: public IFMem<R (C::*)(P1, P2), C>, public IFunction2<R, P1, P2> {
 public:
-	typedef R (C::*Func)(P1, P2);
-	typedef FunctionBase2<R, P1, P2> IFuncType;
-	typedef FunctionBaseM2<R, C, P1, P2> ThisType;
-
-	FunctionBaseM2(const Func& f, C* c) :
-			FunctionBase2<R, P1, P2>((void*) &f) {
-		this->f[2] = (void*) c;
-	}
-	virtual ~FunctionBaseM2() {
-	}
-
-	virtual R operator()(P1 p1, P2 p2) {
-		return (((C*) this->f[2])->**(Func*) this->f)(p1, p2);
+	typedef IFMem<R (C::*)(P1, P2), C> Parent;
+	typedef typename IFunction2<R, P1, P2>::ThisType PThisType;
+	typedef F2Mem<R, C, P1, P2> ThisType;
+	F2Mem(const typename Parent::FuncType& f, C* o) {
+		assert(f);
+		if (NULL == f) {
+			THROW_EXCEPTION(FunctionException, "NULL function pointer", 0);
+		}
+		this->func = f;
+		this->obj = o;
 	}
 
-	virtual IFuncType* clone() {
-		return new ThisType(*(Func*) this->f, ((C*) this->f[2]));
+	virtual ~F2Mem() {
 	}
 
+	virtual R operator()(const P1& p1, const P2& p2) {
+		return (this->obj->*this->func)(p1, p2);
+	}
+	virtual PThisType* clone() {
+		return new ThisType(*this);
+	}
+	virtual bool equals(const PThisType* i) const {
+		if (!i->isMemberFunction())
+			return false;
+		const ThisType* ifun = (const ThisType*) i;
+		if (NULL == ifun)
+			return false;
+		return (ifun->getFunction() == this->func);
+	}
+	virtual bool isMemberFunction() const {
+		return true;
+	}
+};
+
+template<class R, class C, class P1, class P2>
+class F2MemConst: public IFMem<R (C::*)(P1, P2) const, C>, public IFunction2<R, P1, P2> {
+public:
+	typedef IFMem<R (C::*)(P1, P2) const, C> Parent;
+	typedef typename IFunction2<R, P1, P2>::ThisType PThisType;
+	typedef F2MemConst<R, C, P1, P2> ThisType;
+	F2MemConst(const typename Parent::FuncType& f, C* o) {
+		assert(f);
+		if (NULL == f) {
+			THROW_EXCEPTION(FunctionException, "NULL function pointer", 0);
+		}
+		this->func = f;
+		this->obj = o;
+	}
+
+	virtual ~F2MemConst() {
+	}
+
+	virtual R operator()(const P1& p1, const P2& p2) {
+		return (this->obj->*this->func)(p1, p2);
+	}
+	virtual PThisType* clone() {
+		return new ThisType(*this);
+	}
+	virtual bool equals(const PThisType* i) const {
+		if (!i->isMemberFunction())
+			return false;
+		const ThisType* ifun = (const ThisType*) i;
+		if (NULL == ifun)
+			return false;
+		return (ifun->getFunction() == this->func);
+	}
+	virtual bool isMemberFunction() const {
+		return true;
+	}
+};
+
+template<class R, class P1, class P2, class P3>
+class F3: public IF<R (*)(P1, P2, P3)>, public IFunction3<R, P1, P2, P3> {
+public:
+	typedef IF<R (*)(P1, P2, P3)> Parent;
+	typedef typename IFunction3<R, P1, P2, P3>::ThisType PThisType;
+	typedef F3<R, P1, P2, P3> ThisType;
+	F3(const typename Parent::FuncType& f) {
+		assert(f);
+		if (NULL == f) {
+			THROW_EXCEPTION(FunctionException, "NULL function pointer", 0);
+		}
+		this->func = f;
+	}
+
+	virtual ~F3() {
+	}
+
+	virtual R operator()(const P1& p1, const P2& p2, const P3& p3) {
+		return this->func(p1, p2, p3);
+	}
+	virtual PThisType* clone() {
+		return new ThisType(*this);
+	}
+	virtual bool equals(const PThisType* i) const {
+		if (i->isMemberFunction())
+			return false;
+		const ThisType* ifun = (const ThisType*) i;
+		if (NULL == ifun)
+			return false;
+		return (ifun->getFunction() == this->func);
+	}
+	virtual bool isMemberFunction() const {
+		return false;
+	}
 };
 
 template<class R, class C, class P1, class P2, class P3>
-class FunctionBaseM3: public FunctionBase3<R, P1, P2, P3> {
+class F3Mem: public IFMem<R (C::*)(P1, P2, P3), C>, public IFunction3<R, P1, P2, P3> {
 public:
-	typedef R (C::*Func)(P1, P2, P3);
-	typedef FunctionBase3<R, P1, P2, P3> IFuncType;
-	typedef FunctionBaseM3<R, C, P1, P2, P3> ThisType;
-
-	FunctionBaseM3(const Func& f, C* c) :
-			FunctionBase3<R, P1, P2, P3>((void*) &f) {
-		this->f[2] = (void*) c;
-	}
-	virtual ~FunctionBaseM3() {
-	}
-
-	virtual R operator()(P1 p1, P2 p2, P3 p3) {
-		return (((C*) this->f[2])->**(Func*) this->f)(p1, p2, p3);
+	typedef IFMem<R (C::*)(P1, P2, P3), C> Parent;
+	typedef typename IFunction3<R, P1, P2, P3>::ThisType PThisType;
+	typedef F3Mem<R, C, P1, P2, P3> ThisType;
+	F3Mem(const typename Parent::FuncType& f, C* o) {
+		assert(f);
+		if (NULL == f) {
+			THROW_EXCEPTION(FunctionException, "NULL function pointer", 0);
+		}
+		this->func = f;
+		this->obj = o;
 	}
 
-	virtual IFuncType* clone() {
-		return new ThisType(*(Func*) this->f, ((C*) this->f[2]));
+	virtual ~F3Mem() {
 	}
 
+	virtual R operator()(const P1& p1, const P2& p2, const P3& p3) {
+		return (this->obj->*this->func)(p1, p2, p3);
+	}
+	virtual PThisType* clone() {
+		return new ThisType(*this);
+	}
+	virtual bool equals(const PThisType* i) const {
+		if (!i->isMemberFunction())
+			return false;
+		const ThisType* ifun = (const ThisType*) i;
+		if (NULL == ifun)
+			return false;
+		return (ifun->getFunction() == this->func);
+	}
+	virtual bool isMemberFunction() const {
+		return true;
+	}
+};
+
+template<class R, class C, class P1, class P2, class P3>
+class F3MemConst: public IFMem<R (C::*)(P1, P2, P3) const, C>, public IFunction3<R, P1, P2, P3> {
+public:
+	typedef IFMem<R (C::*)(P1, P2, P3) const, C> Parent;
+	typedef typename IFunction3<R, P1, P2, P3>::ThisType PThisType;
+	typedef F3MemConst<R, C, P1, P2, P3> ThisType;
+	F3MemConst(const typename Parent::FuncType& f, C* o) {
+		assert(f);
+		if (NULL == f) {
+			THROW_EXCEPTION(FunctionException, "NULL function pointer", 0);
+		}
+		this->func = f;
+		this->obj = o;
+	}
+
+	virtual ~F3MemConst() {
+	}
+
+	virtual R operator()(const P1& p1, const P2& p2, const P3& p3) {
+		return (this->obj->*this->func)(p1, p2, p3);
+	}
+	virtual PThisType* clone() {
+		return new ThisType(*this);
+	}
+	virtual bool equals(const PThisType* i) const {
+		if (!i->isMemberFunction())
+			return false;
+		const ThisType* ifun = (const ThisType*) i;
+		if (NULL == ifun)
+			return false;
+		return (ifun->getFunction() == this->func);
+	}
+	virtual bool isMemberFunction() const {
+		return true;
+	}
+};
+
+template<class R, class P1, class P2, class P3, class P4>
+class F4: public IF<R (*)(P1, P2, P3, P4)>, public IFunction4<R, P1, P2, P3, P4> {
+public:
+	typedef IF<R (*)(P1, P2, P3, P4)> Parent;
+	typedef typename IFunction4<R, P1, P2, P3, P4>::ThisType PThisType;
+	typedef F4<R, P1, P2, P3, P4> ThisType;
+	F4(const typename Parent::FuncType& f) {
+		assert(f);
+		if (NULL == f) {
+			THROW_EXCEPTION(FunctionException, "NULL function pointer", 0);
+		}
+		this->func = f;
+	}
+
+	virtual ~F4() {
+	}
+
+	virtual R operator()(const P1& p1, const P2& p2, const P3& p3, const P4& p4) {
+		return this->func(p1, p2, p3, p4);
+	}
+	virtual PThisType* clone() {
+		return new ThisType(*this);
+	}
+	virtual bool equals(const PThisType* i) const {
+		if (i->isMemberFunction())
+			return false;
+		const ThisType* ifun = (const ThisType*) i;
+		if (NULL == ifun)
+			return false;
+		return (ifun->getFunction() == this->func);
+	}
+	virtual bool isMemberFunction() const {
+		return false;
+	}
 };
 
 template<class R, class C, class P1, class P2, class P3, class P4>
-class FunctionBaseM4: public FunctionBase4<R, P1, P2, P3, P4> {
+class F4Mem: public IFMem<R (C::*)(P1, P2, P3, P4), C>, public IFunction4<R, P1, P2, P3, P4> {
 public:
-	typedef R (C::*Func)(P1, P2, P3, P4);
-	typedef FunctionBase4<R, P1, P2, P3, P4> IFuncType;
-	typedef FunctionBaseM4<R, C, P1, P2, P3, P4> ThisType;
-
-	FunctionBaseM4(const Func& f, C* c) :
-			FunctionBase4<R, P1, P2, P3, P4>((void*) &f) {
-		this->f[2] = (void*) c;
-	}
-	virtual ~FunctionBaseM4() {
-	}
-
-	virtual R operator()(P1 p1, P2 p2, P3 p3, P4 p4) {
-		return (((C*) this->f[2])->**(Func*) this->f)(p1, p2, p3, p4);
+	typedef IFMem<R (C::*)(P1, P2, P3, P4), C> Parent;
+	typedef typename IFunction4<R, P1, P2, P3, P4>::ThisType PThisType;
+	typedef F4Mem<R, C, P1, P2, P3, P4> ThisType;
+	F4Mem(const typename Parent::FuncType& f, C* o) {
+		assert(f);
+		if (NULL == f) {
+			THROW_EXCEPTION(FunctionException, "NULL function pointer", 0);
+		}
+		this->func = f;
+		this->obj = o;
 	}
 
-	virtual IFuncType* clone() {
-		return new ThisType(*(Func*) this->f, ((C*) this->f[2]));
+	virtual ~F4Mem() {
 	}
 
+	virtual R operator()(const P1& p1, const P2& p2, const P3& p3, const P4& p4) {
+		return (this->obj->*this->func)(p1, p2, p3, p4);
+	}
+	virtual PThisType* clone() {
+		return new ThisType(*this);
+	}
+	virtual bool equals(const PThisType* i) const {
+		if (!i->isMemberFunction())
+			return false;
+		const ThisType* ifun = (const ThisType*) i;
+		if (NULL == ifun)
+			return false;
+		return (ifun->getFunction() == this->func);
+	}
+	virtual bool isMemberFunction() const {
+		return true;
+	}
+};
+
+template<class R, class C, class P1, class P2, class P3, class P4>
+class F4MemConst: public IFMem<R (C::*)(P1, P2, P3, P4) const, C>, public IFunction4<R, P1, P2, P3,
+		P4> {
+public:
+	typedef IFMem<R (C::*)(P1, P2, P3, P4) const, C> Parent;
+	typedef typename IFunction4<R, P1, P2, P3, P4>::ThisType PThisType;
+	typedef F4MemConst<R, C, P1, P2, P3, P4> ThisType;
+	F4MemConst(const typename Parent::FuncType& f, C* o) {
+		assert(f);
+		if (NULL == f) {
+			THROW_EXCEPTION(FunctionException, "NULL function pointer", 0);
+		}
+		this->func = f;
+		this->obj = o;
+	}
+
+	virtual ~F4MemConst() {
+	}
+
+	virtual R operator()(const P1& p1, const P2& p2, const P3& p3, const P4& p4) {
+		return (this->obj->*this->func)(p1, p2, p3, p4);
+	}
+	virtual PThisType* clone() {
+		return new ThisType(*this);
+	}
+	virtual bool equals(const PThisType* i) const {
+		if (!i->isMemberFunction())
+			return false;
+		const ThisType* ifun = (const ThisType*) i;
+		if (NULL == ifun)
+			return false;
+		return (ifun->getFunction() == this->func);
+	}
+	virtual bool isMemberFunction() const {
+		return true;
+	}
+};
+
+template<class R, class P1, class P2, class P3, class P4, class P5>
+class F5: public IF<R (*)(P1, P2, P3, P4, P5)>, public IFunction5<R, P1, P2, P3, P4, P5> {
+public:
+	typedef IF<R (*)(P1, P2, P3, P4, P5)> Parent;
+	typedef typename IFunction5<R, P1, P2, P3, P4, P5>::ThisType PThisType;
+	typedef F5<R, P1, P2, P3, P4, P5> ThisType;
+	F5(const typename Parent::FuncType& f) {
+		assert(f);
+		if (NULL == f) {
+			THROW_EXCEPTION(FunctionException, "NULL function pointer", 0);
+		}
+		this->func = f;
+	}
+
+	virtual ~F5() {
+	}
+
+	virtual R operator()(const P1& p1, const P2& p2, const P3& p3, const P4& p4, const P5& p5) {
+		return this->func(p1, p2, p3, p4, p5);
+	}
+	virtual PThisType* clone() {
+		return new ThisType(*this);
+	}
+	virtual bool equals(const PThisType* i) const {
+		if (i->isMemberFunction())
+			return false;
+		const ThisType* ifun = (const ThisType*) i;
+		if (NULL == ifun)
+			return false;
+		return (ifun->getFunction() == this->func);
+	}
+	virtual bool isMemberFunction() const {
+		return false;
+	}
 };
 
 template<class R, class C, class P1, class P2, class P3, class P4, class P5>
-class FunctionBaseM5: public FunctionBase5<R, P1, P2, P3, P4, P5> {
+class F5Mem: public IFMem<R (C::*)(P1, P2, P3, P4, P5), C>, public IFunction5<R, P1, P2, P3, P4, P5> {
 public:
-	typedef R (C::*Func)(P1, P2, P3, P4, P5);
-	typedef FunctionBase5<R, P1, P2, P3, P4, P5> IFuncType;
-	typedef FunctionBaseM5<R, C, P1, P2, P3, P4, P5> ThisType;
-
-	FunctionBaseM5(const Func& f, C* c) :
-			FunctionBase5<R, P1, P2, P3, P4, P5>((void*) &f) {
-		this->f[2] = (void*) c;
-	}
-	virtual ~FunctionBaseM5() {
-	}
-
-	virtual R operator()(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5) {
-		return (((C*) this->f[2])->**(Func*) this->f)(p1, p2, p3, p4, p5);
+	typedef IFMem<R (C::*)(P1, P2, P3, P4, P5), C> Parent;
+	typedef typename IFunction5<R, P1, P2, P3, P4, P5>::ThisType PThisType;
+	typedef F5Mem<R, C, P1, P2, P3, P4, P5> ThisType;
+	F5Mem(const typename Parent::FuncType& f, C* o) {
+		assert(f);
+		if (NULL == f) {
+			THROW_EXCEPTION(FunctionException, "NULL function pointer", 0);
+		}
+		this->func = f;
+		this->obj = o;
 	}
 
-	virtual IFuncType* clone() {
-		return new ThisType(*(Func*) this->f, ((C*) this->f[2]));
+	virtual ~F5Mem() {
 	}
 
+	virtual R operator()(const P1& p1, const P2& p2, const P3& p3, const P4& p4, const P5& p5) {
+		return (this->obj->*this->func)(p1, p2, p3, p4, p5);
+	}
+	virtual PThisType* clone() {
+		return new ThisType(*this);
+	}
+	virtual bool equals(const PThisType* i) const {
+		if (!i->isMemberFunction())
+			return false;
+		const ThisType* ifun = (const ThisType*) i;
+		if (NULL == ifun)
+			return false;
+		return (ifun->getFunction() == this->func);
+	}
+	virtual bool isMemberFunction() const {
+		return true;
+	}
 };
 
-template<class R, class C, class P1, class P2, class P3, class P4, class P5,
-		class P6>
-class FunctionBaseM6: public FunctionBase6<R, P1, P2, P3, P4, P5, P6> {
+template<class R, class C, class P1, class P2, class P3, class P4, class P5>
+class F5MemConst: public IFMem<R (C::*)(P1, P2, P3, P4, P5) const, C>, public IFunction5<R, P1, P2,
+		P3, P4, P5> {
 public:
-	typedef R (C::*Func)(P1, P2, P3, P4, P5, P6);
-	typedef FunctionBase6<R, P1, P2, P3, P4, P5, P6> IFuncType;
-	typedef FunctionBaseM6<R, C, P1, P2, P3, P4, P5, P6> ThisType;
-
-	FunctionBaseM6(const Func& f, C* c) :
-			FunctionBase6<R, P1, P2, P3, P4, P5, P6>((void*) &f) {
-		this->f[2] = (void*) c;
-	}
-	virtual ~FunctionBaseM6() {
-	}
-
-	virtual R operator()(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6) {
-		return (((C*) this->f[2])->**(Func*) this->f)(p1, p2, p3, p4, p5, p6);
+	typedef IFMem<R (C::*)(P1, P2, P3, P4, P5) const, C> Parent;
+	typedef typename IFunction5<R, P1, P2, P3, P4, P5>::ThisType PThisType;
+	typedef F5MemConst<R, C, P1, P2, P3, P4, P5> ThisType;
+	F5MemConst(const typename Parent::FuncType& f, C* o) {
+		assert(f);
+		if (NULL == f) {
+			THROW_EXCEPTION(FunctionException, "NULL function pointer", 0);
+		}
+		this->func = f;
+		this->obj = o;
 	}
 
-	virtual IFuncType* clone() {
-		return new ThisType(*(Func*) this->f, ((C*) this->f[2]));
+	virtual ~F5MemConst() {
 	}
 
+	virtual R operator()(const P1& p1, const P2& p2, const P3& p3, const P4& p4, const P5& p5) {
+		return (this->obj->*this->func)(p1, p2, p3, p4, p5);
+	}
+	virtual PThisType* clone() {
+		return new ThisType(*this);
+	}
+	virtual bool equals(const PThisType* i) const {
+		if (!i->isMemberFunction())
+			return false;
+		const ThisType* ifun = (const ThisType*) i;
+		if (NULL == ifun)
+			return false;
+		return (ifun->getFunction() == this->func);
+	}
+	virtual bool isMemberFunction() const {
+		return true;
+	}
 };
 
-template<class R, class C, class P1, class P2, class P3, class P4, class P5,
-		class P6, class P7>
-class FunctionBaseM7: public FunctionBase7<R, P1, P2, P3, P4, P5, P6, P7> {
+template<class R, class P1, class P2, class P3, class P4, class P5, class P6>
+class F6: public IF<R (*)(P1, P2, P3, P4, P5, P6)>, public IFunction6<R, P1, P2, P3, P4, P5, P6> {
 public:
-	typedef R (C::*Func)(P1, P2, P3, P4, P5, P6, P7);
-	typedef FunctionBase7<R, P1, P2, P3, P4, P5, P6, P7> IFuncType;
-	typedef FunctionBaseM7<R, C, P1, P2, P3, P4, P5, P6, P7> ThisType;
-
-	FunctionBaseM7(const Func& f, C* c) :
-			FunctionBase7<R, P1, P2, P3, P4, P5, P6, P7>((void*) &f) {
-		this->f[2] = (void*) c;
-	}
-	virtual ~FunctionBaseM7() {
-	}
-
-	virtual R operator()(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7) {
-		return (((C*) this->f[2])->**(Func*) this->f)(p1, p2, p3, p4, p5, p6,
-				p7);
+	typedef IF<R (*)(P1, P2, P3, P4, P5, P6)> Parent;
+	typedef typename IFunction6<R, P1, P2, P3, P4, P5, P6>::ThisType PThisType;
+	typedef F6<R, P1, P2, P3, P4, P5, P6> ThisType;
+	F6(const typename Parent::FuncType& f) {
+		assert(f);
+		if (NULL == f) {
+			THROW_EXCEPTION(FunctionException, "NULL function pointer", 0);
+		}
+		this->func = f;
 	}
 
-	virtual IFuncType* clone() {
-		return new ThisType(*(Func*) this->f, ((C*) this->f[2]));
+	virtual ~F6() {
 	}
 
+	virtual R operator()(const P1& p1, const P2& p2, const P3& p3, const P4& p4, const P5& p5,
+			const P6& p6) {
+		return this->func(p1, p2, p3, p4, p5, p6);
+	}
+	virtual PThisType* clone() {
+		return new ThisType(*this);
+	}
+	virtual bool equals(const PThisType* i) const {
+		if (i->isMemberFunction())
+			return false;
+		const ThisType* ifun = (const ThisType*) i;
+		if (NULL == ifun)
+			return false;
+		return (ifun->getFunction() == this->func);
+	}
+	virtual bool isMemberFunction() const {
+		return false;
+	}
 };
 
-template<class R, class C, class P1, class P2, class P3, class P4, class P5,
-		class P6, class P7, class P8>
-class FunctionBaseM8: public FunctionBase8<R, P1, P2, P3, P4, P5, P6, P7, P8> {
+template<class R, class C, class P1, class P2, class P3, class P4, class P5, class P6>
+class F6Mem: public IFMem<R (C::*)(P1, P2, P3, P4, P5, P6), C>, public IFunction6<R, P1, P2, P3, P4,
+		P5, P6> {
 public:
-	typedef R (C::*Func)(P1, P2, P3, P4, P5, P6, P7, P8);
-	typedef FunctionBase8<R, P1, P2, P3, P4, P5, P6, P7, P8> IFuncType;
-	typedef FunctionBaseM8<R, C, P1, P2, P3, P4, P5, P6, P7, P8> ThisType;
-
-	FunctionBaseM8(const Func& f, C* c) :
-			FunctionBase8<R, P1, P2, P3, P4, P5, P6, P7, P8>((void*) &f) {
-		this->f[2] = (void*) c;
-	}
-	virtual ~FunctionBaseM8() {
-	}
-
-	virtual R operator()(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7,
-			P8 p8) {
-		return (((C*) this->f[2])->**(Func*) this->f)(p1, p2, p3, p4, p5, p6,
-				p7, p8);
+	typedef IFMem<R (C::*)(P1, P2, P3, P4, P5, P6), C> Parent;
+	typedef typename IFunction6<R, P1, P2, P3, P4, P5, P6>::ThisType PThisType;
+	typedef F6Mem<R, C, P1, P2, P3, P4, P5, P6> ThisType;
+	F6Mem(const typename Parent::FuncType& f, C* o) {
+		assert(f);
+		if (NULL == f) {
+			THROW_EXCEPTION(FunctionException, "NULL function pointer", 0);
+		}
+		this->func = f;
+		this->obj = o;
 	}
 
-	virtual IFuncType* clone() {
-		return new ThisType(*(Func*) this->f, ((C*) this->f[2]));
+	virtual ~F6Mem() {
 	}
 
+	virtual R operator()(const P1& p1, const P2& p2, const P3& p3, const P4& p4, const P5& p5,
+			const P6& p6) {
+		return (this->obj->*this->func)(p1, p2, p3, p4, p5, p6);
+	}
+	virtual PThisType* clone() {
+		return new ThisType(*this);
+	}
+	virtual bool equals(const PThisType* i) const {
+		if (!i->isMemberFunction())
+			return false;
+		const ThisType* ifun = (const ThisType*) i;
+		if (NULL == ifun)
+			return false;
+		return (ifun->getFunction() == this->func);
+	}
+	virtual bool isMemberFunction() const {
+		return true;
+	}
 };
 
-template<class R, class C, class P1, class P2, class P3, class P4, class P5,
-		class P6, class P7, class P8, class P9>
-class FunctionBaseM9: public FunctionBase9<R, P1, P2, P3, P4, P5, P6, P7, P8, P9> {
+template<class R, class C, class P1, class P2, class P3, class P4, class P5, class P6>
+class F6MemConst: public IFMem<R (C::*)(P1, P2, P3, P4, P5, P6) const, C>, public IFunction6<R, P1,
+		P2, P3, P4, P5, P6> {
 public:
-	typedef R (C::*Func)(P1, P2, P3, P4, P5, P6, P7, P8, P9);
-	typedef FunctionBase9<R, P1, P2, P3, P4, P5, P6, P7, P8, P9> IFuncType;
-	typedef FunctionBaseM9<R, C, P1, P2, P3, P4, P5, P6, P7, P8, P9> ThisType;
-
-	FunctionBaseM9(const Func& f, C* c) :
-			FunctionBase9<R, P1, P2, P3, P4, P5, P6, P7, P8, P9>((void*) &f) {
-		this->f[2] = (void*) c;
-	}
-	virtual ~FunctionBaseM9() {
-	}
-
-	virtual R operator()(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7, P8 p8,
-			P9 p9) {
-		return (((C*) this->f[2])->**(Func*) this->f)(p1, p2, p3, p4, p5, p6,
-				p7, p8, p9);
+	typedef IFMem<R (C::*)(P1, P2, P3, P4, P5, P6) const, C> Parent;
+	typedef typename IFunction6<R, P1, P2, P3, P4, P5, P6>::ThisType PThisType;
+	typedef F6MemConst<R, C, P1, P2, P3, P4, P5, P6> ThisType;
+	F6MemConst(const typename Parent::FuncType& f, C* o) {
+		assert(f);
+		if (NULL == f) {
+			THROW_EXCEPTION(FunctionException, "NULL function pointer", 0);
+		}
+		this->func = f;
+		this->obj = o;
 	}
 
-	virtual IFuncType* clone() {
-		return new ThisType(*(Func*) this->f, ((C*) this->f[2]));
+	virtual ~F6MemConst() {
 	}
 
+	virtual R operator()(const P1& p1, const P2& p2, const P3& p3, const P4& p4, const P5& p5,
+			const P6& p6) {
+		return (this->obj->*this->func)(p1, p2, p3, p4, p5, p6);
+	}
+	virtual PThisType* clone() {
+		return new ThisType(*this);
+	}
+	virtual bool equals(const PThisType* i) const {
+		if (!i->isMemberFunction())
+			return false;
+		const ThisType* ifun = (const ThisType*) i;
+		if (NULL == ifun)
+			return false;
+		return (ifun->getFunction() == this->func);
+	}
+	virtual bool isMemberFunction() const {
+		return true;
+	}
+};
+
+template<class R, class P1, class P2, class P3, class P4, class P5, class P6, class P7>
+class F7: public IF<R (*)(P1, P2, P3, P4, P5, P6, P7)>, public IFunction7<R, P1, P2, P3, P4, P5, P6,
+		P7> {
+public:
+	typedef IF<R (*)(P1, P2, P3, P4, P5, P6, P7)> Parent;
+	typedef typename IFunction7<R, P1, P2, P3, P4, P5, P6, P7>::ThisType PThisType;
+	typedef F7<R, P1, P2, P3, P4, P5, P6, P7> ThisType;
+	F7(const typename Parent::FuncType& f) {
+		assert(f);
+		if (NULL == f) {
+			THROW_EXCEPTION(FunctionException, "NULL function pointer", 0);
+		}
+		this->func = f;
+	}
+
+	virtual ~F7() {
+	}
+
+	virtual R operator()(const P1& p1, const P2& p2, const P3& p3, const P4& p4, const P5& p5,
+			const P6& p6, const P7& p7) {
+		return this->func(p1, p2, p3, p4, p5, p6, p7);
+	}
+	virtual PThisType* clone() {
+		return new ThisType(*this);
+	}
+	virtual bool equals(const PThisType* i) const {
+		if (i->isMemberFunction())
+			return false;
+		const ThisType* ifun = (const ThisType*) i;
+		if (NULL == ifun)
+			return false;
+		return (ifun->getFunction() == this->func);
+	}
+	virtual bool isMemberFunction() const {
+		return false;
+	}
+};
+
+template<class R, class C, class P1, class P2, class P3, class P4, class P5, class P6, class P7>
+class F7Mem: public IFMem<R (C::*)(P1, P2, P3, P4, P5, P6, P7), C>, public IFunction7<R, P1, P2, P3,
+		P4, P5, P6, P7> {
+public:
+	typedef IFMem<R (C::*)(P1, P2, P3, P4, P5, P6, P7), C> Parent;
+	typedef typename IFunction7<R, P1, P2, P3, P4, P5, P6, P7>::ThisType PThisType;
+	typedef F7Mem<R, C, P1, P2, P3, P4, P5, P6, P7> ThisType;
+	F7Mem(const typename Parent::FuncType& f, C* o) {
+		assert(f);
+		if (NULL == f) {
+			THROW_EXCEPTION(FunctionException, "NULL function pointer", 0);
+		}
+		this->func = f;
+		this->obj = o;
+	}
+
+	virtual ~F7Mem() {
+	}
+
+	virtual R operator()(const P1& p1, const P2& p2, const P3& p3, const P4& p4, const P5& p5,
+			const P6& p6, const P7& p7) {
+		return (this->obj->*this->func)(p1, p2, p3, p4, p5, p6, p7);
+	}
+	virtual PThisType* clone() {
+		return new ThisType(*this);
+	}
+	virtual bool equals(const PThisType* i) const {
+		if (!i->isMemberFunction())
+			return false;
+		const ThisType* ifun = (const ThisType*) i;
+		if (NULL == ifun)
+			return false;
+		return (ifun->getFunction() == this->func);
+	}
+	virtual bool isMemberFunction() const {
+		return true;
+	}
+};
+
+template<class R, class C, class P1, class P2, class P3, class P4, class P5, class P6, class P7>
+class F7MemConst: public IFMem<R (C::*)(P1, P2, P3, P4, P5, P6, P7) const, C>, public IFunction7<R,
+		P1, P2, P3, P4, P5, P6, P7> {
+public:
+	typedef IFMem<R (C::*)(P1, P2, P3, P4, P5, P6, P7) const, C> Parent;
+	typedef typename IFunction7<R, P1, P2, P3, P4, P5, P6, P7>::ThisType PThisType;
+	typedef F7MemConst<R, C, P1, P2, P3, P4, P5, P6, P7> ThisType;
+	F7MemConst(const typename Parent::FuncType& f, C* o) {
+		assert(f);
+		if (NULL == f) {
+			THROW_EXCEPTION(FunctionException, "NULL function pointer", 0);
+		}
+		this->func = f;
+		this->obj = o;
+	}
+
+	virtual ~F7MemConst() {
+	}
+
+	virtual R operator()(const P1& p1, const P2& p2, const P3& p3, const P4& p4, const P5& p5,
+			const P6& p6, const P7& p7) {
+		return (this->obj->*this->func)(p1, p2, p3, p4, p5, p6, p7);
+	}
+	virtual PThisType* clone() {
+		return new ThisType(*this);
+	}
+	virtual bool equals(const PThisType* i) const {
+		if (!i->isMemberFunction())
+			return false;
+		const ThisType* ifun = (const ThisType*) i;
+		if (NULL == ifun)
+			return false;
+		return (ifun->getFunction() == this->func);
+	}
+	virtual bool isMemberFunction() const {
+		return true;
+	}
+};
+
+template<class R, class P1, class P2, class P3, class P4, class P5, class P6, class P7, class P8>
+class F8: public IF<R (*)(P1, P2, P3, P4, P5, P6, P7, P8)>, public IFunction8<R, P1, P2, P3, P4, P5,
+		P6, P7, P8> {
+public:
+	typedef IF<R (*)(P1, P2, P3, P4, P5, P6, P7, P8)> Parent;
+	typedef typename IFunction8<R, P1, P2, P3, P4, P5, P6, P7, P8>::ThisType PThisType;
+	typedef F8<R, P1, P2, P3, P4, P5, P6, P7, P8> ThisType;
+	F8(const typename Parent::FuncType& f) {
+		assert(f);
+		if (NULL == f) {
+			THROW_EXCEPTION(FunctionException, "NULL function pointer", 0);
+		}
+		this->func = f;
+	}
+
+	virtual ~F8() {
+	}
+
+	virtual R operator()(const P1& p1, const P2& p2, const P3& p3, const P4& p4, const P5& p5,
+			const P6& p6, const P7& p7, const P8& p8) {
+		return this->func(p1, p2, p3, p4, p5, p6, p7, p8);
+	}
+	virtual PThisType* clone() {
+		return new ThisType(*this);
+	}
+	virtual bool equals(const PThisType* i) const {
+		if (i->isMemberFunction())
+			return false;
+		const ThisType* ifun = (const ThisType*) i;
+		if (NULL == ifun)
+			return false;
+		return (ifun->getFunction() == this->func);
+	}
+	virtual bool isMemberFunction() const {
+		return false;
+	}
+};
+
+template<class R, class C, class P1, class P2, class P3, class P4, class P5, class P6, class P7,
+		class P8>
+class F8Mem: public IFMem<R (C::*)(P1, P2, P3, P4, P5, P6, P7, P8), C>, public IFunction8<R, P1, P2,
+		P3, P4, P5, P6, P7, P8> {
+public:
+	typedef IFMem<R (C::*)(P1, P2, P3, P4, P5, P6, P7, P8), C> Parent;
+	typedef typename IFunction8<R, P1, P2, P3, P4, P5, P6, P7, P8>::ThisType PThisType;
+	typedef F8Mem<R, C, P1, P2, P3, P4, P5, P6, P7, P8> ThisType;
+	F8Mem(const typename Parent::FuncType& f, C* o) {
+		assert(f);
+		if (NULL == f) {
+			THROW_EXCEPTION(FunctionException, "NULL function pointer", 0);
+		}
+		this->func = f;
+		this->obj = o;
+	}
+
+	virtual ~F8Mem() {
+	}
+
+	virtual R operator()(const P1& p1, const P2& p2, const P3& p3, const P4& p4, const P5& p5,
+			const P6& p6, const P7& p7, const P8& p8) {
+		return (this->obj->*this->func)(p1, p2, p3, p4, p5, p6, p7, p8);
+	}
+	virtual PThisType* clone() {
+		return new ThisType(*this);
+	}
+	virtual bool equals(const PThisType* i) const {
+		if (!i->isMemberFunction())
+			return false;
+		const ThisType* ifun = (const ThisType*) i;
+		if (NULL == ifun)
+			return false;
+		return (ifun->getFunction() == this->func);
+	}
+	virtual bool isMemberFunction() const {
+		return true;
+	}
+};
+
+template<class R, class C, class P1, class P2, class P3, class P4, class P5, class P6, class P7,
+		class P8>
+class F8MemConst: public IFMem<R (C::*)(P1, P2, P3, P4, P5, P6, P7, P8) const, C>,
+		public IFunction8<R, P1, P2, P3, P4, P5, P6, P7, P8> {
+public:
+	typedef IFMem<R (C::*)(P1, P2, P3, P4, P5, P6, P7, P8) const, C> Parent;
+	typedef typename IFunction8<R, P1, P2, P3, P4, P5, P6, P7, P8>::ThisType PThisType;
+	typedef F8MemConst<R, C, P1, P2, P3, P4, P5, P6, P7, P8> ThisType;
+	F8MemConst(const typename Parent::FuncType& f, C* o) {
+		assert(f);
+		if (NULL == f) {
+			THROW_EXCEPTION(FunctionException, "NULL function pointer", 0);
+		}
+		this->func = f;
+		this->obj = o;
+	}
+
+	virtual ~F8MemConst() {
+	}
+
+	virtual R operator()(const P1& p1, const P2& p2, const P3& p3, const P4& p4, const P5& p5,
+			const P6& p6, const P7& p7, const P8& p8) {
+		return (this->obj->*this->func)(p1, p2, p3, p4, p5, p6, p7, p8);
+	}
+	virtual PThisType* clone() {
+		return new ThisType(*this);
+	}
+	virtual bool equals(const PThisType* i) const {
+		if (!i->isMemberFunction())
+			return false;
+		const ThisType* ifun = (const ThisType*) i;
+		if (NULL == ifun)
+			return false;
+		return (ifun->getFunction() == this->func);
+	}
+	virtual bool isMemberFunction() const {
+		return true;
+	}
+};
+
+template<class R, class P1, class P2, class P3, class P4, class P5, class P6, class P7, class P8,
+		class P9>
+class F9: public IF<R (*)(P1, P2, P3, P4, P5, P6, P7, P8, P9)>, public IFunction9<R, P1, P2, P3, P4,
+		P5, P6, P7, P8, P9> {
+public:
+	typedef IF<R (*)(P1, P2, P3, P4, P5, P6, P7, P8, P9)> Parent;
+	typedef typename IFunction9<R, P1, P2, P3, P4, P5, P6, P7, P8, P9>::ThisType PThisType;
+	typedef F9<R, P1, P2, P3, P4, P5, P6, P7, P8, P9> ThisType;
+	F9(const typename Parent::FuncType& f) {
+		assert(f);
+		if (NULL == f) {
+			THROW_EXCEPTION(FunctionException, "NULL function pointer", 0);
+		}
+		this->func = f;
+	}
+
+	virtual ~F9() {
+	}
+
+	virtual R operator()(const P1& p1, const P2& p2, const P3& p3, const P4& p4, const P5& p5,
+			const P6& p6, const P7& p7, const P8& p8, const P9& p9) {
+		return this->func(p1, p2, p3, p4, p5, p6, p7, p8, p9);
+	}
+	virtual PThisType* clone() {
+		return new ThisType(*this);
+	}
+	virtual bool equals(const PThisType* i) const {
+		if (i->isMemberFunction())
+			return false;
+		const ThisType* ifun = (const ThisType*) i;
+		if (NULL == ifun)
+			return false;
+		return (ifun->getFunction() == this->func);
+	}
+	virtual bool isMemberFunction() const {
+		return false;
+	}
+};
+
+template<class R, class C, class P1, class P2, class P3, class P4, class P5, class P6, class P7,
+		class P8, class P9>
+class F9Mem: public IFMem<R (C::*)(P1, P2, P3, P4, P5, P6, P7, P8, P9), C>, public IFunction9<R, P1,
+		P2, P3, P4, P5, P6, P7, P8, P9> {
+public:
+	typedef IFMem<R (C::*)(P1, P2, P3, P4, P5, P6, P7, P8, P9), C> Parent;
+	typedef typename IFunction9<R, P1, P2, P3, P4, P5, P6, P7, P8, P9>::ThisType PThisType;
+	typedef F9Mem<R, C, P1, P2, P3, P4, P5, P6, P7, P8, P9> ThisType;
+	F9Mem(const typename Parent::FuncType& f, C* o) {
+		assert(f);
+		if (NULL == f) {
+			THROW_EXCEPTION(FunctionException, "NULL function pointer", 0);
+		}
+		this->func = f;
+		this->obj = o;
+	}
+
+	virtual ~F9Mem() {
+	}
+
+	virtual R operator()(const P1& p1, const P2& p2, const P3& p3, const P4& p4, const P5& p5,
+			const P6& p6, const P7& p7, const P8& p8, const P9& p9) {
+		return (this->obj->*this->func)(p1, p2, p3, p4, p5, p6, p7, p8, p9);
+	}
+	virtual PThisType* clone() {
+		return new ThisType(*this);
+	}
+	virtual bool equals(const PThisType* i) const {
+		if (!i->isMemberFunction())
+			return false;
+		const ThisType* ifun = (const ThisType*) i;
+		if (NULL == ifun)
+			return false;
+		return (ifun->getFunction() == this->func);
+	}
+	virtual bool isMemberFunction() const {
+		return true;
+	}
+};
+
+template<class R, class C, class P1, class P2, class P3, class P4, class P5, class P6, class P7,
+		class P8, class P9>
+class F9MemConst: public IFMem<R (C::*)(P1, P2, P3, P4, P5, P6, P7, P8, P9) const, C>,
+		public IFunction9<R, P1, P2, P3, P4, P5, P6, P7, P8, P9> {
+public:
+	typedef IFMem<R (C::*)(P1, P2, P3, P4, P5, P6, P7, P8, P9) const, C> Parent;
+	typedef typename IFunction9<R, P1, P2, P3, P4, P5, P6, P7, P8, P9>::ThisType PThisType;
+	typedef F9MemConst<R, C, P1, P2, P3, P4, P5, P6, P7, P8, P9> ThisType;
+	F9MemConst(const typename Parent::FuncType& f, C* o) {
+		assert(f);
+		if (NULL == f) {
+			THROW_EXCEPTION(FunctionException, "NULL function pointer", 0);
+		}
+		this->func = f;
+		this->obj = o;
+	}
+
+	virtual ~F9MemConst() {
+	}
+
+	virtual R operator()(const P1& p1, const P2& p2, const P3& p3, const P4& p4, const P5& p5,
+			const P6& p6, const P7& p7, const P8& p8, const P9& p9) {
+		return (this->obj->*this->func)(p1, p2, p3, p4, p5, p6, p7, p8, p9);
+	}
+	virtual PThisType* clone() {
+		return new ThisType(*this);
+	}
+	virtual bool equals(const PThisType* i) const {
+		if (!i->isMemberFunction())
+			return false;
+		const ThisType* ifun = (const ThisType*) i;
+		if (NULL == ifun)
+			return false;
+		return (ifun->getFunction() == this->func);
+	}
+	virtual bool isMemberFunction() const {
+		return true;
+	}
+};
+
+template<class R>
+class ArgF0: public IF<R (*)()>, public IFunction0<R> {
+public:
+	typedef IF<R (*)()> Parent;
+	typedef typename IFunction0<R>::ThisType PThisType;
+	typedef ArgF0<R> ThisType;
+	ArgF0(const typename Parent::FuncType& f) {
+		assert(f);
+		if (NULL == f) {
+			THROW_EXCEPTION(FunctionException, "NULL function pointer", 0);
+		}
+		this->func = f;
+	}
+
+	virtual ~ArgF0() {
+	}
+
+	virtual R operator()() {
+		return this->func();
+	}
+	virtual PThisType* clone() {
+		return new ThisType(*this);
+	}
+	virtual bool equals(const PThisType* i) const {
+		if (i->isMemberFunction())
+			return false;
+		const ThisType* ifun = (const ThisType*) i;
+		if (NULL == ifun)
+			return false;
+		return (ifun->getFunction() == this->func);
+	}
+	virtual bool isMemberFunction() const {
+		return false;
+	}
+private:
+};
+
+template<class R, class C>
+class ArgF0Mem: public IFMem<R (C::*)(), C>, public IFunction0<R> {
+public:
+	typedef IFMem<R (C::*)(), C> Parent;
+	typedef typename IFunction0<R>::ThisType PThisType;
+	typedef ArgF0Mem<R, C> ThisType;
+	ArgF0Mem(const typename Parent::FuncType& f, C* o) {
+		assert(f);
+		if (NULL == f) {
+			THROW_EXCEPTION(FunctionException, "NULL function pointer", 0);
+		}
+		this->func = f;
+		this->obj = o;
+	}
+
+	virtual ~ArgF0Mem() {
+	}
+
+	virtual R operator()() {
+		return (this->obj->*this->func)();
+	}
+	virtual PThisType* clone() {
+		return new ThisType(*this);
+	}
+	virtual bool equals(const PThisType* i) const {
+		if (!i->isMemberFunction())
+			return false;
+		const ThisType* ifun = (const ThisType*) i;
+		if (NULL == ifun)
+			return false;
+		return (ifun->getFunction() == this->func);
+	}
+	virtual bool isMemberFunction() const {
+		return true;
+	}
+private:
+};
+
+template<class R, class C>
+class ArgF0MemConst: public IFMem<R (C::*)() const, C>, public IFunction0<R> {
+public:
+	typedef IFMem<R (C::*)() const, C> Parent;
+	typedef typename IFunction0<R>::ThisType PThisType;
+	typedef ArgF0MemConst<R, C> ThisType;
+	ArgF0MemConst(const typename Parent::FuncType& f, C* o) {
+		assert(f);
+		if (NULL == f) {
+			THROW_EXCEPTION(FunctionException, "NULL function pointer", 0);
+		}
+		this->func = f;
+		this->obj = o;
+	}
+
+	virtual ~ArgF0MemConst() {
+	}
+
+	virtual R operator()() {
+		return (this->obj->*this->func)();
+	}
+	virtual PThisType* clone() {
+		return new ThisType(*this);
+	}
+	virtual bool equals(const PThisType* i) const {
+		if (!i->isMemberFunction())
+			return false;
+		const ThisType* ifun = (const ThisType*) i;
+		if (NULL == ifun)
+			return false;
+		return (ifun->getFunction() == this->func);
+	}
+	virtual bool isMemberFunction() const {
+		return true;
+	}
+private:
+};
+
+template<class R, class P1, class A1>
+class ArgF1: public IF<R (*)(P1)>, public IFunction0<R> {
+public:
+	typedef IF<R (*)(P1)> Parent;
+	typedef typename IFunction0<R>::ThisType PThisType;
+	typedef ArgF1<R, P1, A1> ThisType;
+	ArgF1(const typename Parent::FuncType& f, const A1& a1) :
+			_a1(a1) {
+		assert(f);
+		if (NULL == f) {
+			THROW_EXCEPTION(FunctionException, "NULL function pointer", 0);
+		}
+		this->func = f;
+	}
+
+	virtual ~ArgF1() {
+	}
+
+	virtual R operator()() {
+		return this->func(_a1);
+	}
+	virtual PThisType* clone() {
+		return new ThisType(*this);
+	}
+	virtual bool equals(const PThisType* i) const {
+		if (i->isMemberFunction())
+			return false;
+		const ThisType* ifun = (const ThisType*) i;
+		if (NULL == ifun)
+			return false;
+		return (ifun->getFunction() == this->func);
+	}
+	virtual bool isMemberFunction() const {
+		return false;
+	}
+private:
+	A1 _a1;
+};
+
+template<class R, class C, class P1, class A1>
+class ArgF1Mem: public IFMem<R (C::*)(P1), C>, public IFunction0<R> {
+public:
+	typedef IFMem<R (C::*)(P1), C> Parent;
+	typedef typename IFunction0<R>::ThisType PThisType;
+	typedef ArgF1Mem<R, C, P1, A1> ThisType;
+	ArgF1Mem(const typename Parent::FuncType& f, C* o, const A1& a1) :
+			_a1(a1) {
+		assert(f);
+		if (NULL == f) {
+			THROW_EXCEPTION(FunctionException, "NULL function pointer", 0);
+		}
+		this->func = f;
+		this->obj = o;
+	}
+
+	virtual ~ArgF1Mem() {
+	}
+
+	virtual R operator()() {
+		return (this->obj->*this->func)(_a1);
+	}
+	virtual PThisType* clone() {
+		return new ThisType(*this);
+	}
+	virtual bool equals(const PThisType* i) const {
+		if (!i->isMemberFunction())
+			return false;
+		const ThisType* ifun = (const ThisType*) i;
+		if (NULL == ifun)
+			return false;
+		return (ifun->getFunction() == this->func);
+	}
+	virtual bool isMemberFunction() const {
+		return true;
+	}
+private:
+	A1 _a1;
+};
+
+template<class R, class C, class P1, class A1>
+class ArgF1MemConst: public IFMem<R (C::*)(P1) const, C>, public IFunction0<R> {
+public:
+	typedef IFMem<R (C::*)(P1) const, C> Parent;
+	typedef typename IFunction0<R>::ThisType PThisType;
+	typedef ArgF1MemConst<R, C, P1, A1> ThisType;
+	ArgF1MemConst(const typename Parent::FuncType& f, C* o, const A1& a1) :
+			_a1(a1) {
+		assert(f);
+		if (NULL == f) {
+			THROW_EXCEPTION(FunctionException, "NULL function pointer", 0);
+		}
+		this->func = f;
+		this->obj = o;
+	}
+
+	virtual ~ArgF1MemConst() {
+	}
+
+	virtual R operator()() {
+		return (this->obj->*this->func)(_a1);
+	}
+	virtual PThisType* clone() {
+		return new ThisType(*this);
+	}
+	virtual bool equals(const PThisType* i) const {
+		if (!i->isMemberFunction())
+			return false;
+		const ThisType* ifun = (const ThisType*) i;
+		if (NULL == ifun)
+			return false;
+		return (ifun->getFunction() == this->func);
+	}
+	virtual bool isMemberFunction() const {
+		return true;
+	}
+private:
+	A1 _a1;
+};
+
+template<class R, class P1, class P2, class A1, class A2>
+class ArgF2: public IF<R (*)(P1, P2)>, public IFunction0<R> {
+public:
+	typedef IF<R (*)(P1, P2)> Parent;
+	typedef typename IFunction0<R>::ThisType PThisType;
+	typedef ArgF2<R, P1, P2, A1, A2> ThisType;
+	ArgF2(const typename Parent::FuncType& f, const A1& a1, const A2& a2) :
+			_a1(a1), _a2(a2) {
+		assert(f);
+		if (NULL == f) {
+			THROW_EXCEPTION(FunctionException, "NULL function pointer", 0);
+		}
+		this->func = f;
+	}
+
+	virtual ~ArgF2() {
+	}
+
+	virtual R operator()() {
+		return this->func(_a1, _a2);
+	}
+	virtual PThisType* clone() {
+		return new ThisType(*this);
+	}
+	virtual bool equals(const PThisType* i) const {
+		if (i->isMemberFunction())
+			return false;
+		const ThisType* ifun = (const ThisType*) i;
+		if (NULL == ifun)
+			return false;
+		return (ifun->getFunction() == this->func);
+	}
+	virtual bool isMemberFunction() const {
+		return false;
+	}
+private:
+	A1 _a1;
+	A2 _a2;
+};
+
+template<class R, class C, class P1, class P2, class A1, class A2>
+class ArgF2Mem: public IFMem<R (C::*)(P1, P2), C>, public IFunction0<R> {
+public:
+	typedef IFMem<R (C::*)(P1, P2), C> Parent;
+	typedef typename IFunction0<R>::ThisType PThisType;
+	typedef ArgF2Mem<R, C, P1, P2, A1, A2> ThisType;
+	ArgF2Mem(const typename Parent::FuncType& f, C* o, const A1& a1, const A2& a2) :
+			_a1(a1), _a2(a2) {
+		assert(f);
+		if (NULL == f) {
+			THROW_EXCEPTION(FunctionException, "NULL function pointer", 0);
+		}
+		this->func = f;
+		this->obj = o;
+	}
+
+	virtual ~ArgF2Mem() {
+	}
+
+	virtual R operator()() {
+		return (this->obj->*this->func)(_a1, _a2);
+	}
+	virtual PThisType* clone() {
+		return new ThisType(*this);
+	}
+	virtual bool equals(const PThisType* i) const {
+		if (!i->isMemberFunction())
+			return false;
+		const ThisType* ifun = (const ThisType*) i;
+		if (NULL == ifun)
+			return false;
+		return (ifun->getFunction() == this->func);
+	}
+	virtual bool isMemberFunction() const {
+		return true;
+	}
+private:
+	A1 _a1;
+	A2 _a2;
+};
+
+template<class R, class C, class P1, class P2, class A1, class A2>
+class ArgF2MemConst: public IFMem<R (C::*)(P1, P2) const, C>, public IFunction0<R> {
+public:
+	typedef IFMem<R (C::*)(P1, P2) const, C> Parent;
+	typedef typename IFunction0<R>::ThisType PThisType;
+	typedef ArgF2MemConst<R, C, P1, P2, A1, A2> ThisType;
+	ArgF2MemConst(const typename Parent::FuncType& f, C* o, const A1& a1, const A2& a2) :
+			_a1(a1), _a2(a2) {
+		assert(f);
+		if (NULL == f) {
+			THROW_EXCEPTION(FunctionException, "NULL function pointer", 0);
+		}
+		this->func = f;
+		this->obj = o;
+	}
+
+	virtual ~ArgF2MemConst() {
+	}
+
+	virtual R operator()() {
+		return (this->obj->*this->func)(_a1, _a2);
+	}
+	virtual PThisType* clone() {
+		return new ThisType(*this);
+	}
+	virtual bool equals(const PThisType* i) const {
+		if (!i->isMemberFunction())
+			return false;
+		const ThisType* ifun = (const ThisType*) i;
+		if (NULL == ifun)
+			return false;
+		return (ifun->getFunction() == this->func);
+	}
+	virtual bool isMemberFunction() const {
+		return true;
+	}
+private:
+	A1 _a1;
+	A2 _a2;
+};
+
+template<class R, class P1, class P2, class P3, class A1, class A2, class A3>
+class ArgF3: public IF<R (*)(P1, P2, P3)>, public IFunction0<R> {
+public:
+	typedef IF<R (*)(P1, P2, P3)> Parent;
+	typedef typename IFunction0<R>::ThisType PThisType;
+	typedef ArgF3<R, P1, P2, P3, A1, A2, A3> ThisType;
+	ArgF3(const typename Parent::FuncType& f, const A1& a1, const A2& a2, const A3& a3) :
+			_a1(a1), _a2(a2), _a3(a3) {
+		assert(f);
+		if (NULL == f) {
+			THROW_EXCEPTION(FunctionException, "NULL function pointer", 0);
+		}
+		this->func = f;
+	}
+
+	virtual ~ArgF3() {
+	}
+
+	virtual R operator()() {
+		return this->func(_a1, _a2, _a3);
+	}
+	virtual PThisType* clone() {
+		return new ThisType(*this);
+	}
+	virtual bool equals(const PThisType* i) const {
+		if (i->isMemberFunction())
+			return false;
+		const ThisType* ifun = (const ThisType*) i;
+		if (NULL == ifun)
+			return false;
+		return (ifun->getFunction() == this->func);
+	}
+	virtual bool isMemberFunction() const {
+		return false;
+	}
+private:
+	A1 _a1;
+	A2 _a2;
+	A3 _a3;
+};
+
+template<class R, class C, class P1, class P2, class P3, class A1, class A2, class A3>
+class ArgF3Mem: public IFMem<R (C::*)(P1, P2, P3), C>, public IFunction0<R> {
+public:
+	typedef IFMem<R (C::*)(P1, P2, P3), C> Parent;
+	typedef typename IFunction0<R>::ThisType PThisType;
+	typedef ArgF3Mem<R, C, P1, P2, P3, A1, A2, A3> ThisType;
+	ArgF3Mem(const typename Parent::FuncType& f, C* o, const A1& a1, const A2& a2, const A3& a3) :
+			_a1(a1), _a2(a2), _a3(a3) {
+		assert(f);
+		if (NULL == f) {
+			THROW_EXCEPTION(FunctionException, "NULL function pointer", 0);
+		}
+		this->func = f;
+		this->obj = o;
+	}
+
+	virtual ~ArgF3Mem() {
+	}
+
+	virtual R operator()() {
+		return (this->obj->*this->func)(_a1, _a2, _a3);
+	}
+	virtual PThisType* clone() {
+		return new ThisType(*this);
+	}
+	virtual bool equals(const PThisType* i) const {
+		if (!i->isMemberFunction())
+			return false;
+		const ThisType* ifun = (const ThisType*) i;
+		if (NULL == ifun)
+			return false;
+		return (ifun->getFunction() == this->func);
+	}
+	virtual bool isMemberFunction() const {
+		return true;
+	}
+private:
+	A1 _a1;
+	A2 _a2;
+	A3 _a3;
+};
+
+template<class R, class C, class P1, class P2, class P3, class A1, class A2, class A3>
+class ArgF3MemConst: public IFMem<R (C::*)(P1, P2, P3) const, C>, public IFunction0<R> {
+public:
+	typedef IFMem<R (C::*)(P1, P2, P3) const, C> Parent;
+	typedef typename IFunction0<R>::ThisType PThisType;
+	typedef ArgF3MemConst<R, C, P1, P2, P3, A1, A2, A3> ThisType;
+	ArgF3MemConst(const typename Parent::FuncType& f, C* o, const A1& a1, const A2& a2,
+			const A3& a3) :
+			_a1(a1), _a2(a2), _a3(a3) {
+		assert(f);
+		if (NULL == f) {
+			THROW_EXCEPTION(FunctionException, "NULL function pointer", 0);
+		}
+		this->func = f;
+		this->obj = o;
+	}
+
+	virtual ~ArgF3MemConst() {
+	}
+
+	virtual R operator()() {
+		return (this->obj->*this->func)(_a1, _a2, _a3);
+	}
+	virtual PThisType* clone() {
+		return new ThisType(*this);
+	}
+	virtual bool equals(const PThisType* i) const {
+		if (!i->isMemberFunction())
+			return false;
+		const ThisType* ifun = (const ThisType*) i;
+		if (NULL == ifun)
+			return false;
+		return (ifun->getFunction() == this->func);
+	}
+	virtual bool isMemberFunction() const {
+		return true;
+	}
+private:
+	A1 _a1;
+	A2 _a2;
+	A3 _a3;
+};
+
+template<class R, class P1, class P2, class P3, class P4, class A1, class A2, class A3, class A4>
+class ArgF4: public IF<R (*)(P1, P2, P3, P4)>, public IFunction0<R> {
+public:
+	typedef IF<R (*)(P1, P2, P3, P4)> Parent;
+	typedef typename IFunction0<R>::ThisType PThisType;
+	typedef ArgF4<R, P1, P2, P3, P4, A1, A2, A3, A4> ThisType;
+	ArgF4(const typename Parent::FuncType& f, const A1& a1, const A2& a2, const A3& a3,
+			const A4& a4) :
+			_a1(a1), _a2(a2), _a3(a3), _a4(a4) {
+		assert(f);
+		if (NULL == f) {
+			THROW_EXCEPTION(FunctionException, "NULL function pointer", 0);
+		}
+		this->func = f;
+	}
+
+	virtual ~ArgF4() {
+	}
+
+	virtual R operator()() {
+		return this->func(_a1, _a2, _a3, _a4);
+	}
+	virtual PThisType* clone() {
+		return new ThisType(*this);
+	}
+	virtual bool equals(const PThisType* i) const {
+		if (i->isMemberFunction())
+			return false;
+		const ThisType* ifun = (const ThisType*) i;
+		if (NULL == ifun)
+			return false;
+		return (ifun->getFunction() == this->func);
+	}
+	virtual bool isMemberFunction() const {
+		return false;
+	}
+private:
+	A1 _a1;
+	A2 _a2;
+	A3 _a3;
+	A4 _a4;
+};
+
+template<class R, class C, class P1, class P2, class P3, class P4, class A1, class A2, class A3,
+		class A4>
+class ArgF4Mem: public IFMem<R (C::*)(P1, P2, P3, P4), C>, public IFunction0<R> {
+public:
+	typedef IFMem<R (C::*)(P1, P2, P3, P4), C> Parent;
+	typedef typename IFunction0<R>::ThisType PThisType;
+	typedef ArgF4Mem<R, C, P1, P2, P3, P4, A1, A2, A3, A4> ThisType;
+	ArgF4Mem(const typename Parent::FuncType& f, C* o, const A1& a1, const A2& a2, const A3& a3,
+			const A4& a4) :
+			_a1(a1), _a2(a2), _a3(a3), _a4(a4) {
+		assert(f);
+		if (NULL == f) {
+			THROW_EXCEPTION(FunctionException, "NULL function pointer", 0);
+		}
+		this->func = f;
+		this->obj = o;
+	}
+
+	virtual ~ArgF4Mem() {
+	}
+
+	virtual R operator()() {
+		return (this->obj->*this->func)(_a1, _a2, _a3, _a4);
+	}
+	virtual PThisType* clone() {
+		return new ThisType(*this);
+	}
+	virtual bool equals(const PThisType* i) const {
+		if (!i->isMemberFunction())
+			return false;
+		const ThisType* ifun = (const ThisType*) i;
+		if (NULL == ifun)
+			return false;
+		return (ifun->getFunction() == this->func);
+	}
+	virtual bool isMemberFunction() const {
+		return true;
+	}
+private:
+	A1 _a1;
+	A2 _a2;
+	A3 _a3;
+	A4 _a4;
+};
+
+template<class R, class C, class P1, class P2, class P3, class P4, class A1, class A2, class A3,
+		class A4>
+class ArgF4MemConst: public IFMem<R (C::*)(P1, P2, P3, P4) const, C>, public IFunction0<R> {
+public:
+	typedef IFMem<R (C::*)(P1, P2, P3, P4) const, C> Parent;
+	typedef typename IFunction0<R>::ThisType PThisType;
+	typedef ArgF4MemConst<R, C, P1, P2, P3, P4, A1, A2, A3, A4> ThisType;
+	ArgF4MemConst(const typename Parent::FuncType& f, C* o, const A1& a1, const A2& a2,
+			const A3& a3, const A4& a4) :
+			_a1(a1), _a2(a2), _a3(a3), _a4(a4) {
+		assert(f);
+		if (NULL == f) {
+			THROW_EXCEPTION(FunctionException, "NULL function pointer", 0);
+		}
+		this->func = f;
+		this->obj = o;
+	}
+
+	virtual ~ArgF4MemConst() {
+	}
+
+	virtual R operator()() {
+		return (this->obj->*this->func)(_a1, _a2, _a3, _a4);
+	}
+	virtual PThisType* clone() {
+		return new ThisType(*this);
+	}
+	virtual bool equals(const PThisType* i) const {
+		if (!i->isMemberFunction())
+			return false;
+		const ThisType* ifun = (const ThisType*) i;
+		if (NULL == ifun)
+			return false;
+		return (ifun->getFunction() == this->func);
+	}
+	virtual bool isMemberFunction() const {
+		return true;
+	}
+private:
+	A1 _a1;
+	A2 _a2;
+	A3 _a3;
+	A4 _a4;
+};
+
+template<class R, class P1, class P2, class P3, class P4, class P5, class A1, class A2, class A3,
+		class A4, class A5>
+class ArgF5: public IF<R (*)(P1, P2, P3, P4, P5)>, public IFunction0<R> {
+public:
+	typedef IF<R (*)(P1, P2, P3, P4, P5)> Parent;
+	typedef typename IFunction0<R>::ThisType PThisType;
+	typedef ArgF5<R, P1, P2, P3, P4, P5, A1, A2, A3, A4, A5> ThisType;
+	ArgF5(const typename Parent::FuncType& f, const A1& a1, const A2& a2, const A3& a3,
+			const A4& a4, const A5& a5) :
+			_a1(a1), _a2(a2), _a3(a3), _a4(a4), _a5(a5) {
+		assert(f);
+		if (NULL == f) {
+			THROW_EXCEPTION(FunctionException, "NULL function pointer", 0);
+		}
+		this->func = f;
+	}
+
+	virtual ~ArgF5() {
+	}
+
+	virtual R operator()() {
+		return this->func(_a1, _a2, _a3, _a4, _a5);
+	}
+	virtual PThisType* clone() {
+		return new ThisType(*this);
+	}
+	virtual bool equals(const PThisType* i) const {
+		if (i->isMemberFunction())
+			return false;
+		const ThisType* ifun = (const ThisType*) i;
+		if (NULL == ifun)
+			return false;
+		return (ifun->getFunction() == this->func);
+	}
+	virtual bool isMemberFunction() const {
+		return false;
+	}
+private:
+	A1 _a1;
+	A2 _a2;
+	A3 _a3;
+	A4 _a4;
+	A5 _a5;
+};
+
+template<class R, class C, class P1, class P2, class P3, class P4, class P5, class A1, class A2,
+		class A3, class A4, class A5>
+class ArgF5Mem: public IFMem<R (C::*)(P1, P2, P3, P4, P5), C>, public IFunction0<R> {
+public:
+	typedef IFMem<R (C::*)(P1, P2, P3, P4, P5), C> Parent;
+	typedef typename IFunction0<R>::ThisType PThisType;
+	typedef ArgF5Mem<R, C, P1, P2, P3, P4, P5, A1, A2, A3, A4, A5> ThisType;
+	ArgF5Mem(const typename Parent::FuncType& f, C* o, const A1& a1, const A2& a2, const A3& a3,
+			const A4& a4, const A5& a5) :
+			_a1(a1), _a2(a2), _a3(a3), _a4(a4), _a5(a5) {
+		assert(f);
+		if (NULL == f) {
+			THROW_EXCEPTION(FunctionException, "NULL function pointer", 0);
+		}
+		this->func = f;
+		this->obj = o;
+	}
+
+	virtual ~ArgF5Mem() {
+	}
+
+	virtual R operator()() {
+		return (this->obj->*this->func)(_a1, _a2, _a3, _a4, _a5);
+	}
+	virtual PThisType* clone() {
+		return new ThisType(*this);
+	}
+	virtual bool equals(const PThisType* i) const {
+		if (!i->isMemberFunction())
+			return false;
+		const ThisType* ifun = (const ThisType*) i;
+		if (NULL == ifun)
+			return false;
+		return (ifun->getFunction() == this->func);
+	}
+	virtual bool isMemberFunction() const {
+		return true;
+	}
+private:
+	A1 _a1;
+	A2 _a2;
+	A3 _a3;
+	A4 _a4;
+	A5 _a5;
+};
+
+template<class R, class C, class P1, class P2, class P3, class P4, class P5, class A1, class A2,
+		class A3, class A4, class A5>
+class ArgF5MemConst: public IFMem<R (C::*)(P1, P2, P3, P4, P5) const, C>, public IFunction0<R> {
+public:
+	typedef IFMem<R (C::*)(P1, P2, P3, P4, P5) const, C> Parent;
+	typedef typename IFunction0<R>::ThisType PThisType;
+	typedef ArgF5MemConst<R, C, P1, P2, P3, P4, P5, A1, A2, A3, A4, A5> ThisType;
+	ArgF5MemConst(const typename Parent::FuncType& f, C* o, const A1& a1, const A2& a2,
+			const A3& a3, const A4& a4, const A5& a5) :
+			_a1(a1), _a2(a2), _a3(a3), _a4(a4), _a5(a5) {
+		assert(f);
+		if (NULL == f) {
+			THROW_EXCEPTION(FunctionException, "NULL function pointer", 0);
+		}
+		this->func = f;
+		this->obj = o;
+	}
+
+	virtual ~ArgF5MemConst() {
+	}
+
+	virtual R operator()() {
+		return (this->obj->*this->func)(_a1, _a2, _a3, _a4, _a5);
+	}
+	virtual PThisType* clone() {
+		return new ThisType(*this);
+	}
+	virtual bool equals(const PThisType* i) const {
+		if (!i->isMemberFunction())
+			return false;
+		const ThisType* ifun = (const ThisType*) i;
+		if (NULL == ifun)
+			return false;
+		return (ifun->getFunction() == this->func);
+	}
+	virtual bool isMemberFunction() const {
+		return true;
+	}
+private:
+	A1 _a1;
+	A2 _a2;
+	A3 _a3;
+	A4 _a4;
+	A5 _a5;
+};
+
+template<class R, class P1, class P2, class P3, class P4, class P5, class P6, class A1, class A2,
+		class A3, class A4, class A5, class A6>
+class ArgF6: public IF<R (*)(P1, P2, P3, P4, P5, P6)>, public IFunction0<R> {
+public:
+	typedef IF<R (*)(P1, P2, P3, P4, P5, P6)> Parent;
+	typedef typename IFunction0<R>::ThisType PThisType;
+	typedef ArgF6<R, P1, P2, P3, P4, P5, P6, A1, A2, A3, A4, A5, A6> ThisType;
+	ArgF6(const typename Parent::FuncType& f, const A1& a1, const A2& a2, const A3& a3,
+			const A4& a4, const A5& a5, const A6& a6) :
+			_a1(a1), _a2(a2), _a3(a3), _a4(a4), _a5(a5), _a6(a6) {
+		assert(f);
+		if (NULL == f) {
+			THROW_EXCEPTION(FunctionException, "NULL function pointer", 0);
+		}
+		this->func = f;
+	}
+
+	virtual ~ArgF6() {
+	}
+
+	virtual R operator()() {
+		return this->func(_a1, _a2, _a3, _a4, _a5, _a6);
+	}
+	virtual PThisType* clone() {
+		return new ThisType(*this);
+	}
+	virtual bool equals(const PThisType* i) const {
+		if (i->isMemberFunction())
+			return false;
+		const ThisType* ifun = (const ThisType*) i;
+		if (NULL == ifun)
+			return false;
+		return (ifun->getFunction() == this->func);
+	}
+	virtual bool isMemberFunction() const {
+		return false;
+	}
+private:
+	A1 _a1;
+	A2 _a2;
+	A3 _a3;
+	A4 _a4;
+	A5 _a5;
+	A6 _a6;
+};
+
+template<class R, class C, class P1, class P2, class P3, class P4, class P5, class P6, class A1,
+		class A2, class A3, class A4, class A5, class A6>
+class ArgF6Mem: public IFMem<R (C::*)(P1, P2, P3, P4, P5, P6), C>, public IFunction0<R> {
+public:
+	typedef IFMem<R (C::*)(P1, P2, P3, P4, P5, P6), C> Parent;
+	typedef typename IFunction0<R>::ThisType PThisType;
+	typedef ArgF6Mem<R, C, P1, P2, P3, P4, P5, P6, A1, A2, A3, A4, A5, A6> ThisType;
+	ArgF6Mem(const typename Parent::FuncType& f, C* o, const A1& a1, const A2& a2, const A3& a3,
+			const A4& a4, const A5& a5, const A6& a6) :
+			_a1(a1), _a2(a2), _a3(a3), _a4(a4), _a5(a5), _a6(a6) {
+		assert(f);
+		if (NULL == f) {
+			THROW_EXCEPTION(FunctionException, "NULL function pointer", 0);
+		}
+		this->func = f;
+		this->obj = o;
+	}
+
+	virtual ~ArgF6Mem() {
+	}
+
+	virtual R operator()() {
+		return (this->obj->*this->func)(_a1, _a2, _a3, _a4, _a5, _a6);
+	}
+	virtual PThisType* clone() {
+		return new ThisType(*this);
+	}
+	virtual bool equals(const PThisType* i) const {
+		if (!i->isMemberFunction())
+			return false;
+		const ThisType* ifun = (const ThisType*) i;
+		if (NULL == ifun)
+			return false;
+		return (ifun->getFunction() == this->func);
+	}
+	virtual bool isMemberFunction() const {
+		return true;
+	}
+private:
+	A1 _a1;
+	A2 _a2;
+	A3 _a3;
+	A4 _a4;
+	A5 _a5;
+	A6 _a6;
+};
+
+template<class R, class C, class P1, class P2, class P3, class P4, class P5, class P6, class A1,
+		class A2, class A3, class A4, class A5, class A6>
+class ArgF6MemConst: public IFMem<R (C::*)(P1, P2, P3, P4, P5, P6) const, C>, public IFunction0<R> {
+public:
+	typedef IFMem<R (C::*)(P1, P2, P3, P4, P5, P6) const, C> Parent;
+	typedef typename IFunction0<R>::ThisType PThisType;
+	typedef ArgF6MemConst<R, C, P1, P2, P3, P4, P5, P6, A1, A2, A3, A4, A5, A6> ThisType;
+	ArgF6MemConst(const typename Parent::FuncType& f, C* o, const A1& a1, const A2& a2,
+			const A3& a3, const A4& a4, const A5& a5, const A6& a6) :
+			_a1(a1), _a2(a2), _a3(a3), _a4(a4), _a5(a5), _a6(a6) {
+		assert(f);
+		if (NULL == f) {
+			THROW_EXCEPTION(FunctionException, "NULL function pointer", 0);
+		}
+		this->func = f;
+		this->obj = o;
+	}
+
+	virtual ~ArgF6MemConst() {
+	}
+
+	virtual R operator()() {
+		return (this->obj->*this->func)(_a1, _a2, _a3, _a4, _a5, _a6);
+	}
+	virtual PThisType* clone() {
+		return new ThisType(*this);
+	}
+	virtual bool equals(const PThisType* i) const {
+		if (!i->isMemberFunction())
+			return false;
+		const ThisType* ifun = (const ThisType*) i;
+		if (NULL == ifun)
+			return false;
+		return (ifun->getFunction() == this->func);
+	}
+	virtual bool isMemberFunction() const {
+		return true;
+	}
+private:
+	A1 _a1;
+	A2 _a2;
+	A3 _a3;
+	A4 _a4;
+	A5 _a5;
+	A6 _a6;
+};
+
+template<class R, class P1, class P2, class P3, class P4, class P5, class P6, class P7, class A1,
+		class A2, class A3, class A4, class A5, class A6, class A7>
+class ArgF7: public IF<R (*)(P1, P2, P3, P4, P5, P6, P7)>, public IFunction0<R> {
+public:
+	typedef IF<R (*)(P1, P2, P3, P4, P5, P6, P7)> Parent;
+	typedef typename IFunction0<R>::ThisType PThisType;
+	typedef ArgF7<R, P1, P2, P3, P4, P5, P6, P7, A1, A2, A3, A4, A5, A6, A7> ThisType;
+	ArgF7(const typename Parent::FuncType& f, const A1& a1, const A2& a2, const A3& a3,
+			const A4& a4, const A5& a5, const A6& a6, const A7& a7) :
+			_a1(a1), _a2(a2), _a3(a3), _a4(a4), _a5(a5), _a6(a6), _a7(a7) {
+		assert(f);
+		if (NULL == f) {
+			THROW_EXCEPTION(FunctionException, "NULL function pointer", 0);
+		}
+		this->func = f;
+	}
+
+	virtual ~ArgF7() {
+	}
+
+	virtual R operator()() {
+		return this->func(_a1, _a2, _a3, _a4, _a5, _a6, _a7);
+	}
+	virtual PThisType* clone() {
+		return new ThisType(*this);
+	}
+	virtual bool equals(const PThisType* i) const {
+		if (i->isMemberFunction())
+			return false;
+		const ThisType* ifun = (const ThisType*) i;
+		if (NULL == ifun)
+			return false;
+		return (ifun->getFunction() == this->func);
+	}
+	virtual bool isMemberFunction() const {
+		return false;
+	}
+private:
+	A1 _a1;
+	A2 _a2;
+	A3 _a3;
+	A4 _a4;
+	A5 _a5;
+	A6 _a6;
+	A7 _a7;
+};
+
+template<class R, class C, class P1, class P2, class P3, class P4, class P5, class P6, class P7,
+		class A1, class A2, class A3, class A4, class A5, class A6, class A7>
+class ArgF7Mem: public IFMem<R (C::*)(P1, P2, P3, P4, P5, P6, P7), C>, public IFunction0<R> {
+public:
+	typedef IFMem<R (C::*)(P1, P2, P3, P4, P5, P6, P7), C> Parent;
+	typedef typename IFunction0<R>::ThisType PThisType;
+	typedef ArgF7Mem<R, C, P1, P2, P3, P4, P5, P6, P7, A1, A2, A3, A4, A5, A6, A7> ThisType;
+	ArgF7Mem(const typename Parent::FuncType& f, C* o, const A1& a1, const A2& a2, const A3& a3,
+			const A4& a4, const A5& a5, const A6& a6, const A7& a7) :
+			_a1(a1), _a2(a2), _a3(a3), _a4(a4), _a5(a5), _a6(a6), _a7(a7) {
+		assert(f);
+		if (NULL == f) {
+			THROW_EXCEPTION(FunctionException, "NULL function pointer", 0);
+		}
+		this->func = f;
+		this->obj = o;
+	}
+
+	virtual ~ArgF7Mem() {
+	}
+
+	virtual R operator()() {
+		return (this->obj->*this->func)(_a1, _a2, _a3, _a4, _a5, _a6, _a7);
+	}
+	virtual PThisType* clone() {
+		return new ThisType(*this);
+	}
+	virtual bool equals(const PThisType* i) const {
+		if (!i->isMemberFunction())
+			return false;
+		const ThisType* ifun = (const ThisType*) i;
+		if (NULL == ifun)
+			return false;
+		return (ifun->getFunction() == this->func);
+	}
+	virtual bool isMemberFunction() const {
+		return true;
+	}
+private:
+	A1 _a1;
+	A2 _a2;
+	A3 _a3;
+	A4 _a4;
+	A5 _a5;
+	A6 _a6;
+	A7 _a7;
+};
+
+template<class R, class C, class P1, class P2, class P3, class P4, class P5, class P6, class P7,
+		class A1, class A2, class A3, class A4, class A5, class A6, class A7>
+class ArgF7MemConst: public IFMem<R (C::*)(P1, P2, P3, P4, P5, P6, P7) const, C>, public IFunction0<
+		R> {
+public:
+	typedef IFMem<R (C::*)(P1, P2, P3, P4, P5, P6, P7) const, C> Parent;
+	typedef typename IFunction0<R>::ThisType PThisType;
+	typedef ArgF7MemConst<R, C, P1, P2, P3, P4, P5, P6, P7, A1, A2, A3, A4, A5, A6, A7> ThisType;
+	ArgF7MemConst(const typename Parent::FuncType& f, C* o, const A1& a1, const A2& a2,
+			const A3& a3, const A4& a4, const A5& a5, const A6& a6, const A7& a7) :
+			_a1(a1), _a2(a2), _a3(a3), _a4(a4), _a5(a5), _a6(a6), _a7(a7) {
+		assert(f);
+		if (NULL == f) {
+			THROW_EXCEPTION(FunctionException, "NULL function pointer", 0);
+		}
+		this->func = f;
+		this->obj = o;
+	}
+
+	virtual ~ArgF7MemConst() {
+	}
+
+	virtual R operator()() {
+		return (this->obj->*this->func)(_a1, _a2, _a3, _a4, _a5, _a6, _a7);
+	}
+	virtual PThisType* clone() {
+		return new ThisType(*this);
+	}
+	virtual bool equals(const PThisType* i) const {
+		if (!i->isMemberFunction())
+			return false;
+		const ThisType* ifun = (const ThisType*) i;
+		if (NULL == ifun)
+			return false;
+		return (ifun->getFunction() == this->func);
+	}
+	virtual bool isMemberFunction() const {
+		return true;
+	}
+private:
+	A1 _a1;
+	A2 _a2;
+	A3 _a3;
+	A4 _a4;
+	A5 _a5;
+	A6 _a6;
+	A7 _a7;
+};
+
+template<class R, class P1, class P2, class P3, class P4, class P5, class P6, class P7, class P8,
+		class A1, class A2, class A3, class A4, class A5, class A6, class A7, class A8>
+class ArgF8: public IF<R (*)(P1, P2, P3, P4, P5, P6, P7, P8)>, public IFunction0<R> {
+public:
+	typedef IF<R (*)(P1, P2, P3, P4, P5, P6, P7, P8)> Parent;
+	typedef typename IFunction0<R>::ThisType PThisType;
+	typedef ArgF8<R, P1, P2, P3, P4, P5, P6, P7, P8, A1, A2, A3, A4, A5, A6, A7, A8> ThisType;
+	ArgF8(const typename Parent::FuncType& f, const A1& a1, const A2& a2, const A3& a3,
+			const A4& a4, const A5& a5, const A6& a6, const A7& a7, const A8& a8) :
+			_a1(a1), _a2(a2), _a3(a3), _a4(a4), _a5(a5), _a6(a6), _a7(a7), _a8(a8) {
+		assert(f);
+		if (NULL == f) {
+			THROW_EXCEPTION(FunctionException, "NULL function pointer", 0);
+		}
+		this->func = f;
+	}
+
+	virtual ~ArgF8() {
+	}
+
+	virtual R operator()() {
+		return this->func(_a1, _a2, _a3, _a4, _a5, _a6, _a7, _a8);
+	}
+	virtual PThisType* clone() {
+		return new ThisType(*this);
+	}
+	virtual bool equals(const PThisType* i) const {
+		if (i->isMemberFunction())
+			return false;
+		const ThisType* ifun = (const ThisType*) i;
+		if (NULL == ifun)
+			return false;
+		return (ifun->getFunction() == this->func);
+	}
+	virtual bool isMemberFunction() const {
+		return false;
+	}
+private:
+	A1 _a1;
+	A2 _a2;
+	A3 _a3;
+	A4 _a4;
+	A5 _a5;
+	A6 _a6;
+	A7 _a7;
+	A8 _a8;
+};
+
+template<class R, class C, class P1, class P2, class P3, class P4, class P5, class P6, class P7,
+		class P8, class A1, class A2, class A3, class A4, class A5, class A6, class A7, class A8>
+class ArgF8Mem: public IFMem<R (C::*)(P1, P2, P3, P4, P5, P6, P7, P8), C>, public IFunction0<R> {
+public:
+	typedef IFMem<R (C::*)(P1, P2, P3, P4, P5, P6, P7, P8), C> Parent;
+	typedef typename IFunction0<R>::ThisType PThisType;
+	typedef ArgF8Mem<R, C, P1, P2, P3, P4, P5, P6, P7, P8, A1, A2, A3, A4, A5, A6, A7, A8> ThisType;
+	ArgF8Mem(const typename Parent::FuncType& f, C* o, const A1& a1, const A2& a2, const A3& a3,
+			const A4& a4, const A5& a5, const A6& a6, const A7& a7, const A8& a8) :
+			_a1(a1), _a2(a2), _a3(a3), _a4(a4), _a5(a5), _a6(a6), _a7(a7), _a8(a8) {
+		assert(f);
+		if (NULL == f) {
+			THROW_EXCEPTION(FunctionException, "NULL function pointer", 0);
+		}
+		this->func = f;
+		this->obj = o;
+	}
+
+	virtual ~ArgF8Mem() {
+	}
+
+	virtual R operator()() {
+		return (this->obj->*this->func)(_a1, _a2, _a3, _a4, _a5, _a6, _a7, _a8);
+	}
+	virtual PThisType* clone() {
+		return new ThisType(*this);
+	}
+	virtual bool equals(const PThisType* i) const {
+		if (!i->isMemberFunction())
+			return false;
+		const ThisType* ifun = (const ThisType*) i;
+		if (NULL == ifun)
+			return false;
+		return (ifun->getFunction() == this->func);
+	}
+	virtual bool isMemberFunction() const {
+		return true;
+	}
+private:
+	A1 _a1;
+	A2 _a2;
+	A3 _a3;
+	A4 _a4;
+	A5 _a5;
+	A6 _a6;
+	A7 _a7;
+	A8 _a8;
+};
+
+template<class R, class C, class P1, class P2, class P3, class P4, class P5, class P6, class P7,
+		class P8, class A1, class A2, class A3, class A4, class A5, class A6, class A7, class A8>
+class ArgF8MemConst: public IFMem<R (C::*)(P1, P2, P3, P4, P5, P6, P7, P8) const, C>,
+		public IFunction0<R> {
+public:
+	typedef IFMem<R (C::*)(P1, P2, P3, P4, P5, P6, P7, P8) const, C> Parent;
+	typedef typename IFunction0<R>::ThisType PThisType;
+	typedef ArgF8MemConst<R, C, P1, P2, P3, P4, P5, P6, P7, P8, A1, A2, A3, A4, A5, A6, A7, A8> ThisType;
+	ArgF8MemConst(const typename Parent::FuncType& f, C* o, const A1& a1, const A2& a2,
+			const A3& a3, const A4& a4, const A5& a5, const A6& a6, const A7& a7, const A8& a8) :
+			_a1(a1), _a2(a2), _a3(a3), _a4(a4), _a5(a5), _a6(a6), _a7(a7), _a8(a8) {
+		assert(f);
+		if (NULL == f) {
+			THROW_EXCEPTION(FunctionException, "NULL function pointer", 0);
+		}
+		this->func = f;
+		this->obj = o;
+	}
+
+	virtual ~ArgF8MemConst() {
+	}
+
+	virtual R operator()() {
+		return (this->obj->*this->func)(_a1, _a2, _a3, _a4, _a5, _a6, _a7, _a8);
+	}
+	virtual PThisType* clone() {
+		return new ThisType(*this);
+	}
+	virtual bool equals(const PThisType* i) const {
+		if (!i->isMemberFunction())
+			return false;
+		const ThisType* ifun = (const ThisType*) i;
+		if (NULL == ifun)
+			return false;
+		return (ifun->getFunction() == this->func);
+	}
+	virtual bool isMemberFunction() const {
+		return true;
+	}
+private:
+	A1 _a1;
+	A2 _a2;
+	A3 _a3;
+	A4 _a4;
+	A5 _a5;
+	A6 _a6;
+	A7 _a7;
+	A8 _a8;
+};
+
+template<class R, class P1, class P2, class P3, class P4, class P5, class P6, class P7, class P8,
+		class P9, class A1, class A2, class A3, class A4, class A5, class A6, class A7, class A8,
+		class A9>
+class ArgF9: public IF<R (*)(P1, P2, P3, P4, P5, P6, P7, P8, P9)>, public IFunction0<R> {
+public:
+	typedef IF<R (*)(P1, P2, P3, P4, P5, P6, P7, P8, P9)> Parent;
+	typedef typename IFunction0<R>::ThisType PThisType;
+	typedef ArgF9<R, P1, P2, P3, P4, P5, P6, P7, P8, P9, A1, A2, A3, A4, A5, A6, A7, A8, A9> ThisType;
+	ArgF9(const typename Parent::FuncType& f, const A1& a1, const A2& a2, const A3& a3,
+			const A4& a4, const A5& a5, const A6& a6, const A7& a7, const A8& a8, const A9& a9) :
+			_a1(a1), _a2(a2), _a3(a3), _a4(a4), _a5(a5), _a6(a6), _a7(a7), _a8(a8), _a9(a9) {
+		assert(f);
+		if (NULL == f) {
+			THROW_EXCEPTION(FunctionException, "NULL function pointer", 0);
+		}
+		this->func = f;
+	}
+
+	virtual ~ArgF9() {
+	}
+
+	virtual R operator()() {
+		return this->func(_a1, _a2, _a3, _a4, _a5, _a6, _a7, _a8, _a9);
+	}
+	virtual PThisType* clone() {
+		return new ThisType(*this);
+	}
+	virtual bool equals(const PThisType* i) const {
+		if (i->isMemberFunction())
+			return false;
+		const ThisType* ifun = (const ThisType*) i;
+		if (NULL == ifun)
+			return false;
+		return (ifun->getFunction() == this->func);
+	}
+	virtual bool isMemberFunction() const {
+		return false;
+	}
+private:
+	A1 _a1;
+	A2 _a2;
+	A3 _a3;
+	A4 _a4;
+	A5 _a5;
+	A6 _a6;
+	A7 _a7;
+	A8 _a8;
+	A9 _a9;
+};
+
+template<class R, class C, class P1, class P2, class P3, class P4, class P5, class P6, class P7,
+		class P8, class P9, class A1, class A2, class A3, class A4, class A5, class A6, class A7,
+		class A8, class A9>
+class ArgF9Mem: public IFMem<R (C::*)(P1, P2, P3, P4, P5, P6, P7, P8, P9), C>, public IFunction0<R> {
+public:
+	typedef IFMem<R (C::*)(P1, P2, P3, P4, P5, P6, P7, P8, P9), C> Parent;
+	typedef typename IFunction0<R>::ThisType PThisType;
+	typedef ArgF9Mem<R, C, P1, P2, P3, P4, P5, P6, P7, P8, P9, A1, A2, A3, A4, A5, A6, A7, A8, A9> ThisType;
+	ArgF9Mem(const typename Parent::FuncType& f, C* o, const A1& a1, const A2& a2, const A3& a3,
+			const A4& a4, const A5& a5, const A6& a6, const A7& a7, const A8& a8, const A9& a9) :
+			_a1(a1), _a2(a2), _a3(a3), _a4(a4), _a5(a5), _a6(a6), _a7(a7), _a8(a8), _a9(a9) {
+		assert(f);
+		if (NULL == f) {
+			THROW_EXCEPTION(FunctionException, "NULL function pointer", 0);
+		}
+		this->func = f;
+		this->obj = o;
+	}
+
+	virtual ~ArgF9Mem() {
+	}
+
+	virtual R operator()() {
+		return (this->obj->*this->func)(_a1, _a2, _a3, _a4, _a5, _a6, _a7, _a8, _a9);
+	}
+	virtual PThisType* clone() {
+		return new ThisType(*this);
+	}
+	virtual bool equals(const PThisType* i) const {
+		if (!i->isMemberFunction())
+			return false;
+		const ThisType* ifun = (const ThisType*) i;
+		if (NULL == ifun)
+			return false;
+		return (ifun->getFunction() == this->func);
+	}
+	virtual bool isMemberFunction() const {
+		return true;
+	}
+private:
+	A1 _a1;
+	A2 _a2;
+	A3 _a3;
+	A4 _a4;
+	A5 _a5;
+	A6 _a6;
+	A7 _a7;
+	A8 _a8;
+	A9 _a9;
+};
+
+template<class R, class C, class P1, class P2, class P3, class P4, class P5, class P6, class P7,
+		class P8, class P9, class A1, class A2, class A3, class A4, class A5, class A6, class A7,
+		class A8, class A9>
+class ArgF9MemConst: public IFMem<R (C::*)(P1, P2, P3, P4, P5, P6, P7, P8, P9) const, C>,
+		public IFunction0<R> {
+public:
+	typedef IFMem<R (C::*)(P1, P2, P3, P4, P5, P6, P7, P8, P9) const, C> Parent;
+	typedef typename IFunction0<R>::ThisType PThisType;
+	typedef ArgF9MemConst<R, C, P1, P2, P3, P4, P5, P6, P7, P8, P9, A1, A2, A3, A4, A5, A6, A7, A8,
+			A9> ThisType;
+	ArgF9MemConst(const typename Parent::FuncType& f, C* o, const A1& a1, const A2& a2,
+			const A3& a3, const A4& a4, const A5& a5, const A6& a6, const A7& a7, const A8& a8,
+			const A9& a9) :
+			_a1(a1), _a2(a2), _a3(a3), _a4(a4), _a5(a5), _a6(a6), _a7(a7), _a8(a8), _a9(a9) {
+		assert(f);
+		if (NULL == f) {
+			THROW_EXCEPTION(FunctionException, "NULL function pointer", 0);
+		}
+		this->func = f;
+		this->obj = o;
+	}
+
+	virtual ~ArgF9MemConst() {
+	}
+
+	virtual R operator()() {
+		return (this->obj->*this->func)(_a1, _a2, _a3, _a4, _a5, _a6, _a7, _a8, _a9);
+	}
+	virtual PThisType* clone() {
+		return new ThisType(*this);
+	}
+	virtual bool equals(const PThisType* i) const {
+		if (!i->isMemberFunction())
+			return false;
+		const ThisType* ifun = (const ThisType*) i;
+		if (NULL == ifun)
+			return false;
+		return (ifun->getFunction() == this->func);
+	}
+	virtual bool isMemberFunction() const {
+		return true;
+	}
+private:
+	A1 _a1;
+	A2 _a2;
+	A3 _a3;
+	A4 _a4;
+	A5 _a5;
+	A6 _a6;
+	A7 _a7;
+	A8 _a8;
+	A9 _a9;
 };
 
 template<class R>
 class Function0 {
 public:
-	typedef FunctionBase0<R> IFuncType;
+	typedef IFunction0<R> FuncType;
 	typedef Function0<R> ThisType;
 
-	Function0() :
-			pfunc(0) {
+	Function0(FuncType* func) :
+			_func(func) {
 	}
-
-	Function0(const ThisType& f) {
-		this->pfunc = f.pfunc->clone();
-	}
-
-	Function0(R (*Func)()) {
-		pfunc = new FunctionBase0<R>(Func);
-	}
-	template<class C> Function0(R (C::*Func)(), C* c) {
-		pfunc = new FunctionBaseM0<R, C>(Func, c);
-	}
-	virtual ~Function0() {
-		if (pfunc)
-			delete pfunc;
+	~Function0() {
+		if (this->_func)
+			delete this->_func;
 	}
 
 	R operator()() {
-		if (!pfunc) {
-			THROW_EXCEPTION(FunctionException, "function not defined", 0);
-		}
-		return (*pfunc)();
+		return (*this->_func)();
 	}
 
-	ThisType& operator=(const ThisType& f) {
-		if (this->pfunc) {
-			delete this->pfunc;
-		}
-		this->pfunc = f.pfunc->clone();
+	Function0(const Function0& f) {
+		this->_func = f._func->clone();
+	}
+
+	ThisType operator=(const Function0& f) {
+		this->_func = f._func->clone();
 		return *this;
 	}
 
 	bool operator==(const ThisType& f) {
-		if (!this->pfunc || !f.pfunc) {
-			return (this->pfunc == f.pfunc);
-		}
-		return this->pfunc->compare(f.pfunc);
+		return this->_func->equals(f._func);
 	}
+
+	bool operator!=(const ThisType& f) {
+		return !this->operator==(f);
+	}
+
 private:
-	IFuncType* pfunc;
+	FuncType* _func;
 };
 
 template<class R, class P1>
 class Function1 {
 public:
-	typedef FunctionBase1<R, P1> IFuncType;
+	typedef IFunction1<R, P1> FuncType;
 	typedef Function1<R, P1> ThisType;
 
-	Function1() :
-			pfunc(0) {
+	Function1(FuncType* func) :
+			_func(func) {
+	}
+	~Function1() {
+		if (this->_func)
+			delete this->_func;
 	}
 
-	Function1(const ThisType& f) {
-		this->pfunc = f.pfunc->clone();
+	R operator()(const P1& p1) {
+		return (*this->_func)(p1);
 	}
 
-	Function1(R (*Func)(P1)) {
-		pfunc = new FunctionBase1<R, P1>(Func);
-	}
-	template<class C> Function1(R (C::*Func)(P1), C* c) {
-		pfunc = new FunctionBaseM1<R, C, P1>(Func, c);
-	}
-	virtual ~Function1() {
-		if (pfunc)
-			delete pfunc;
+	Function1(const Function1& f) {
+		this->_func = f._func->clone();
 	}
 
-	R operator()(P1 p1) {
-		if (!pfunc) {
-			THROW_EXCEPTION(FunctionException, "function not defined", 0);
-		}
-		return (*pfunc)(p1);
-	}
-
-	ThisType& operator=(const ThisType& f) {
-		if (this->pfunc) {
-			delete this->pfunc;
-		}
-		this->pfunc = f.pfunc->clone();
+	ThisType operator=(const Function1& f) {
+		this->_func = f._func->clone();
 		return *this;
 	}
 
 	bool operator==(const ThisType& f) {
-		if (!this->pfunc || !f.pfunc) {
-			return (this->pfunc == f.pfunc);
-		}
-		return this->pfunc->compare(f.pfunc);
+		return this->_func->equals(f._func);
 	}
+
+	bool operator!=(const ThisType& f) {
+		return !this->operator==(f);
+	}
+
 private:
-	IFuncType* pfunc;
+	FuncType* _func;
 };
 
 template<class R, class P1, class P2>
 class Function2 {
 public:
-	typedef FunctionBase2<R, P1, P2> IFuncType;
+	typedef IFunction2<R, P1, P2> FuncType;
 	typedef Function2<R, P1, P2> ThisType;
 
-	Function2() :
-			pfunc(0) {
+	Function2(FuncType* func) :
+			_func(func) {
+	}
+	~Function2() {
+		if (this->_func)
+			delete this->_func;
 	}
 
-	Function2(const ThisType& f) {
-		this->pfunc = f.pfunc->clone();
+	R operator()(const P1& p1, const P2& p2) {
+		return (*this->_func)(p1, p2);
 	}
 
-	Function2(R (*Func)(P1, P2)) {
-		pfunc = new FunctionBase2<R, P1, P2>(Func);
-	}
-	template<class C> Function2(R (C::*Func)(P1, P2), C* c) {
-		pfunc = new FunctionBaseM2<R, C, P1, P2>(Func, c);
-	}
-	virtual ~Function2() {
-		if (pfunc)
-			delete pfunc;
+	Function2(const Function2& f) {
+		this->_func = f._func->clone();
 	}
 
-	R operator()(P1 p1, P2 p2) {
-		if (!pfunc) {
-			THROW_EXCEPTION(FunctionException, "function not defined", 0);
-		}
-		return (*pfunc)(p1, p2);
-	}
-
-	ThisType& operator=(const ThisType& f) {
-		if (this->pfunc) {
-			delete this->pfunc;
-		}
-		this->pfunc = f.pfunc->clone();
+	ThisType operator=(const Function2& f) {
+		this->_func = f._func->clone();
 		return *this;
 	}
 
 	bool operator==(const ThisType& f) {
-		if (!this->pfunc || !f.pfunc) {
-			return (this->pfunc == f.pfunc);
-		}
-		return this->pfunc->compare(f.pfunc);
+		return this->_func->equals(f._func);
 	}
+
+	bool operator!=(const ThisType& f) {
+		return !this->operator==(f);
+	}
+
 private:
-	IFuncType* pfunc;
+	FuncType* _func;
 };
 
 template<class R, class P1, class P2, class P3>
 class Function3 {
 public:
-	typedef FunctionBase3<R, P1, P2, P3> IFuncType;
+	typedef IFunction3<R, P1, P2, P3> FuncType;
 	typedef Function3<R, P1, P2, P3> ThisType;
 
-	Function3() :
-			pfunc(0) {
+	Function3(FuncType* func) :
+			_func(func) {
+	}
+	~Function3() {
+		if (this->_func)
+			delete this->_func;
 	}
 
-	Function3(const ThisType& f) {
-		this->pfunc = f.pfunc->clone();
+	R operator()(const P1& p1, const P2& p2, const P3& p3) {
+		return (*this->_func)(p1, p2, p3);
 	}
 
-	Function3(R (*Func)(P1, P2, P3)) {
-		pfunc = new FunctionBase3<R, P1, P2, P3>(Func);
-	}
-	template<class C> Function3(R (C::*Func)(P1, P2, P3), C* c) {
-		pfunc = new FunctionBaseM3<R, C, P1, P2, P3>(Func, c);
-	}
-	virtual ~Function3() {
-		if (pfunc)
-			delete pfunc;
+	Function3(const Function3& f) {
+		this->_func = f._func->clone();
 	}
 
-	R operator()(P1 p1, P2 p2, P3 p3) {
-		if (!pfunc) {
-			THROW_EXCEPTION(FunctionException, "function not defined", 0);
-		}
-		return (*pfunc)(p1, p2, p3);
-	}
-
-	ThisType& operator=(const ThisType& f) {
-		if (this->pfunc) {
-			delete this->pfunc;
-		}
-		this->pfunc = f.pfunc->clone();
+	ThisType operator=(const Function3& f) {
+		this->_func = f._func->clone();
 		return *this;
 	}
 
 	bool operator==(const ThisType& f) {
-		if (!this->pfunc || !f.pfunc) {
-			return (this->pfunc == f.pfunc);
-		}
-		return this->pfunc->compare(f.pfunc);
+		return this->_func->equals(f._func);
 	}
+
+	bool operator!=(const ThisType& f) {
+		return !this->operator==(f);
+	}
+
 private:
-	IFuncType* pfunc;
+	FuncType* _func;
 };
 
 template<class R, class P1, class P2, class P3, class P4>
 class Function4 {
 public:
-	typedef FunctionBase4<R, P1, P2, P3, P4> IFuncType;
+	typedef IFunction4<R, P1, P2, P3, P4> FuncType;
 	typedef Function4<R, P1, P2, P3, P4> ThisType;
 
-	Function4() :
-			pfunc(0) {
+	Function4(FuncType* func) :
+			_func(func) {
+	}
+	~Function4() {
+		if (this->_func)
+			delete this->_func;
 	}
 
-	Function4(const ThisType& f) {
-		this->pfunc = f.pfunc->clone();
+	R operator()(const P1& p1, const P2& p2, const P3& p3, const P4& p4) {
+		return (*this->_func)(p1, p2, p3, p4);
 	}
 
-	Function4(R (*Func)(P1, P2, P3, P4)) {
-		pfunc = new FunctionBase4<R, P1, P2, P3, P4>(Func);
-	}
-	template<class C> Function4(R (C::*Func)(P1, P2, P3, P4), C* c) {
-		pfunc = new FunctionBaseM4<R, C, P1, P2, P3, P4>(Func, c);
-	}
-	virtual ~Function4() {
-		if (pfunc)
-			delete pfunc;
+	Function4(const Function4& f) {
+		this->_func = f._func->clone();
 	}
 
-	R operator()(P1 p1, P2 p2, P3 p3, P4 p4) {
-		if (!pfunc) {
-			THROW_EXCEPTION(FunctionException, "function not defined", 0);
-		}
-		return (*pfunc)(p1, p2, p3, p4);
-	}
-
-	ThisType& operator=(const ThisType& f) {
-		if (this->pfunc) {
-			delete this->pfunc;
-		}
-		this->pfunc = f.pfunc->clone();
+	ThisType operator=(const Function4& f) {
+		this->_func = f._func->clone();
 		return *this;
 	}
 
 	bool operator==(const ThisType& f) {
-		if (!this->pfunc || !f.pfunc) {
-			return (this->pfunc == f.pfunc);
-		}
-		return this->pfunc->compare(f.pfunc);
+		return this->_func->equals(f._func);
 	}
+
+	bool operator!=(const ThisType& f) {
+		return !this->operator==(f);
+	}
+
 private:
-	IFuncType* pfunc;
+	FuncType* _func;
 };
 
 template<class R, class P1, class P2, class P3, class P4, class P5>
 class Function5 {
 public:
-	typedef FunctionBase5<R, P1, P2, P3, P4, P5> IFuncType;
+	typedef IFunction5<R, P1, P2, P3, P4, P5> FuncType;
 	typedef Function5<R, P1, P2, P3, P4, P5> ThisType;
 
-	Function5() :
-			pfunc(0) {
+	Function5(FuncType* func) :
+			_func(func) {
+	}
+	~Function5() {
+		if (this->_func)
+			delete this->_func;
 	}
 
-	Function5(const ThisType& f) {
-		this->pfunc = f.pfunc->clone();
+	R operator()(const P1& p1, const P2& p2, const P3& p3, const P4& p4, const P5& p5) {
+		return (*this->_func)(p1, p2, p3, p4, p5);
 	}
 
-	Function5(R (*Func)(P1, P2, P3, P4, P5)) {
-		pfunc = new FunctionBase5<R, P1, P2, P3, P4, P5>(Func);
-	}
-	template<class C> Function5(R (C::*Func)(P1, P2, P3, P4, P5), C* c) {
-		pfunc = new FunctionBaseM5<R, C, P1, P2, P3, P4, P5>(Func, c);
-	}
-	virtual ~Function5() {
-		if (pfunc)
-			delete pfunc;
+	Function5(const Function5& f) {
+		this->_func = f._func->clone();
 	}
 
-	R operator()(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5) {
-		if (!pfunc) {
-			THROW_EXCEPTION(FunctionException, "function not defined", 0);
-		}
-		return (*pfunc)(p1, p2, p3, p4, p5);
-	}
-
-	ThisType& operator=(const ThisType& f) {
-		if (this->pfunc) {
-			delete this->pfunc;
-		}
-		this->pfunc = f.pfunc->clone();
+	ThisType operator=(const Function5& f) {
+		this->_func = f._func->clone();
 		return *this;
 	}
 
 	bool operator==(const ThisType& f) {
-		if (!this->pfunc || !f.pfunc) {
-			return (this->pfunc == f.pfunc);
-		}
-		return this->pfunc->compare(f.pfunc);
+		return this->_func->equals(f._func);
 	}
+
+	bool operator!=(const ThisType& f) {
+		return !this->operator==(f);
+	}
+
 private:
-	IFuncType* pfunc;
+	FuncType* _func;
 };
 
 template<class R, class P1, class P2, class P3, class P4, class P5, class P6>
 class Function6 {
 public:
-	typedef FunctionBase6<R, P1, P2, P3, P4, P5, P6> IFuncType;
+	typedef IFunction6<R, P1, P2, P3, P4, P5, P6> FuncType;
 	typedef Function6<R, P1, P2, P3, P4, P5, P6> ThisType;
 
-	Function6() :
-			pfunc(0) {
+	Function6(FuncType* func) :
+			_func(func) {
+	}
+	~Function6() {
+		if (this->_func)
+			delete this->_func;
 	}
 
-	Function6(const ThisType& f) {
-		this->pfunc = f.pfunc->clone();
+	R operator()(const P1& p1, const P2& p2, const P3& p3, const P4& p4, const P5& p5,
+			const P6& p6) {
+		return (*this->_func)(p1, p2, p3, p4, p5, p6);
 	}
 
-	Function6(R (*Func)(P1, P2, P3, P4, P5, P6)) {
-		pfunc = new FunctionBase6<R, P1, P2, P3, P4, P5, P6>(Func);
-	}
-	template<class C> Function6(R (C::*Func)(P1, P2, P3, P4, P5, P6), C* c) {
-		pfunc = new FunctionBaseM6<R, C, P1, P2, P3, P4, P5, P6>(Func, c);
-	}
-	virtual ~Function6() {
-		if (pfunc)
-			delete pfunc;
+	Function6(const Function6& f) {
+		this->_func = f._func->clone();
 	}
 
-	R operator()(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6) {
-		if (!pfunc) {
-			THROW_EXCEPTION(FunctionException, "function not defined", 0);
-		}
-		return (*pfunc)(p1, p2, p3, p4, p5, p6);
-	}
-
-	ThisType& operator=(const ThisType& f) {
-		if (this->pfunc) {
-			delete this->pfunc;
-		}
-		this->pfunc = f.pfunc->clone();
+	ThisType operator=(const Function6& f) {
+		this->_func = f._func->clone();
 		return *this;
 	}
 
 	bool operator==(const ThisType& f) {
-		if (!this->pfunc || !f.pfunc) {
-			return (this->pfunc == f.pfunc);
-		}
-		return this->pfunc->compare(f.pfunc);
+		return this->_func->equals(f._func);
 	}
+
+	bool operator!=(const ThisType& f) {
+		return !this->operator==(f);
+	}
+
 private:
-	IFuncType* pfunc;
+	FuncType* _func;
 };
 
-template<class R, class P1, class P2, class P3, class P4, class P5, class P6,
-		class P7>
+template<class R, class P1, class P2, class P3, class P4, class P5, class P6, class P7>
 class Function7 {
 public:
-	typedef FunctionBase7<R, P1, P2, P3, P4, P5, P6, P7> IFuncType;
+	typedef IFunction7<R, P1, P2, P3, P4, P5, P6, P7> FuncType;
 	typedef Function7<R, P1, P2, P3, P4, P5, P6, P7> ThisType;
 
-	Function7() :
-			pfunc(0) {
+	Function7(FuncType* func) :
+			_func(func) {
+	}
+	~Function7() {
+		if (this->_func)
+			delete this->_func;
 	}
 
-	Function7(const ThisType& f) {
-		this->pfunc = f.pfunc->clone();
+	R operator()(const P1& p1, const P2& p2, const P3& p3, const P4& p4, const P5& p5, const P6& p6,
+			const P7& p7) {
+		return (*this->_func)(p1, p2, p3, p4, p5, p6, p7);
 	}
 
-	Function7(R (*Func)(P1, P2, P3, P4, P5, P6, P7)) {
-		pfunc = new FunctionBase7<R, P1, P2, P3, P4, P5, P6, P7>(Func);
-	}
-	template<class C> Function7(R (C::*Func)(P1, P2, P3, P4, P5, P6, P7),
-			C* c) {
-		pfunc = new FunctionBaseM7<R, C, P1, P2, P3, P4, P5, P6, P7>(Func, c);
-	}
-	virtual ~Function7() {
-		if (pfunc)
-			delete pfunc;
+	Function7(const Function7& f) {
+		this->_func = f._func->clone();
 	}
 
-	R operator()(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7) {
-		if (!pfunc) {
-			THROW_EXCEPTION(FunctionException, "function not defined", 0);
-		}
-		return (*pfunc)(p1, p2, p3, p4, p5, p6, p7);
-	}
-
-	ThisType& operator=(const ThisType& f) {
-		if (this->pfunc) {
-			delete this->pfunc;
-		}
-		this->pfunc = f.pfunc->clone();
+	ThisType operator=(const Function7& f) {
+		this->_func = f._func->clone();
 		return *this;
 	}
 
 	bool operator==(const ThisType& f) {
-		if (!this->pfunc || !f.pfunc) {
-			return (this->pfunc == f.pfunc);
-		}
-		return this->pfunc->compare(f.pfunc);
+		return this->_func->equals(f._func);
 	}
+
+	bool operator!=(const ThisType& f) {
+		return !this->operator==(f);
+	}
+
 private:
-	IFuncType* pfunc;
+	FuncType* _func;
 };
 
-template<class R, class P1, class P2, class P3, class P4, class P5, class P6,
-		class P7, class P8>
+template<class R, class P1, class P2, class P3, class P4, class P5, class P6, class P7, class P8>
 class Function8 {
 public:
-	typedef FunctionBase8<R, P1, P2, P3, P4, P5, P6, P7, P8> IFuncType;
+	typedef IFunction8<R, P1, P2, P3, P4, P5, P6, P7, P8> FuncType;
 	typedef Function8<R, P1, P2, P3, P4, P5, P6, P7, P8> ThisType;
 
-	Function8() :
-			pfunc(0) {
+	Function8(FuncType* func) :
+			_func(func) {
+	}
+	~Function8() {
+		if (this->_func)
+			delete this->_func;
 	}
 
-	Function8(const ThisType& f) {
-		this->pfunc = f.pfunc->clone();
+	R operator()(const P1& p1, const P2& p2, const P3& p3, const P4& p4, const P5& p5, const P6& p6,
+			const P7& p7, const P8& p8) {
+		return (*this->_func)(p1, p2, p3, p4, p5, p6, p7, p8);
 	}
 
-	Function8(R (*Func)(P1, P2, P3, P4, P5, P6, P7, P8)) {
-		pfunc = new FunctionBase8<R, P1, P2, P3, P4, P5, P6, P7, P8>(Func);
-	}
-	template<class C> Function8(R (C::*Func)(P1, P2, P3, P4, P5, P6, P7, P8),
-			C* c) {
-		pfunc = new FunctionBaseM8<R, C, P1, P2, P3, P4, P5, P6, P7, P8>(Func,
-				c);
-	}
-	virtual ~Function8() {
-		if (pfunc)
-			delete pfunc;
+	Function8(const Function8& f) {
+		this->_func = f._func->clone();
 	}
 
-	R operator()(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7, P8 p8) {
-		if (!pfunc) {
-			THROW_EXCEPTION(FunctionException, "function not defined", 0);
-		}
-		return (*pfunc)(p1, p2, p3, p4, p5, p6, p7, p8);
-	}
-
-	ThisType& operator=(const ThisType& f) {
-		if (this->pfunc) {
-			delete this->pfunc;
-		}
-		this->pfunc = f.pfunc->clone();
+	ThisType operator=(const Function8& f) {
+		this->_func = f._func->clone();
 		return *this;
 	}
 
 	bool operator==(const ThisType& f) {
-		if (!this->pfunc || !f.pfunc) {
-			return (this->pfunc == f.pfunc);
-		}
-		return this->pfunc->compare(f.pfunc);
+		return this->_func->equals(f._func);
 	}
+
+	bool operator!=(const ThisType& f) {
+		return !this->operator==(f);
+	}
+
 private:
-	IFuncType* pfunc;
+	FuncType* _func;
 };
 
-template<class R, class P1, class P2, class P3, class P4, class P5, class P6,
-		class P7, class P8, class P9>
+template<class R, class P1, class P2, class P3, class P4, class P5, class P6, class P7, class P8,
+		class P9>
 class Function9 {
 public:
-	typedef FunctionBase9<R, P1, P2, P3, P4, P5, P6, P7, P8, P9> IFuncType;
+	typedef IFunction9<R, P1, P2, P3, P4, P5, P6, P7, P8, P9> FuncType;
 	typedef Function9<R, P1, P2, P3, P4, P5, P6, P7, P8, P9> ThisType;
 
-	Function9() :
-			pfunc(0) {
+	Function9(FuncType* func) :
+			_func(func) {
+	}
+	~Function9() {
+		if (this->_func)
+			delete this->_func;
 	}
 
-	Function9(const ThisType& f) {
-		this->pfunc = f.pfunc->clone();
+	R operator()(const P1& p1, const P2& p2, const P3& p3, const P4& p4, const P5& p5, const P6& p6,
+			const P7& p7, const P8& p8, const P9& p9) {
+		return (*this->_func)(p1, p2, p3, p4, p5, p6, p7, p8, p9);
 	}
 
-	Function9(R (*Func)(P1, P2, P3, P4, P5, P6, P7, P8, P9)) {
-		pfunc = new FunctionBase9<R, P1, P2, P3, P4, P5, P6, P7, P8, P9>(Func);
-	}
-	template<class C> Function9(
-			R (C::*Func)(P1, P2, P3, P4, P5, P6, P7, P8, P9), C* c) {
-		pfunc = new FunctionBaseM9<R, C, P1, P2, P3, P4, P5, P6, P7, P8, P9>(
-				Func, c);
-	}
-	virtual ~Function9() {
-		if (pfunc)
-			delete pfunc;
+	Function9(const Function9& f) {
+		this->_func = f._func->clone();
 	}
 
-	R operator()(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7, P8 p8,
-			P9 p9) {
-		if (!pfunc) {
-			THROW_EXCEPTION(FunctionException, "function not defined", 0);
-		}
-		return (*pfunc)(p1, p2, p3, p4, p5, p6, p7, p8, p9);
-	}
-
-	ThisType& operator=(const ThisType& f) {
-		if (this->pfunc) {
-			delete this->pfunc;
-		}
-		this->pfunc = f.pfunc->clone();
+	ThisType operator=(const Function9& f) {
+		this->_func = f._func->clone();
 		return *this;
 	}
 
 	bool operator==(const ThisType& f) {
-		if (!this->pfunc || !f.pfunc) {
-			return (this->pfunc == f.pfunc);
-		}
-		return this->pfunc->compare(f.pfunc);
+		return this->_func->equals(f._func);
 	}
+
+	bool operator!=(const ThisType& f) {
+		return !this->operator==(f);
+	}
+
 private:
-	IFuncType* pfunc;
+	FuncType* _func;
 };
 
 } /* namespace function */

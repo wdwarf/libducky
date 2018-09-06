@@ -13,7 +13,7 @@
 namespace ducky {
 namespace function {
 
-EXCEPTION_DEF(FunctionException)
+EXCEPTION_DEF(FunctionException);
 
 } /* namespace function */
 } /* namespace ducky */
