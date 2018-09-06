@@ -129,6 +129,8 @@ bool Object::isOnHeap() const {
 }
 #endif
 
+#ifdef __OBJ_NEW_OPERATOR__
+
 #if __cplusplus < 201103L
 void* Object::operator new(std::size_t size) throw (std::bad_alloc) {
 #else
@@ -191,6 +193,8 @@ void Object::deleteThis() {
 
 	delete this;
 }
+#endif
+
 #endif
 
 unsigned long Object::CppVeraion(){
