@@ -10,6 +10,7 @@
 
 #include <ducky/Object.h>
 #include <string>
+#include <vector>
 #include <ostream>
 
 using std::string;
@@ -18,27 +19,50 @@ namespace ducky {
 
 namespace algorithm {
 
-string& ToLower(string& str);
-string ToLowerCopy(const string& str);
-string& ToUpper(string& str);
-string ToUpperCopy(const string& str);
-string& TrimLeft(string& str);
-string TrimLeftCopy(const string& str);
-string& TrimRight(string& str);
-string TrimRightCopy(const string& str);
-string& Trim(string& str);
-string TrimCopy(const string& str);
+std::string& ToLower(std::string& str);
+std::string ToLowerCopy(const std::string& str);
+std::string& ToUpper(std::string& str);
+std::string ToUpperCopy(const std::string& str);
+std::string& TrimLeft(std::string& str);
+std::string TrimLeftCopy(const std::string& str);
+std::string& TrimRight(std::string& str);
+std::string TrimRightCopy(const std::string& str);
+std::string& Trim(std::string& str);
+std::string TrimCopy(const std::string& str);
 
-string& Replace(string& src, const string& find, const string& replace,
+std::string& Replace(std::string& src, const std::string& find, const std::string& replace,
 		bool ignoreCase = false);
-string ReplaceCopy(const string& src, const string& find, const string& replace,
+std::string ReplaceCopy(const std::string& src, const std::string& find, const std::string& replace,
 		bool ignoreCase = false);
-string& ReplaceAll(string& src, const string& find, const string& replace,
+std::string& ReplaceAll(std::string& src, const std::string& find, const std::string& replace,
 		bool ignoreCase = false);
-string ReplaceAllCopy(const string& src, const string& find,
-		const string& replace, bool ignoreCase = false);
+std::string ReplaceAllCopy(const std::string& src, const std::string& find,
+		const std::string& replace, bool ignoreCase = false);
 
-int IndexOf(const string& src, const string& find, bool ignoreCase = false);
+int IndexOf(const std::string& src, const std::string& find, bool ignoreCase = false);
+
+template<class T>
+void SplitTo(const std::string& src, const std::string& find, T& t){
+	std::string s;
+	for(std::string::size_type i = 0; i < src.length(); ++i){
+		const char c = src[i];
+		if(find.find(c) != std::string::npos){
+			t.insert(t.end(), s);
+			s = "";
+		}else{
+			s.push_back(c);
+		}
+	}
+	if(!s.empty() || (find.find(src[src.length() - 1]) != std::string::npos)){
+		t.insert(t.end(), s);
+	}
+}
+
+std::vector<std::string> Split(const std::string& src, const std::string& find){
+	std::vector<std::string> v;
+	SplitTo(src, find, v);
+	return v;
+}
 
 //十六进制字符转数字
 unsigned int HexAToI(char x);
