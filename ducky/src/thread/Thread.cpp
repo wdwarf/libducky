@@ -201,6 +201,10 @@ void Thread::Sleep(unsigned int ms) {
 	usleep(ms * 1000);
 }
 
+void Thread::Yield(){
+	pthread_yield();
+}
+
 #ifdef __linux__
 void Thread::testcancel() {
 	pthread_testcancel();

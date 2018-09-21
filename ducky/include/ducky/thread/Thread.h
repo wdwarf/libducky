@@ -88,6 +88,7 @@ public:
 	bool operator==(const Thread& t) const;
 
 	static void Sleep(unsigned int ms);	//睡眠函数，单位为毫秒
+	static void Yield();
 
 #ifdef __linux__
 	virtual void cancel();	//取消线程
