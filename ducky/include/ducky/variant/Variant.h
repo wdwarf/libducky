@@ -112,6 +112,7 @@ public:
 	operator buffer::Buffer() const;
 
 	void clear();
+	void zero();
 	unsigned long getSize() const;
 	void setSize(unsigned long size);
 	VariantType getVt() const;

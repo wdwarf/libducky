@@ -458,6 +458,22 @@ void Variant::clear() {
 	memset(&this->value, 0, sizeof(this->value));
 }
 
+void Variant::zero() {
+	switch (this->vt) {
+	case VT_CARRAY:
+	case VT_STRING: {
+		if (this->value.valPtr) {
+			memset(this->value.valPtr, 0, this->size);
+		}
+		return;
+	}
+	default:
+		break;
+	}
+
+	memset(&this->value, 0, sizeof(this->value));
+}
+
 Variant& Variant::operator=(bool v) {
 	this->clear();
 	this->vt = VT_BOOLEAN;
@@ -703,23 +719,7 @@ void Variant::setValue(const void* v, unsigned long size) {
 		return;
 
 	unsigned int s = min(this->size, size);
-
-	if (VT_CARRAY == this->vt) {
-		memset(this->value.valPtr, 0, this->size);
-		memcpy(this->value.valPtr, v, s);
-		return;
-	}
-
-	if (VT_STRING == this->size) {
-		if (size != this->size) {
-			this->setSize(size);
-		}
-		if (this->size > 0)
-			memcpy(this->value.valPtr, v, this->size);
-		return;
-	}
-
-	memset(&this->value, 0, sizeof(this->value));
+	this->zero();
 
 	switch (this->vt) {
 	case VT_BOOLEAN: {
@@ -772,6 +772,18 @@ void Variant::setValue(const void* v, unsigned long size) {
 	}
 	case VT_DOUBLE: {
 		memcpy(&this->value.valDouble, v, s);
+		break;
+	}
+	case VT_CARRAY: {
+		memcpy(this->value.valPtr, v, s);
+		break;
+	}
+	case VT_STRING: {
+		if (size != this->size) {
+			this->setSize(size);
+		}
+		if (this->size > 0)
+			memcpy(this->value.valPtr, v, this->size);
 		break;
 	}
 	default:
