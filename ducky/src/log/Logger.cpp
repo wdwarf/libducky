@@ -6,14 +6,14 @@
  */
 
 #include <ducky/log/Logger.h>
-#include <ducky/system/File.h>
+#include <ducky/file/File.h>
 
 #include <iostream>
 #include <sstream>
 
 using namespace std;
 using namespace ducky::thread;
-using namespace ducky::system;
+using namespace ducky::file;
 
 namespace ducky {
 namespace log {

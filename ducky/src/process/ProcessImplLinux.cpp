@@ -12,6 +12,7 @@
 #include <ducky/file/File.h>
 #include <ducky/algorithm/String.h>
 #include <ducky/variant/Variant.h>
+#include <ducky/function/Bind.h>
 #include <unistd.h>
 #include <errno.h>
 #include <cstdlib>
@@ -26,6 +27,7 @@ using namespace ducky::thread;
 using namespace ducky::file;
 using namespace ducky::algorithm;
 using namespace ducky::variant;
+using namespace ducky::function;
 
 namespace ducky {
 namespace process {
@@ -74,7 +76,7 @@ void Process::ProcessImpl::start() {
 		close(this->pipeFd[1]);
 		if (this->asyncRead) {
 			this->readThread.reset(
-					new Thread(&Process::ProcessImpl::doReadData, this));
+					new Thread(Bind(&Process::ProcessImpl::doReadData, this)));
 			this->readThread->start();
 		}
 	}

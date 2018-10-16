@@ -24,41 +24,31 @@ using namespace ducky::algorithm;
 namespace ducky {
 namespace file {
 
-File::File() {
 #if defined(__MINGW32__) || defined(WIN32)
-	this->separater = "\\";
+static const char* DEFAULT_SEPARATER = "\\";
 #else
-	this->separater = "/";
+static const char* DEFAULT_SEPARATER = "/";
 #endif
+
+File::File() :
+		separater(DEFAULT_SEPARATER) {
 }
 
-File::File(const std::string& path) {
-#if defined(__MINGW32__) || defined(WIN32)
-	this->separater = "\\";
-#else
-	this->separater = "/";
-#endif
+File::File(const std::string& path) :
+		separater(DEFAULT_SEPARATER) {
 
 	this->setPath(path);
 }
 
-File::File(const std::string& parent, const std::string& child) {
-#if defined(__MINGW32__) || defined(WIN32)
-	this->separater = "\\";
-#else
-	this->separater = "/";
-#endif
+File::File(const std::string& parent, const std::string& child) :
+		separater(DEFAULT_SEPARATER) {
 
-	this->setPath(File(parent).getPath() + "/" + File(child).getPath());
+	this->setPath(
+			File(parent).getPath() + this->separater + File(child).getPath());
 }
 
-File::File(std::list<std::string> path) {
-#if defined(__MINGW32__) || defined(WIN32)
-	this->separater = "\\";
-#else
-	this->separater = "/";
-#endif
-
+File::File(std::list<std::string> path) :
+		separater(DEFAULT_SEPARATER) {
 	this->path = path;
 }
 
@@ -122,7 +112,8 @@ string File::getPath() const {
 string File::getName() const {
 	if (!this->path.empty()) {
 		string name = this->path.back();
-		if (!name.empty() && "/" != name && "\\" != name && ':' != name[name.length() - 1]) {
+		if (!name.empty() && "/" != name && "\\" != name
+				&& ':' != name[name.length() - 1]) {
 			return name;
 		}
 	}

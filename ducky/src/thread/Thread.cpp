@@ -31,6 +31,22 @@ static bool IsValidThreadId(const pthread_t& threadId) {
 	return false;
 }
 
+
+class ThreadFuncWraper: public Runnable {
+public:
+	ThreadFuncWraper(const ThreadFunctionObject& f) :
+			_f(f) {
+	}
+
+	void run() {
+		_f();
+	}
+
+private:
+	ThreadFunctionObject _f;
+};
+
+
 Thread::Thread() :
 		runnable(this), _canStop(false), freeOnTerminated(false) {
 	memset(&this->threadId, 0, sizeof(this->threadId));
@@ -39,6 +55,11 @@ Thread::Thread() :
 Thread::Thread(Runnable& r) :
 		runnable(&r), _canStop(false), freeOnTerminated(false) {
 	memset(&this->threadId, 0, sizeof(this->threadId));
+}
+
+Thread::Thread(const ThreadFunctionObject& func):
+	runnable(new ThreadFuncWraper(func)), _canStop(false), freeOnTerminated(false) {
+memset(&this->threadId, 0, sizeof(this->threadId));
 }
 
 Thread::~Thread() {

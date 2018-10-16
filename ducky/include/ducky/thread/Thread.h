@@ -13,6 +13,7 @@
 #include <ducky/Object.h>
 #include <ducky/exception/Exception.h>
 #include <ducky/thread/Runnable.h>
+#include <ducky/function/Bind.h>
 #include <pthread.h>
 
 namespace ducky {
@@ -22,55 +23,13 @@ using std::string;
 
 EXCEPTION_DEF(ThreadException)
 
+typedef ducky::function::Function0<void> ThreadFunctionObject;
+
 class Thread: public Runnable {
 public:
 	Thread();
 	Thread(Runnable& r);
-
-	template<typename F>
-	class ThreadFuncWraper: public Runnable {
-	public:
-		ThreadFuncWraper(F f) :
-				_f(f) {
-		}
-
-		void run() {
-			_f();
-		}
-
-	private:
-		F _f;
-	};
-
-	template<typename F, class C>
-	class ThreadMFuncWraper: public Runnable {
-	public:
-		ThreadMFuncWraper(F f, C* c) :
-				_f(f), _c(c) {
-		}
-
-		void run() {
-			(_c->*_f)();
-		}
-
-	private:
-		F _f;
-		C* _c;
-	};
-
-	template<typename F>
-	Thread(F f) :
-			_canStop(false), freeOnTerminated(false) {
-		memset(&this->threadId, 0, sizeof(this->threadId));
-		this->runnable = new ThreadFuncWraper<F>(f);
-	}
-
-	template<typename F, class C>
-	Thread(F f, C* c) :
-			_canStop(false), freeOnTerminated(false) {
-		memset(&this->threadId, 0, sizeof(this->threadId));
-		this->runnable = new ThreadMFuncWraper<F, C>(f, c);
-	}
+	Thread(const ThreadFunctionObject& func);
 
 	virtual ~Thread();
 
