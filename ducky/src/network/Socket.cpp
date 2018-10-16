@@ -29,7 +29,7 @@ namespace ducky {
 namespace network {
 
 Socket::Socket() :
-		sockFd(0), userSelect(true) {
+		sockFd(0), useSelect(true) {
 #ifdef WIN32
 	WSADATA wsaData;
 	WSAStartup(MAKEWORD(2,0), &wsaData);
@@ -37,7 +37,7 @@ Socket::Socket() :
 }
 
 Socket::Socket(int sockFd) :
-		userSelect(true) {
+		useSelect(true) {
 	this->sockFd = sockFd;
 }
 
@@ -236,7 +236,7 @@ int Socket::accept(sockaddr_in& addr) {
 int Socket::send(const char* buf, socklen_t bufLen) {
 	int re = -1;
 	if (this->sockFd > 0) {
-		if (this->userSelect) {
+		if (this->useSelect) {
 			fd_set fs_send;
 			timeval tv;
 			tv.tv_sec = 5;
@@ -256,7 +256,7 @@ int Socket::send(const char* buf, socklen_t bufLen) {
 int Socket::read(char* buf, socklen_t readBytes, int timeoutSec) {
 	int re = -1;
 	if (this->sockFd > 0) {
-		if (this->userSelect) {
+		if (this->useSelect) {
 			fd_set fs_read;
 			timeval tv;
 			tv.tv_sec = timeoutSec;
@@ -282,7 +282,7 @@ int Socket::read(char* buf, socklen_t readBytes, int timeoutSec) {
 int Socket::sendTo(const char* buf, socklen_t bufLen, const sockaddr_in& addr) {
 	int re = -1;
 	if (this->sockFd > 0) {
-		if (this->userSelect) {
+		if (this->useSelect) {
 			fd_set fs_send;
 			timeval tv;
 			tv.tv_sec = 5;
@@ -376,7 +376,7 @@ int Socket::recvFrom(char* buf, socklen_t readBytes, sockaddr_in& addr,
 		int timeoutSec) {
 	int re = -1;
 	if (this->sockFd > 0) {
-		if (this->userSelect) {
+		if (this->useSelect) {
 			fd_set fs_read;
 			timeval tv;
 			tv.tv_sec = timeoutSec;
@@ -446,12 +446,12 @@ bool Socket::IsNonBlocking(int sockFd) {
 #endif
 }
 
-bool Socket::isUserSelect() const {
-	return userSelect;
+bool Socket::isUseSelect() const {
+	return useSelect;
 }
 
-void Socket::setUserSelect(bool userSelect) {
-	this->userSelect = userSelect;
+void Socket::setUseSelect(bool useSelect) {
+	this->useSelect = useSelect;
 }
 
 } /* namespace network */

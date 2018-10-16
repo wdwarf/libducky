@@ -62,8 +62,8 @@ public:
 	int dettach();
 	void setBlocking(bool nonBlocking = true);
 	bool isNonBlocking() const;
-	bool isUserSelect() const;
-	void setUserSelect(bool userSelect);
+	bool isUseSelect() const;
+	void setUseSelect(bool useSelect);
 
 	string getLocalAddress();
 	int getLocalPort();
@@ -92,7 +92,7 @@ public:
 
 private:
 	int sockFd;
-	bool userSelect;
+	bool useSelect;
 };
 
 } /* namespace network */
