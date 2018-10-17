@@ -34,14 +34,20 @@ public:
 	std::string getName() const;
 	File getParent() const;
 
-	bool isDireccory() const;
+	bool isDirectory() const;
+	bool isRegularFile() const;
 	bool isExists() const;
+	bool isReadable() const;
+	bool isWritable() const;
+	bool isExecutable() const;
 	void mkdir()const;
 	void mkdirs()const;
 	void remove(bool recursive = false)const;
 	long long getSize() const;
 	void rename(const std::string& path) const;
-	void rename(const File& path) const;
+	void copyTo(const std::string& path, bool forceReplace = false) const;
+	void moveTo(const std::string& path, bool forceReplace = false) const;
+
 	std::list<File> list() const;
 	File cut(int count = 1) const;
 	ducky::datetime::DateTime getModifyTime() const;
@@ -51,13 +57,10 @@ public:
 	bool operator==(const File& f) const;
 
 	operator std::string() const;
-
-	const std::string& getSeparater() const;
-	void setSeparater(const std::string& separater);
+	std::string getSeparater() const;
 
 private:
 	std::list<std::string> path;
-	std::string separater;
 };
 
 } /* namespace file */

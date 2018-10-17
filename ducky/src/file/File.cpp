@@ -14,41 +14,39 @@
 #include <cstdio>
 
 #include <unistd.h>
+#include <fcntl.h>
 #include <sys/stat.h>
 #include <dirent.h>
 #include <errno.h>
 
 using namespace std;
 using namespace ducky::algorithm;
+using namespace ducky::exception;
 
 namespace ducky {
 namespace file {
 
 #if defined(__MINGW32__) || defined(WIN32)
-static const char* DEFAULT_SEPARATER = "\\";
+static const char* PATH_SEPARATER = "\\";
 #else
-static const char* DEFAULT_SEPARATER = "/";
+static const char* PATH_SEPARATER = "/";
 #endif
 
-File::File() :
-		separater(DEFAULT_SEPARATER) {
+File::File() {
 }
 
-File::File(const std::string& path) :
-		separater(DEFAULT_SEPARATER) {
+File::File(const std::string& path) {
 
 	this->setPath(path);
 }
 
-File::File(const std::string& parent, const std::string& child) :
-		separater(DEFAULT_SEPARATER) {
+File::File(const std::string& parent, const std::string& child) {
 
 	this->setPath(
-			File(parent).getPath() + this->separater + File(child).getPath());
+			File(parent).getPath() + PATH_SEPARATER + File(child).getPath());
 }
 
-File::File(std::list<std::string> path) :
-		separater(DEFAULT_SEPARATER) {
+File::File(std::list<std::string> path) {
 	this->path = path;
 }
 
@@ -74,7 +72,9 @@ void File::setPath(const std::string& path) {
 			if (!node.empty()) {
 				this->path.push_back(node);
 			} else if (this->path.empty()) {
-				this->path.push_back("/");
+				string rootNode;
+				rootNode.push_back(c);
+				this->path.push_back(rootNode);
 			}
 		} else {
 			nodeStr << c;
@@ -88,7 +88,7 @@ void File::setPath(const std::string& path) {
 	if (!node.empty()) {
 		this->path.push_back(node);
 	} else if (this->path.empty()) {
-		this->path.push_back("/");
+		this->path.push_back(PATH_SEPARATER);
 	}
 }
 
@@ -102,7 +102,7 @@ string File::getPath() const {
 			if ("/" == path || "\\" == path) {
 				path += *it;
 			} else {
-				path += this->separater + *it;
+				path += PATH_SEPARATER + *it;
 			}
 		}
 	}
@@ -124,13 +124,13 @@ File File::getParent() const {
 	return this->cut();
 }
 
-bool File::isDireccory() const {
+bool File::isDirectory() const {
 	string path = this->getPath();
 	if (path.empty())
 		return false;
 
 	if (':' == path[path.length() - 1]) {
-		path += "/";
+		path += PATH_SEPARATER;
 	}
 
 	struct stat buf;
@@ -141,16 +141,69 @@ bool File::isDireccory() const {
 	return S_ISDIR(buf.st_mode);
 }
 
+bool File::isRegularFile() const {
+	string path = this->getPath();
+	if (path.empty())
+		return false;
+
+	if (':' == path[path.length() - 1]) {
+		path += PATH_SEPARATER;
+	}
+
+	struct stat buf;
+	int re = stat(path.c_str(), &buf);
+	if (0 != re)
+		return false;
+
+	return S_ISREG(buf.st_mode);
+}
+
 bool File::isExists() const {
 	string path = this->getPath();
 	if (path.empty())
 		return false;
 
 	if (':' == path[path.length() - 1]) {
-		path += "/";
+		path += PATH_SEPARATER;
 	}
 
 	return (0 == access(path.c_str(), F_OK));
+}
+
+bool File::isReadable() const {
+	string path = this->getPath();
+	if (path.empty())
+		return false;
+
+	if (':' == path[path.length() - 1]) {
+		path += PATH_SEPARATER;
+	}
+
+	return (0 == access(path.c_str(), R_OK));
+}
+
+bool File::isWritable() const {
+	string path = this->getPath();
+	if (path.empty())
+		return false;
+
+	if (':' == path[path.length() - 1]) {
+		path += PATH_SEPARATER;
+	}
+
+	return (0 == access(path.c_str(), W_OK));
+}
+
+bool File::isExecutable() const {
+	string path = this->getPath();
+	if (path.empty())
+		return false;
+
+	if (':' == path[path.length() - 1]) {
+		path += PATH_SEPARATER;
+	}
+
+	return (0 == access(path.c_str(), X_OK));
 }
 
 long long File::getSize() const {
@@ -173,8 +226,14 @@ long long File::getSize() const {
 }
 
 void File::mkdir() const {
+	if (this->isExists() && !this->isDirectory()) {
+		THROW_EXCEPTION(FileException, this->getPath() + " is not a directory",
+				0);
+	}
+
 	if (this->isExists())
 		return;
+
 	string path = this->getPath();
 
 #if defined(__linux__) || defined(__CYGWIN32__)
@@ -190,6 +249,11 @@ void File::mkdir() const {
 }
 
 void File::mkdirs() const {
+	if (this->isExists() && !this->isDirectory()) {
+		THROW_EXCEPTION(FileException, this->getPath() + " is not a directory",
+				0);
+	}
+
 	if (this->isExists())
 		return;
 
@@ -199,10 +263,10 @@ void File::mkdirs() const {
 		if (path.empty()) {
 			path = *it;
 		} else {
-			if ("/" == path) {
+			if ("/" == path || "\\" == path) {
 				path += *it;
 			} else {
-				path += "/" + *it;
+				path += PATH_SEPARATER + *it;
 			}
 		}
 
@@ -217,7 +281,7 @@ void File::remove(bool recursive) const {
 	if (!this->isExists())
 		return;
 
-	if (recursive && this->isDireccory()) {
+	if (recursive && this->isDirectory()) {
 		std::list<File> files = this->list();
 		if (!files.empty()) {
 			for (std::list<File>::iterator it = files.begin();
@@ -237,7 +301,7 @@ void File::remove(bool recursive) const {
 
 std::list<File> File::list() const {
 	std::list<File> files;
-	if (this->isDireccory()) {
+	if (this->isDirectory()) {
 		string path = this->getPath();
 
 		DIR* dir = opendir(path.c_str());
@@ -249,7 +313,7 @@ std::list<File> File::list() const {
 			string name = _dirent->d_name;
 			if ("." == name || ".." == name)
 				continue;
-			files.push_back(File(path + "/" + name));
+			files.push_back(File(path + PATH_SEPARATER + name));
 		}
 
 		closedir(dir);
@@ -276,8 +340,94 @@ void File::rename(const std::string& path) const {
 	}
 }
 
-void File::rename(const File& path) const {
-	this->rename(path.getPath());
+void File::copyTo(const std::string& path, bool forceReplace) const {
+	if (!this->isExists()) {
+		THROW_EXCEPTION(FileException,
+				"copy failed, [" + this->getPath() + "] not exists", 0);
+	}
+
+	if (*this == path)
+		return;
+
+	File newPath(path);
+	if (!forceReplace && newPath.isExists()) {
+		THROW_EXCEPTION(FileException, "copy failed, [" + path + "] has exists",
+				0);
+	}
+
+	if (this->isDirectory()) {
+		if (newPath.isExists() && !newPath.isDirectory()) {
+			THROW_EXCEPTION(FileException,
+					"copy failed, [" + path
+							+ "] has exists and it's not a directory.", 0);
+		}
+		newPath.mkdirs();
+
+		std::list<File> files = this->list();
+		for (std::list<File>::iterator it = files.begin(); it != files.end();
+				++it) {
+			it->copyTo(File(path, it->getName()), forceReplace);
+		}
+
+		return;
+	}
+
+	int fdSrc = 0;
+	int fdDest = 0;
+
+	try {
+		fdSrc = ::open(this->getPath().c_str(), O_RDONLY);
+		if (fdSrc <= 0) {
+			THROW_EXCEPTION(FileException,
+					"file[" + this->getPath() + "] open failed.", 0);
+		}
+
+		fdDest = ::open(path.c_str(), O_RDWR | O_CREAT | O_TRUNC,
+		S_IRUSR | S_IWUSR);
+		if (fdSrc <= 0) {
+			THROW_EXCEPTION(FileException, "file[" + path + "] create failed.",
+					0);
+		}
+
+		int readBytes = 0;
+		const int bufSize = 1024;
+		char buf[bufSize];
+		do {
+			readBytes = ::read(fdSrc, buf, bufSize);
+			if (0 == readBytes)
+				break;
+			if ((readBytes < 0) && (EINTR != errno)) {
+				THROW_EXCEPTION(FileException,
+						"file[" + this->getPath() + "] read failed.", 0);
+			}
+
+			int writeBytes = ::write(fdDest, buf, readBytes);
+			if ((writeBytes < 0) && (EINTR != errno)) {
+				THROW_EXCEPTION(FileException,
+						"file[" + path + "] write failed.", 0);
+			}
+		} while (readBytes > 0);
+	} catch (Exception& e) {
+		close(fdSrc);
+		close(fdDest);
+		throw;
+	}
+
+	close(fdSrc);
+	close(fdDest);
+}
+
+void File::moveTo(const std::string& path, bool forceReplace) const {
+	if (!this->isExists()) {
+		THROW_EXCEPTION(FileException,
+				"move failed, [" + this->getPath() + "] not exists", 0);
+	}
+
+	if (*this == path)
+		return;
+
+	this->copyTo(path, forceReplace);
+	this->remove(true);
 }
 
 ducky::datetime::DateTime File::getModifyTime() const {
@@ -326,12 +476,8 @@ File::operator std::string() const {
 	return this->getPath();
 }
 
-const std::string& File::getSeparater() const {
-	return separater;
-}
-
-void File::setSeparater(const std::string& separater) {
-	this->separater = separater;
+std::string File::getSeparater() const {
+	return PATH_SEPARATER;
 }
 
 } /* namespace file */
