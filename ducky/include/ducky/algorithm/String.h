@@ -41,6 +41,47 @@ std::string ReplaceAllCopy(const std::string& src, const std::string& find,
 
 int IndexOf(const std::string& src, const std::string& find, bool ignoreCase = false);
 
+enum StringCompressType
+{
+	WithEmptyString,
+	RemoveEmptyString
+};
+
+class IDelimiter
+{
+public:
+	IDelimiter(const std::string& delimiterStr);
+	virtual ~IDelimiter();
+
+	virtual int Find(const std::string& str) const = 0;
+	virtual int DelimiterSize() const = 0;
+
+protected:
+	std::string m_delimiterStr;
+};
+
+class IsAnyOf : public IDelimiter
+{
+public:
+	IsAnyOf(const std::string& delimiter);
+
+	int Find(const std::string& str) const;
+	int DelimiterSize() const;
+};
+
+class IsStringOf : public IDelimiter
+{
+public:
+	IsStringOf(const std::string& delimiter);
+
+	int Find(const std::string& str) const;
+	int DelimiterSize() const;
+};
+
+std::vector<std::string> Split(const std::string& text,
+		const IDelimiter& delimiterChecker,
+		StringCompressType compressType = WithEmptyString);
+
 template<class T>
 void SplitTo(const std::string& src, const std::string& find, T& t){
 	std::string s;
@@ -58,17 +99,11 @@ void SplitTo(const std::string& src, const std::string& find, T& t){
 	}
 }
 
-std::vector<std::string> Split(const std::string& src, const std::string& find){
-	std::vector<std::string> v;
-	SplitTo(src, find, v);
-	return v;
-}
-
 //十六进制字符转数字
 unsigned int HexAToI(char x);
 char IToHexA(unsigned int x);
 
-} /* namespace string */
+} /* namespace algorithm */
 } /* namespace ducky */
 
 #endif /* DUCKY_STRIING_STRING_H_ */

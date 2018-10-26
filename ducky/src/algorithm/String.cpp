@@ -9,6 +9,7 @@
 #include <sstream>
 #include <algorithm>
 #include <ducky/exception/Exception.h>
+#include <ducky/algorithm/String.h>
 
 using namespace std;
 using namespace ducky::exception;
@@ -178,6 +179,99 @@ char IToHexA(unsigned int x){
 	}
 
 	return x;
+}
+
+
+/////////////////////////////////////////////////////////////////
+/// Split
+/////////////////////////////////////////////////////////////////
+
+IDelimiter::IDelimiter(const std::string& delimiterStr) :
+		m_delimiterStr(delimiterStr)
+{
+}
+
+IDelimiter::~IDelimiter()
+{
+}
+
+
+IsAnyOf::IsAnyOf(const std::string& delimiter) : IDelimiter(delimiter)
+{
+
+}
+
+int IsAnyOf::Find(const std::string& str) const
+{
+	for(string::size_type i = 0; i < str.length(); ++i)
+	{
+		if(string::npos != this->m_delimiterStr.find(str[i]))
+		{
+			return i;
+		}
+	}
+	return -1;
+}
+
+int IsAnyOf::DelimiterSize() const
+{
+	return 1;
+}
+
+IsStringOf::IsStringOf(const std::string& delimiter) : IDelimiter(delimiter)
+{
+
+}
+
+int IsStringOf::Find(const std::string& str) const
+{
+	string::size_type pos = str.find(this->m_delimiterStr);
+	if(string::npos != pos)
+	{
+		return pos;
+	}
+
+	return -1;
+}
+
+int IsStringOf::DelimiterSize() const
+{
+	return this->m_delimiterStr.length();
+}
+
+std::vector<std::string> Split(const std::string& text,
+		const IDelimiter& delimiterChecker,
+		StringCompressType compressType)
+{
+	std::vector<std::string> texts;
+	std::string srcText = text;
+
+	while(!srcText.empty())
+	{
+		int pos = delimiterChecker.Find(srcText);
+		if(pos >= 0)
+		{
+			auto findStr = srcText.substr(0, pos);
+			srcText = srcText.substr(pos + delimiterChecker.DelimiterSize());
+
+			if(WithEmptyString == compressType)
+			{
+				texts.push_back(findStr);
+				continue;
+			}
+
+			Trim(findStr);
+			if(!findStr.empty())
+			{
+				texts.push_back(findStr);
+			}
+			continue;
+		}
+
+		texts.push_back(srcText);
+		break;
+	}
+	return texts;
 }
 
 } /* namespace algorithm */
