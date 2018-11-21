@@ -40,7 +40,7 @@ ducky::smartptr::SharedPtr<Logger> Log::CreateLogger(
 		return Log::GetLogger(module);
 	}
 
-	MutexLocker lk(Log::mutex);
+	Mutex::Locker lk(Log::mutex);
 	ducky::smartptr::SharedPtr<Logger> logger(new Logger(module));
 	logger->start();
 	Log::loggers.insert(make_pair(module, logger));
@@ -48,12 +48,12 @@ ducky::smartptr::SharedPtr<Logger> Log::CreateLogger(
 }
 
 bool Log::HasLogger(const std::string& module) {
-	MutexLocker lk(Log::mutex);
+	Mutex::Locker lk(Log::mutex);
 	return (Log::loggers.find(module) != Log::loggers.end());
 }
 
 ducky::smartptr::SharedPtr<Logger> Log::GetLogger(const std::string& module) {
-	MutexLocker lk(Log::mutex);
+	Mutex::Locker lk(Log::mutex);
 	LoggerMap::iterator it = Log::loggers.find(module);
 	if (it == Log::loggers.end()) {
 		THROW_EXCEPTION(LogException, "logger[" + module + "] not found", -1);
@@ -63,7 +63,7 @@ ducky::smartptr::SharedPtr<Logger> Log::GetLogger(const std::string& module) {
 }
 
 void Log::RemoveLogger(const std::string& module) {
-	MutexLocker lk(Log::mutex);
+	Mutex::Locker lk(Log::mutex);
 	LoggerMap::iterator it = Log::loggers.find(module);
 	if (it != Log::loggers.end()) {
 		Log::loggers.erase(it);
@@ -85,7 +85,7 @@ void Log::log(const LogInfo& logInfo) {
 }
 
 Log& Log::put(const ducky::variant::Variant& logMsg) {
-	MutexLocker lk(this->_mutex);
+	Mutex::Locker lk(this->_mutex);
 	this->logBuffer << logMsg.toString();
 	return *this;
 }
@@ -121,7 +121,7 @@ Log& Log::operator<<(const LogType& logType){
 Log& Log::done(const LogType& type) {
 	string logInfo;
 	{
-		MutexLocker lk(this->_mutex);
+		Mutex::Locker lk(this->_mutex);
 		logInfo = this->logBuffer.str();
 
 		if (logInfo.empty())
@@ -148,7 +148,7 @@ const LogLevel& Log::getLogLevel() const {
 }
 
 Log& Log::setLogLevel(const LogLevel& logLevel) {
-	MutexLocker lk(this->_mutex);
+	Mutex::Locker lk(this->_mutex);
 	this->logLevel = logLevel;
 	return *this;
 }
@@ -158,7 +158,7 @@ const LogType& Log::getLogType() const {
 }
 
 Log& Log::setLogType(const LogType& logType) {
-	MutexLocker lk(this->_mutex);
+	Mutex::Locker lk(this->_mutex);
 	this->logType = logType;
 	return *this;
 }

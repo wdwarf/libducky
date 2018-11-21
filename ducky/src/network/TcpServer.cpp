@@ -111,7 +111,7 @@ void _TcpServerWorkThread::run() {
 	while (true) {
 		_NetServerContext* context = this->_server->getContext();
 
-		if (this->canStop()) {
+		if (this->isCanStop()) {
 			if (context) {
 				context->session->onDisconnected();
 
@@ -395,7 +395,7 @@ int _TcpServer::_TcpServerImpl::doAccept() {
 
 _NetServerContext* _TcpServer::_TcpServerImpl::getContext() {
 	this->semphore.wait();
-	MutexLocker lk(this->mutex);
+	Mutex::Locker lk(this->mutex);
 
 	_NetServerContext* context = NULL;
 
@@ -408,7 +408,7 @@ _NetServerContext* _TcpServer::_TcpServerImpl::getContext() {
 }
 
 void _TcpServer::_TcpServerImpl::addContext(_NetServerContext* context) {
-	MutexLocker lk(this->mutex);
+	Mutex::Locker lk(this->mutex);
 
 	if (NULL == context)
 		return;
@@ -463,17 +463,17 @@ void _TcpServer::_TcpServerImpl::doSend(_NetServerContext* context) {
 }
 
 void _TcpServer::_TcpServerImpl::addClientFd(int clientFd) {
-	MutexLocker lk(this->mutex);
+	Mutex::Locker lk(this->mutex);
 	this->clientSockets.push_back(clientFd);
 }
 
 void _TcpServer::_TcpServerImpl::removeClientFd(int clientFd) {
-	MutexLocker lk(this->mutex);
+	Mutex::Locker lk(this->mutex);
 	this->clientSockets.remove(clientFd);
 }
 
 int _TcpServer::_TcpServerImpl::getClientCount() {
-	MutexLocker lk(this->mutex);
+	Mutex::Locker lk(this->mutex);
 	return this->clientSockets.size();
 }
 
@@ -483,7 +483,7 @@ void _TcpServer::_TcpServerImpl::run() {
 
 	vector<struct epoll_event> events(this->eventCount);
 	string threadName;
-	while (!this->canStop()) {
+	while (!this->isCanStop()) {
 		int nfds = epoll_wait(epfd, &events[0], this->eventCount, -1);
 		for (int i = 0; i < nfds; ++i) {
 			if (events[i].data.fd == this->sock) {

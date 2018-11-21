@@ -34,7 +34,7 @@ Settings::~Settings() {
 }
 
 const ducky::variant::Variant& Settings::getValue(const std::string& key) const {
-	MutexLocker lk(this->mutex);
+	Mutex::Locker lk(this->mutex);
 	ValueMap::const_iterator it = this->values.find(key);
 	if (it == this->values.end()) {
 		THROW_EXCEPTION(SettingsException, "[" + key + "] not found.", -1);
@@ -43,17 +43,17 @@ const ducky::variant::Variant& Settings::getValue(const std::string& key) const 
 }
 
 void Settings::setValue(const std::string& key, const ducky::variant::Variant& value) {
-	MutexLocker lk(this->mutex);
+	Mutex::Locker lk(this->mutex);
 	this->values[key] = value;
 }
 
 bool Settings::hasValue(const std::string& key) const {
-	MutexLocker lk(this->mutex);
+	Mutex::Locker lk(this->mutex);
 	return (this->values.find(key) != this->values.end());
 }
 
 void Settings::removeValue(const std::string& key) {
-	MutexLocker lk(this->mutex);
+	Mutex::Locker lk(this->mutex);
 	this->values.erase(key);
 }
 
@@ -62,14 +62,14 @@ const ducky::variant::Variant& Settings::operator[](const std::string& key) cons
 }
 
 void Settings::clear() {
-	MutexLocker lk(this->mutex);
+	Mutex::Locker lk(this->mutex);
 	this->values.clear();
 }
 
 std::set<std::string> Settings::getKeys() const {
 	std::set<std::string> keys;
 
-	MutexLocker lk(this->mutex);
+	Mutex::Locker lk(this->mutex);
 	for (ValueMap::const_iterator it = this->values.begin(); it != this->values.end(); ++it) {
 		keys.insert(it->first);
 	}
@@ -78,7 +78,7 @@ std::set<std::string> Settings::getKeys() const {
 }
 
 void Settings::saveToFile(const std::string& file) {
-	MutexLocker lk(this->mutex);
+	Mutex::Locker lk(this->mutex);
 	fstream f;
 	f.open(file.c_str(), ios::out | ios::trunc);
 	if (!f.is_open()) {
@@ -94,7 +94,7 @@ void Settings::saveToFile(const std::string& file) {
 }
 
 void Settings::loadFromFile(const std::string& file) {
-	MutexLocker lk(this->mutex);
+	Mutex::Locker lk(this->mutex);
 	fstream f;
 	f.open(file.c_str(), ios::in);
 	if (!f.is_open()) {

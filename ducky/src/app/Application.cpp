@@ -39,7 +39,7 @@ public:
 
 	int run() {
 		{
-			MutexLocker lk(this->mutex);
+			Mutex::Locker lk(this->mutex);
 
 			if (this->running)
 				return -1;
@@ -54,13 +54,13 @@ public:
 
 		this->app->onUninitialize();
 
-		MutexLocker lk(this->mutex);
+		Mutex::Locker lk(this->mutex);
 		this->running = false;
 		return this->exitCode;
 	}
 
 	void exit(int code) {
-		MutexLocker lk(this->mutex);
+		Mutex::Locker lk(this->mutex);
 
 		if (!this->running)
 			return;

@@ -84,7 +84,7 @@ public:
 	}
 
 	virtual ~Factory() {
-		thread::MutexLocker lk(this->mutex);
+		thread::Mutex::Locker lk(this->mutex);
 		for (CreatorMap::iterator it = this->creatorMap.begin();
 				it != this->creatorMap.end(); ++it) {
 			delete it->second;
@@ -97,7 +97,7 @@ public:
 	 */
 	template<typename T>
 	void regiesterCreator(string className, bool isSingleton = false) {
-		thread::MutexLocker lk(this->mutex);
+		thread::Mutex::Locker lk(this->mutex);
 		CreatorMap::iterator it = this->creatorMap.find(className);
 		if (it == this->creatorMap.end()) {
 			if (isSingleton) {
@@ -117,7 +117,7 @@ public:
 	 * 反注册指定类
 	 */
 	void unregiesterCreator(string className) {
-		thread::MutexLocker lk(this->mutex);
+		thread::Mutex::Locker lk(this->mutex);
 		CreatorMap::iterator it = this->creatorMap.find(className);
 		if (it != this->creatorMap.end()) {
 			delete it->second;
@@ -127,7 +127,7 @@ public:
 
 	//创建对象
 	Object* createObject(string className) {
-		thread::MutexLocker lk(this->mutex);
+		thread::Mutex::Locker lk(this->mutex);
 		CreatorMap::iterator it = this->creatorMap.find(className);
 		if (it != this->creatorMap.end()) {
 			return it->second->createObject();
@@ -140,7 +140,7 @@ public:
 	//创建对象，并强转为T类指针
 	template<typename T>
 	T* createObject(string className) {
-		thread::MutexLocker lk(this->mutex);
+		thread::Mutex::Locker lk(this->mutex);
 		CreatorMap::iterator it = this->creatorMap.find(className);
 		if (it != this->creatorMap.end()) {
 			T* obj = dynamic_cast<T*>(it->second->createObject());
@@ -157,7 +157,7 @@ public:
 
 	//查询指定类是否是单例
 	bool isSingletonObject(string className) {
-		thread::MutexLocker lk(this->mutex);
+		thread::Mutex::Locker lk(this->mutex);
 		CreatorMap::iterator it = this->creatorMap.find(className);
 		if (it != this->creatorMap.end()) {
 			return it->second->IsSingleton();

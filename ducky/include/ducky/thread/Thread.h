@@ -8,82 +8,119 @@
 #ifndef DUCKY_THREAD_THREAD_H_
 #define DUCKY_THREAD_THREAD_H_
 
-#include <string>
-#include <cstring>
-#include <ducky/Object.h>
-#include <ducky/exception/Exception.h>
 #include <ducky/thread/Runnable.h>
-#include <ducky/function/Bind.h>
+#include <ducky/thread/Mutex.h>
+#include <ducky/function/Function.h>
+#include <ducky/smartptr/SharedPtr.h>
 #include <pthread.h>
+#include <list>
+
+using ducky::thread::Runnable;
+using ducky::thread::Mutex;
 
 namespace ducky {
 namespace thread {
 
-using std::string;
+typedef ducky::function::Function0<void> ThreadFunc;
+typedef ducky::smartptr::SharedPtr<ducky::thread::Runnable> RunnablePtr;
 
-EXCEPTION_DEF(ThreadException)
-
-typedef ducky::function::Function0<void> ThreadFunctionObject;
-
-class Thread: public Runnable {
+class ThreadId {
 public:
-	Thread();
-	Thread(Runnable& r);
-	Thread(const ThreadFunctionObject& func);
+	ThreadId();
+	ThreadId(pthread_t id);
 
+	operator pthread_t() const;
+	operator pthread_t*();
+	operator bool() const;
+
+	pthread_t getId() const;
+	void setId(pthread_t id);
+	bool isValid() const;
+	void setValid(bool valid);
+
+private:
+	pthread_t id;
+	bool valid;
+};
+
+enum ThreadState {
+	TS_TERMINATED, TS_RUNNING, TS_STOP_PENDDING, TS_STOPED
+};
+
+class Thread: public thread::Runnable {
+public:
+	Thread(bool detached = false);
+	Thread(Runnable& r, bool detached = false);
+	Thread(ThreadFunc func, bool detached = false);
 	virtual ~Thread();
 
-	bool start();	//启动线程
-	bool stop();	//设置停止标志
-	bool detach();	//分离线程
-	bool join();	//等待线程结束
-	bool isRunning() const;	//线程是否正在执行
+	bool start();
+	bool stop();
+	void join();
+	void detach();
+	void exit();
 
-	pthread_t getThreadId();
+	bool isRunning() const;
+	bool isCanStop() const;
+	virtual void run();
+	RunnablePtr getRunnable();
+	const ThreadId& getThreadId() const;
+
 	bool isInCurrentThread() const;
+
+	bool isDetached() const;
+	ThreadState getState() const;
+
+	static void Sleep(unsigned int ms);
+	static void Yield();
 	bool isFreeOnTerminated() const;
 	void setFreeOnTerminated(bool freeOnTerminated);
 
-	bool operator==(const Thread& t) const;
-
-	static void Sleep(unsigned int ms);	//睡眠函数，单位为毫秒
-	static void Yield();
-
-#ifdef __linux__
-	virtual void cancel();	//取消线程
-
-	static void testcancel();
-	static pid_t CurrentTid();
-#endif
-
-	Runnable* getRunnable();
-
-protected:
-	virtual void run();
-#ifdef __linux__
-	virtual void onCanceled() {
-	}
-#endif
-	//线程结束时的通知
-	virtual void onTerminated() {
-	}
-	virtual bool canStop() const;	//判断线程是否可以结束，当stop方法执行后，该方法返回true。
-	virtual bool beforeStart();
-	virtual bool beforeStop();
-
 private:
-	pthread_t threadId;
-	Runnable* runnable;
-	bool _canStop;
+	ThreadId threadId;
+	RunnablePtr runnable;
+	ThreadState state;
+	bool detached;
 	bool freeOnTerminated;
-	static void* ThreadFunc(Thread* pThread);
+	mutable Mutex mutex;
 
-#ifdef __linux__
-	static void ThreadCancelFunc(Thread* pThread);
-#endif
+	static void* _ThreadFunc(void*);
 
 	Thread(const Thread&);
 	Thread& operator=(const Thread&);
+
+	// for debug
+public:
+	class ThreadInfo {
+	public:
+		ThreadInfo(ThreadId tid);
+		ThreadInfo(ThreadId tid, std::string threadName,
+				std::string threadFuncName);
+
+		bool operator==(const ThreadInfo&);
+
+		const std::string& getThreadFuncName() const;
+		void setThreadFuncName(const std::string& threadFuncName);
+		const std::string& getThreadName() const;
+		void setThreadName(const std::string& threadName);
+		const ThreadId& getTid() const;
+		void setTid(const ThreadId& tid);
+
+	private:
+		ThreadId tid;
+		std::string threadName;
+		std::string threadFuncName;
+	};
+
+	static std::list<ThreadInfo> GetAllThreadInfos();
+	static unsigned int GetAllThreadCount();
+
+private:
+	static std::list<ThreadInfo> threadInfos;
+	static Mutex sMutex;
+
+	static void AddThreadInfo(const ThreadInfo&);
+	static void RemoveThreadInfo(const ThreadId&);
 };
 
 } /* namespace ducky */

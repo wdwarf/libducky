@@ -7,236 +7,250 @@
 
 #include <ducky/thread/Thread.h>
 #include <iostream>
-#include <unistd.h>
-#include <errno.h>
-#include <cstring>
 #include <cassert>
-
-#ifdef __linux__
-#include <sys/syscall.h>
-#endif
-#include <signal.h>
+#include <cstring>
+#include <time.h>
+#include <errno.h>
+#include <sched.h>
 
 using namespace std;
+using ducky::thread::Mutex;
 
 namespace ducky {
 namespace thread {
 
-static bool IsValidThreadId(const pthread_t& threadId) {
-	const char* p = (const char*) &threadId;
-	for (size_t i = 0; i < sizeof(threadId); ++i) {
-		if (0 != p[i])
-			return true;
-	}
-	return false;
+ThreadId::ThreadId() :
+		valid(false) {
+	memset(&this->id, 0, sizeof(this->id));
 }
 
-
-class ThreadFuncWraper: public Runnable {
-public:
-	ThreadFuncWraper(const ThreadFunctionObject& f) :
-			_f(f) {
-	}
-
-	void run() {
-		_f();
-	}
-
-private:
-	ThreadFunctionObject _f;
-};
-
-
-Thread::Thread() :
-		runnable(this), _canStop(false), freeOnTerminated(false) {
-	memset(&this->threadId, 0, sizeof(this->threadId));
+ThreadId::ThreadId(pthread_t _id) :
+		id(_id), valid(true) {
 }
 
-Thread::Thread(Runnable& r) :
-		runnable(&r), _canStop(false), freeOnTerminated(false) {
-	memset(&this->threadId, 0, sizeof(this->threadId));
+ThreadId::operator pthread_t() const {
+	return this->id;
 }
 
-Thread::Thread(const ThreadFunctionObject& func):
-	runnable(new ThreadFuncWraper(func)), _canStop(false), freeOnTerminated(false) {
-memset(&this->threadId, 0, sizeof(this->threadId));
+ThreadId::operator pthread_t*() {
+	return &this->id;
 }
 
-Thread::~Thread() {
-	try {
-		this->stop();
-		this->join();
-
-		string className = this->runnable->getClassName();
-		if (string::npos != className.find("ThreadFuncWraper")
-				|| string::npos != className.find("ThreadMFuncWraper")) {
-			delete this->runnable;
-		}
-	} catch (...) {
-	}
+ThreadId::operator bool() const {
+	return this->isValid();
 }
 
-void* Thread::ThreadFunc(Thread* pThread) {
-	assert(pThread);
+pthread_t ThreadId::getId() const {
+	return id;
+}
 
-	cout << "thread " << pThread->threadId << ", " << pThread->getClassName()
-			<< " started" << endl;
+void ThreadId::setId(pthread_t id) {
+	this->id = id;
+}
 
-#ifdef __linux__
-	pthread_cleanup_push((void (*)(void*))Thread::ThreadCancelFunc, pThread);
-#endif
+bool ThreadId::isValid() const {
+	return valid;
+}
 
-		try {
-			assert(pThread->isInCurrentThread());
-			pThread->getRunnable()->run();
-		} catch (std::exception& e) {
-			cerr << e.what() << endl;
-		} catch (...) {
-			throw;
-		}
+void ThreadId::setValid(bool valid) {
+	this->valid = valid;
+}
 
-#ifdef __linux__
-		pthread_cleanup_pop(0);
-#endif
+const ThreadId& Thread::getThreadId() const {
+	return threadId;
+}
+
+bool Thread::isDetached() const {
+	return detached;
+}
+
+ThreadState Thread::getState() const {
+	return state;
+}
+
+//=======================================================
+
+void* Thread::_ThreadFunc(void* p) {
+	assert(p);
+
+	Thread* thread = (Thread*) p;
+	RunnablePtr runnable = thread->getRunnable();
+	assert(runnable);
 
 	try {
-		pThread->onTerminated();
-	} catch (std::exception& e) {
-		cerr << e.what() << endl;
+		runnable->run();
 	} catch (...) {
 	}
 
-	cout << "thread " << pThread->threadId << ", " << pThread->getClassName()
-			<< " stoped" << endl;
+	{
+		Mutex::Locker lk(thread->mutex);
+		thread->threadId.setValid(false);
+		thread->state = TS_STOPED;
+	}
 
-	if (pThread->freeOnTerminated) {
-#ifdef __OBJ_DELETE_THIS__
-		pThread->deleteThis();
-#else
-		delete pThread;
-#endif
+	Thread::RemoveThreadInfo(thread->getThreadId());
+
+	if (thread->freeOnTerminated) {
+		delete thread;
 	}
 
 	return NULL;
 }
 
-#ifdef __linux__
-void Thread::ThreadCancelFunc(Thread* pThread) {
-	assert(pThread);
-
-	try {
-		pThread->onCanceled();
-		pThread->onTerminated();
-	} catch (std::exception& e) {
-		cerr << e.what() << endl;
-	} catch (...) {
-	}
-
-	if (pThread->freeOnTerminated) {
-#ifdef __OBJ_DELETE_THIS__
-		pThread->deleteThis();
-#else
-		delete pThread;
-#endif
-	}
-}
-#endif
-
-bool Thread::start() {
-	if (this->isRunning()) {
-		THROW_EXCEPTION(ThreadException, "thread is running.", 0);
-	}
-
-	this->_canStop = false;
-
-	bool re = (this->beforeStart()
-			&& (0
-					== pthread_create(&this->threadId, NULL,
-							(void* (*)(void*))Thread::ThreadFunc, this)));
-	if (!re) {
-		THROW_EXCEPTION(ThreadException, "thread create failed..", errno);
-	}
-
-	return true;
+static void NonDelRunnable(Runnable* r) {
 }
 
-bool Thread::beforeStart() {
-	return true;
+static void DelRunnable(Runnable* r) {
+	if (r)
+		delete r;
 }
 
-bool Thread::stop() {
-	if (this->isRunning()) {
-		this->beforeStop();
-		this->_canStop = true;
+class FuncRunnable: public Runnable {
+public:
+	FuncRunnable(ThreadFunc func) :
+			_func(func) {
 	}
 
-	return true;
+	~FuncRunnable() {
+	}
+
+	void run() {
+		_func();
+	}
+
+private:
+	ThreadFunc _func;
+};
+
+Thread::Thread(bool _detached) :
+		runnable(this, &NonDelRunnable), state(TS_TERMINATED), detached(
+				_detached), freeOnTerminated(false), mutex(true) {
 }
 
-bool Thread::beforeStop() {
-	return true;
+Thread::Thread(Runnable& r, bool _detached) :
+		runnable(&r, &NonDelRunnable), state(TS_TERMINATED), detached(
+				_detached), freeOnTerminated(false), mutex(true) {
+}
+
+Thread::Thread(ThreadFunc func, bool _detached) :
+		runnable(new FuncRunnable(func), &DelRunnable), state(TS_TERMINATED), detached(
+				_detached), freeOnTerminated(false), mutex(true) {
+}
+
+Thread::~Thread() {
+	this->stop();
+	this->join();
+	while (TS_STOPED != this->state && TS_TERMINATED != this->state) {
+		Yield();
+	}
 }
 
 void Thread::run() {
-	cout << "empty thread run method..." << endl;
+
 }
 
-bool Thread::detach() {
-	return (IsValidThreadId(this->threadId) && (0 == pthread_detach(this->threadId)));
+bool Thread::isRunning() const {
+	Mutex::Locker lk(this->mutex);
+	return (TS_TERMINATED != this->state);
 }
 
-#ifdef __linux__
-void Thread::cancel() {
-	if (!this->isRunning()) {
-		return;
-	}
-
-	if (0 != pthread_cancel(this->threadId)) {
-		THROW_EXCEPTION(ThreadException, "thread cancel failed..", errno);
-	}
-}
-#endif
-
-pthread_t Thread::getThreadId() {
-	return this->threadId;
+bool Thread::isCanStop() const {
+	Mutex::Locker lk(this->mutex);
+	return (TS_STOP_PENDDING == this->state);
 }
 
 bool Thread::isInCurrentThread() const {
 	return pthread_equal(pthread_self(), this->threadId);
 }
 
-bool Thread::isRunning() const {
-	return (IsValidThreadId(this->threadId) && (0 == pthread_kill(this->threadId, 0)));
-}
-
-bool Thread::canStop() const {
-	return this->_canStop;
-}
-
-bool Thread::join() {
-	return (IsValidThreadId(this->threadId)
-			&& (0 == pthread_join(this->threadId, NULL)));
+void Thread::Yield() {
+	//pthread_yield();
+	sched_yield();
 }
 
 void Thread::Sleep(unsigned int ms) {
-	usleep(ms * 1000);
+	struct timespec t;
+	struct timespec rmt;
+
+	t.tv_sec = ms / 1000;
+	t.tv_nsec = (ms % 1000) * 1000000;
+
+	int re = 0;
+	while (0 != (re = nanosleep(&t, &rmt))) {
+		if (EINVAL == re)
+			break;
+		t = rmt;
+	}
 }
 
-void Thread::Yield(){
-	pthread_yield();
+bool Thread::start() {
+	if (this->isRunning() || this->isInCurrentThread())
+		return false;
+
+	Mutex::Locker lk(this->mutex);
+
+	pthread_attr_t attr;
+	pthread_attr_init(&attr);
+	pthread_attr_setdetachstate(&attr,
+			this->detached ? PTHREAD_CREATE_DETACHED : PTHREAD_CREATE_JOINABLE);
+
+	if (0 != pthread_create(this->threadId, &attr, &_ThreadFunc, this)) {
+		this->threadId.setValid(false);
+		this->state = TS_TERMINATED;
+		pthread_attr_destroy(&attr);
+		return false;
+	}
+
+	pthread_attr_destroy(&attr);
+	this->threadId.setValid(true);
+	this->state = TS_RUNNING;
+
+	Thread::AddThreadInfo(
+			ThreadInfo(this->getThreadId(), runnable->getClassName(), ""));
+
+	return true;
 }
 
-#ifdef __linux__
-void Thread::testcancel() {
-	pthread_testcancel();
+bool Thread::stop() {
+	Mutex::Locker lk(this->mutex);
+	if (TS_RUNNING != this->state)
+		return false;
+	this->state = TS_STOP_PENDDING;
+	return true;
 }
-#endif
 
-#ifdef __linux__
-pid_t Thread::CurrentTid() {
-	return syscall(SYS_gettid);
+void Thread::join() {
+	if (this->isInCurrentThread() || !this->isRunning() || this->detached)
+		return;
+
+	if (TS_TERMINATED != this->state
+			&& 0 == pthread_join(this->threadId, NULL)) {
+		this->state = TS_TERMINATED;
+		this->threadId.setValid(false);
+	}
 }
-#endif
+
+void Thread::exit() {
+	if (!this->isInCurrentThread())
+		return;
+
+	this->state = TS_STOPED;
+	pthread_exit(0);
+}
+
+void Thread::detach() {
+	if (!this->isRunning() || this->detached)
+		return;
+
+	Mutex::Locker lk(this->mutex);
+	if (0 == pthread_detach(this->threadId)) {
+		this->detached = true;
+	}
+}
+
+RunnablePtr Thread::getRunnable() {
+	return this->runnable;
+}
 
 bool Thread::isFreeOnTerminated() const {
 	return freeOnTerminated;
@@ -246,13 +260,68 @@ void Thread::setFreeOnTerminated(bool freeOnTerminated) {
 	this->freeOnTerminated = freeOnTerminated;
 }
 
-bool Thread::operator==(const Thread& t) const {
-	return pthread_equal(this->threadId, t.threadId);
+std::list<Thread::ThreadInfo> Thread::threadInfos;
+Mutex Thread::sMutex;
+
+std::list<Thread::ThreadInfo> Thread::GetAllThreadInfos() {
+	Mutex::Locker lk(sMutex);
+	return threadInfos;
 }
 
-Runnable* Thread::getRunnable() {
-	return this->runnable;
+unsigned int Thread::GetAllThreadCount() {
+	Mutex::Locker lk(sMutex);
+	return threadInfos.size();
+}
+
+void Thread::AddThreadInfo(const ThreadInfo& info) {
+	Mutex::Locker lk(sMutex);
+	threadInfos.push_back(info);
+}
+
+void Thread::RemoveThreadInfo(const ThreadId& id) {
+	Mutex::Locker lk(sMutex);
+	threadInfos.remove(id);
+}
+
+Thread::ThreadInfo::ThreadInfo(ThreadId tid) {
+	this->tid = tid;
+}
+
+Thread::ThreadInfo::ThreadInfo(ThreadId tid, std::string threadName,
+		std::string threadFuncName) {
+	this->tid = tid;
+	this->threadName = threadName;
+	this->threadFuncName = threadFuncName;
+}
+
+bool Thread::ThreadInfo::operator==(const ThreadInfo& info) {
+	return pthread_equal(this->tid, info.tid);
+}
+
+const std::string& Thread::ThreadInfo::getThreadFuncName() const {
+	return threadFuncName;
+}
+
+void Thread::ThreadInfo::setThreadFuncName(const std::string& threadFuncName) {
+	this->threadFuncName = threadFuncName;
+}
+
+const std::string& Thread::ThreadInfo::getThreadName() const {
+	return threadName;
+}
+
+void Thread::ThreadInfo::setThreadName(const std::string& threadName) {
+	this->threadName = threadName;
+}
+
+const ThreadId& Thread::ThreadInfo::getTid() const {
+	return tid;
+}
+
+void Thread::ThreadInfo::setTid(const ThreadId& tid) {
+	this->tid = tid;
 }
 
 } /* namespace ducky */
 } /* namespace thread */
+

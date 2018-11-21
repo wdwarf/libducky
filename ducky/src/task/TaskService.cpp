@@ -1,20 +1,27 @@
 /*
  * TaskService.cpp
  *
- *  Created on: 2018年8月14日
- *      Author: liyawu
+ *  Created on: Oct 15, 2016
+ *      Author: ducky
  */
 
 #include <ducky/task/TaskService.h>
+#include <sstream>
 #include <sys/time.h>
+
+#include <set>
+#include <ctime>
+#include <iostream>
+
 #include <ducky/thread/Thread.h>
+#include <ducky/thread/Mutex.h>
+#include <ducky/thread/Semaphore.h>
 
 using namespace ducky::thread;
+using namespace std;
 
-namespace ducky
-{
-namespace task
-{
+namespace ducky {
+namespace task {
 
 //=======================================================
 // class FuncTask
@@ -32,7 +39,7 @@ public:
 	{
 		try
 		{
-			this->m_func();
+			m_func();
 		} catch (...)
 		{
 		}
@@ -43,122 +50,10 @@ private:
 };
 
 //=======================================================
-// class ITask
-//=======================================================
-ITask::ITask(const std::string& taskName, bool freeOnFinished) :
-		m_taskName(taskName), m_freeOnFinished(freeOnFinished), m_timeout(0), m_StartTime(0), m_repeat(false), m_handling(false), m_Canceled(false), m_finished(
-				false), m_taskService(
-		NULL)
-{
-}
-
-ITask::~ITask()
-{
-}
-
-const std::string& ITask::getTaskName() const
-{
-	return m_taskName;
-}
-
-void ITask::setTaskName(const std::string& taskName)
-{
-	this->m_taskName = taskName;
-}
-
-bool ITask::isFreeOnFinished() const
-{
-	return m_freeOnFinished;
-}
-
-bool ITask::isRepeat() const
-{
-	return m_repeat;
-}
-
-void ITask::setRepeat(bool repeat)
-{
-	m_repeat = repeat;
-}
-
-long ITask::getTimeout() const
-{
-	return m_timeout;
-}
-
-void ITask::setTimeout(long timeout)
-{
-	m_timeout = timeout;
-}
-
-TaskService* ITask::getTaskService()
-{
-	return m_taskService;
-}
-
-void ITask::cancel()
-{
-	this->setCanceled(true);
-}
-
-void ITask::onCanceled()
-{
-}
-
-void ITask::onFinished()
-{
-}
-
-bool ITask::isHandling() const
-{
-	return m_handling;
-}
-
-void ITask::setHandling(bool handling)
-{
-	m_handling = handling;
-}
-
-bool ITask::isCanceled() const
-{
-	return m_Canceled;
-}
-
-void ITask::setCanceled(bool Canceled)
-{
-	m_Canceled = Canceled;
-}
-
-bool ITask::isFinished() const
-{
-	return m_finished;
-}
-
-void ITask::setFinished(bool finished)
-{
-	m_finished = finished;
-}
-
-unsigned long long ITask::getStartTime() const
-{
-	return m_StartTime;
-}
-
-void ITask::setStartTime(unsigned long long StartTime)
-{
-	m_StartTime = StartTime;
-}
-
-void ITask::setTaskService(TaskService* taskService)
-{
-	m_taskService = taskService;
-}
-
-//=======================================================
 // class TaskService
 //=======================================================
 TaskService::TaskService() :
-		m_serviceThread(this), m_workThreadCount(10), m_maxWorkThreadCount(1000)
+		m_serviceThread(this), m_activeWorkThreadCount(10), m_maxWorkThreadCount(1000)
 {
 	//
 
@@ -194,7 +89,7 @@ std::list<std::string> TaskService::getTaskNames() const
 {
 	std::list<std::string> taskNames;
 
-	MutexLocker lk(this->m_mutex);
+	Mutex::Locker lk(this->m_mutex);
 	for (TaskList::const_iterator it = this->m_tasks.begin(); it != this->m_tasks.end(); ++it)
 	{
 		taskNames.push_back((*it)->getTaskName());
@@ -204,7 +99,7 @@ std::list<std::string> TaskService::getTaskNames() const
 
 void TaskService::addTask(PTask task)
 {
-	MutexLocker lk(this->m_mutex);
+	Mutex::Locker lk(this->m_mutex);
 	if (this->m_tasks.find(task) != this->m_tasks.end())
 		return;
 
@@ -231,7 +126,7 @@ void TaskService::addTask(const TaskCallbackFunc& func, const std::string& taskN
 
 void TaskService::cancelTask(PTask task)
 {
-	MutexLocker lk(this->m_mutex);
+	Mutex::Locker lk(this->m_mutex);
 	TaskList::iterator it = this->m_tasks.find(task);
 	if (it != this->m_tasks.end())
 	{
@@ -242,7 +137,7 @@ void TaskService::cancelTask(PTask task)
 
 void TaskService::cancelTask(const std::string& taskName)
 {
-	MutexLocker lk(this->m_mutex);
+	Mutex::Locker lk(this->m_mutex);
 	for (TaskList::iterator it = this->m_tasks.begin(); it != this->m_tasks.end(); ++it)
 	{
 		PTask task = *it;
@@ -258,28 +153,27 @@ TaskService::WorkThread* TaskService::getWorkThread()
 {
 	TaskService::WorkThread* workThread = NULL;
 
-	if (WorkThread::GetWorkThreadCount() > this->m_maxWorkThreadCount)
-	{
-		return NULL;
-	}
-
-	MutexLocker lk(this->m_mutexWorkThread);
+	Mutex::Locker lk(this->m_mutexWorkThread);
 	if (!this->m_workThreads.empty())
 	{
 		workThread = this->m_workThreads.front();
 		this->m_workThreads.pop_front();
+		return workThread;
 	}
-	else
+
+	if (WorkThread::GetWorkThreadCount() >= this->m_maxWorkThreadCount)
 	{
-		workThread = new WorkThread(this);
-		try
-		{
-			workThread->start();
-		} catch (...)
-		{
-			delete workThread;
-			workThread = NULL;
-		}
+		return NULL;
+	}
+
+	workThread = new WorkThread(this);
+	try
+	{
+		workThread->start();
+	} catch (...)
+	{
+		delete workThread;
+		workThread = NULL;
 	}
 
 	return workThread;
@@ -287,8 +181,8 @@ TaskService::WorkThread* TaskService::getWorkThread()
 
 void TaskService::addWorkThread(WorkThread* workThread)
 {
-	MutexLocker lk(this->m_mutexWorkThread);
-	if (this->m_workThreads.size() >= m_workThreadCount)
+	Mutex::Locker lk(this->m_mutexWorkThread);
+	if (this->m_workThreads.size() >= m_activeWorkThreadCount)
 	{
 		workThread->stop();
 		return;
@@ -304,19 +198,41 @@ void TaskService::onStop()
 		this->clearWorkThreads();
 	}
 
-	MutexLocker lk(this->m_mutex);
+	Mutex::Locker lk(this->m_mutex);
 	for (TaskList::iterator it = this->m_tasks.begin(); it != this->m_tasks.end(); ++it)
 	{
 		PTask task = *it;
 		if (task->isFreeOnFinished())
 			delete task;
 	}
+
 	this->m_tasks.clear();
+}
+
+unsigned int TaskService::getActiveWorkThreadCount() const
+{
+	return this->m_activeWorkThreadCount;
+}
+
+void TaskService::setActiveWorkThreadCount(unsigned int activeWorkThreadCount)
+{
+	this->m_activeWorkThreadCount = activeWorkThreadCount > this->m_maxWorkThreadCount ? this->m_maxWorkThreadCount : activeWorkThreadCount;
+}
+
+unsigned int TaskService::getMaxWorkThreadCount() const
+{
+	return this->m_maxWorkThreadCount;
+}
+
+void TaskService::setMaxWorkThreadCount(unsigned int maxWorkThreadCount)
+{
+	this->m_maxWorkThreadCount = (0 == maxWorkThreadCount ? 1 : maxWorkThreadCount);
+	this->m_activeWorkThreadCount = this->m_activeWorkThreadCount > this->m_maxWorkThreadCount ? this->m_maxWorkThreadCount : this->m_activeWorkThreadCount;
 }
 
 void TaskService::clearWorkThreads()
 {
-	MutexLocker lk(this->m_mutexWorkThread);
+	Mutex::Locker lk(this->m_mutexWorkThread);
 	for (std::list<WorkThread*>::iterator it = this->m_workThreads.begin(); it != this->m_workThreads.end(); ++it)
 	{
 		(*it)->stop();
@@ -336,7 +252,7 @@ void TaskService::handleTask()
 	gettimeofday(&tv, NULL);
 
 	{
-		MutexLocker lk(this->m_mutex);
+		Mutex::Locker lk(this->m_mutex);
 		for (TaskList::iterator it = this->m_tasks.begin(); it != this->m_tasks.end();)
 		{
 			PTask task = *it;
@@ -355,42 +271,34 @@ void TaskService::handleTask()
 				it = itTmp;
 
 				if (task->isFreeOnFinished())
+				{
 					delete task;
+				}
 				continue;
 			}
+
+			++it;
 
 			long timeout = task->getTimeout();
 			time_t t = tv.tv_sec * 1000 + tv.tv_usec / 1000 - task->getStartTime();
 			if (task->isCanceled() || (timeout <= 0) || (t >= timeout))
 			{
 				WorkThread* workThread = this->getWorkThread();
-				if (workThread)
-				{
-					task->setHandling(true);
-					workThread->handleTask(task);
-				}
-				else
+				if (!workThread)
 				{
 					/** 工作线程不够，等待100毫秒 **/
-					timeWait = timeWait > 100 ? 100 : timeWait;
+					timeWait = (-1 == timeWait || timeWait > 100) ? 100 : timeWait;
+					continue;
 				}
-				++it;
+
+				task->setHandling(true);
+				workThread->handleTask(task);
 				continue;
 			}
-			else
-			{
-				/** 取最小等待时间 **/
-				t = timeout - t;
-				if (-1 == timeWait)
-				{
-					timeWait = t;
-				}
-				else
-				{
-					timeWait = t < timeWait ? t : timeWait;
-				}
-				++it;
-			}
+
+			/** 取最小等待时间 **/
+			t = timeout - t;
+			timeWait = (-1 == timeWait || t < timeWait) ? t : timeWait;
 		}
 	}
 
@@ -407,7 +315,7 @@ TaskService::ServiceThread::ServiceThread(TaskService* taskService) :
 
 void TaskService::ServiceThread::run()
 {
-	while (!this->canStop())
+	while (!this->isCanStop())
 	{
 		this->m_taskService->handleTask();
 	}
@@ -421,11 +329,12 @@ void TaskService::ServiceThread::run()
 unsigned int TaskService::WorkThread::s_WorkThreadCount = 0;
 ducky::thread::Mutex TaskService::WorkThread::s_mutex;
 
-TaskService::WorkThread::WorkThread(TaskService* taskService) :
+TaskService::WorkThread::WorkThread(TaskService* taskService) : ducky::thread::Thread(false),
 		m_taskService(taskService), m_task(NULL)
 {
-	MutexLocker lk(TaskService::WorkThread::s_mutex);
+	Mutex::Locker lk(TaskService::WorkThread::s_mutex);
 	++TaskService::WorkThread::s_WorkThreadCount;
+
 	this->setFreeOnTerminated(true);
 }
 
@@ -436,21 +345,18 @@ TaskService::WorkThread::~WorkThread()
 
 void TaskService::WorkThread::handleTask(PTask task)
 {
-	MutexLocker lk(this->m_mutex);
+	Mutex::Locker lk(this->m_mutex);
 	this->m_task = task;
 	this->m_sem.release();
 }
 
 void TaskService::WorkThread::run()
 {
-	/** 分离工作线程 **/
-	this->detach();
-
-	while (!this->canStop())
+	while (!this->isCanStop())
 	{
 		this->m_sem.wait();
 
-		MutexLocker lk(this->m_mutex);
+		Mutex::Locker lk(this->m_mutex);
 		if (NULL == this->m_task)
 			continue;
 
@@ -472,7 +378,7 @@ void TaskService::WorkThread::run()
 		this->handleFinished();
 	}
 
-	MutexLocker lk(TaskService::WorkThread::s_mutex);
+	Mutex::Locker lk(TaskService::WorkThread::s_mutex);
 	--TaskService::WorkThread::s_WorkThreadCount;
 }
 
@@ -497,9 +403,10 @@ bool TaskService::WorkThread::stop()
 
 unsigned int TaskService::WorkThread::GetWorkThreadCount()
 {
-	MutexLocker lk(TaskService::WorkThread::s_mutex);
+	Mutex::Locker lk(TaskService::WorkThread::s_mutex);
 	return TaskService::WorkThread::s_WorkThreadCount;
 }
 
-} /* namespace Util */
-} /* namespace PLib */
+}
+}
+

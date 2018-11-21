@@ -60,17 +60,17 @@ public:
 	}
 
 	T* get() {
-		ducky::thread::MutexLocker lk(mutex);
+		ducky::thread::Mutex::Locker lk(mutex);
 		return this->ptr;
 	}
 
 	void incRef() {
-		ducky::thread::MutexLocker lk(mutex);
+		ducky::thread::Mutex::Locker lk(mutex);
 		refCount += 1;
 	}
 
 	void release() {
-		ducky::thread::MutexLocker lk(mutex);
+		ducky::thread::Mutex::Locker lk(mutex);
 		refCount -= 1;
 		if (0 == refCount) {
 			delete this;
@@ -78,7 +78,7 @@ public:
 	}
 
 	bool isSet() {
-		ducky::thread::MutexLocker lk(mutex);
+		ducky::thread::Mutex::Locker lk(mutex);
 		return (0 != this->ptr);
 	}
 

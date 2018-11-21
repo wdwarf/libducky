@@ -29,41 +29,39 @@ public:
 	bool isShared() const;
 	operator pthread_mutex_t*();
 
+	class Locker {
+	public:
+		Locker(Mutex& mutex);
+		~Locker();
+
+	private:
+		Mutex& _mutex;
+	};
+
+	class Condition {
+	public:
+		Condition(Mutex* mutex = NULL, bool shared = false);
+		~Condition();
+
+		void setMutex(Mutex* mutex);
+		int wait(int mSec = -1, Mutex* mutex = NULL);
+		int lockAndWait(int mSec = -1, Mutex* mutex = NULL);
+		int wakeOne();
+		int wakeAll();
+		bool isShared() const;
+
+		operator pthread_cond_t*();
+
+	private:
+		Mutex* _mutex;
+		pthread_cond_t cond;
+		pthread_condattr_t attr;
+	};
+
 private:
 	pthread_mutex_t mutex;
 	pthread_mutexattr_t attr;
 };
-
-class MutexLocker {
-public:
-	MutexLocker(Mutex& mutex);
-	~MutexLocker();
-
-private:
-	Mutex& _mutex;
-};
-
-class MutexCondition {
-public:
-	MutexCondition(Mutex* mutex = NULL, bool shared = false);
-	~MutexCondition();
-
-	void setMutex(Mutex* mutex);
-	int wait(int mSec = -1, Mutex* mutex = NULL);
-	int lockAndWait(int mSec = -1, Mutex* mutex = NULL);
-	int wakeOne();
-	int wakeAll();
-	bool isShared() const;
-
-	operator pthread_cond_t*();
-
-private:
-	Mutex* _mutex;
-	pthread_cond_t cond;
-	pthread_condattr_t attr;
-};
-
-#define MUTEX_LOCKER(m) MutexLocker lk(m)
 
 } /* namespace thread */
 } /* namespace ducky */

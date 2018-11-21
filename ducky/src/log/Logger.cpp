@@ -35,13 +35,13 @@ void Logger::stop() {
 }
 
 void Logger::log(const LogInfo& logInfo) {
-	MutexLocker lk(this->mutex);
+	Mutex::Locker lk(this->mutex);
 	this->logInfos.push_back(logInfo);
 	this->sem.release();
 }
 
 void Logger::flush() {
-	MutexLocker lk(this->mutex);
+	Mutex::Locker lk(this->mutex);
 	for(std::list<LogInfo>::iterator it = this->logInfos.begin(); it != this->logInfos.end(); ++it){
 		LogInfo& logInfo = *it;
 		for (std::list<IAppender*>::iterator it = this->appenders.begin();
@@ -57,14 +57,14 @@ void Logger::flush() {
 
 void Logger::run() {
 	cout << "logger[" << this->module << "] started" << endl;
-	while (!this->canStop()) {
+	while (!this->isCanStop()) {
 		this->sem.wait();
-		if (this->canStop())
+		if (this->isCanStop())
 			break;
 		LogInfo logInfo;
 
 		{
-			MutexLocker lk(this->mutex);
+			Mutex::Locker lk(this->mutex);
 			if (this->logInfos.empty())
 				continue;
 
@@ -76,7 +76,7 @@ void Logger::run() {
 		}
 
 		{
-			MutexLocker lk(this->mutex);
+			Mutex::Locker lk(this->mutex);
 			for (std::list<IAppender*>::iterator it = this->appenders.begin();
 					it != this->appenders.end(); ++it) {
 				IAppender* appender = *it;
@@ -90,7 +90,7 @@ void Logger::run() {
 }
 
 void Logger::addAppender(IAppender* appender) {
-	MutexLocker lk(this->mutex);
+	Mutex::Locker lk(this->mutex);
 	for (std::list<IAppender*>::iterator it = this->appenders.begin();
 			it != this->appenders.end(); ++it) {
 		if (*it == appender)
@@ -100,7 +100,7 @@ void Logger::addAppender(IAppender* appender) {
 }
 
 void Logger::removeAppender(IAppender* appender) {
-	MutexLocker lk(this->mutex);
+	Mutex::Locker lk(this->mutex);
 	this->appenders.remove(appender);
 	delete appender;
 }

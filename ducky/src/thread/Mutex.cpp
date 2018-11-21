@@ -61,7 +61,7 @@ bool Mutex::isShared() const {
 	return (shared == PTHREAD_PROCESS_SHARED);
 }
 
-MutexCondition::MutexCondition(Mutex* mutex, bool shared) :
+Mutex::Condition::Condition(Mutex* mutex, bool shared) :
 		_mutex(mutex) {
 	pthread_condattr_init(&this->attr);
 	if (shared) {
@@ -72,12 +72,12 @@ MutexCondition::MutexCondition(Mutex* mutex, bool shared) :
 	pthread_cond_init(&this->cond, &this->attr);
 }
 
-MutexCondition::~MutexCondition() {
+Mutex::Condition::~Condition() {
 	pthread_cond_destroy(&this->cond);
 	pthread_condattr_destroy(&this->attr);
 }
 
-void MutexCondition::setMutex(Mutex* mutex) {
+void Mutex::Condition::setMutex(Mutex* mutex) {
 	if (NULL == mutex) {
 		throw MutexException("param \"mutex\" can not be NULL.");
 	}
@@ -85,17 +85,17 @@ void MutexCondition::setMutex(Mutex* mutex) {
 	this->_mutex = mutex;
 }
 
-MutexCondition::operator pthread_cond_t*() {
+Mutex::Condition::operator pthread_cond_t*() {
 	return &this->cond;
 }
 
-bool MutexCondition::isShared() const {
+bool Mutex::Condition::isShared() const {
 	int shared = 0;
 	pthread_condattr_getpshared(&this->attr, &shared);
 	return (shared == PTHREAD_PROCESS_SHARED);
 }
 
-int MutexCondition::wait(int mSec, Mutex* mutex) {
+int Mutex::Condition::wait(int mSec, Mutex* mutex) {
 	if (mutex) {
 		this->_mutex = mutex;
 	}
@@ -119,7 +119,7 @@ int MutexCondition::wait(int mSec, Mutex* mutex) {
 	}
 }
 
-int MutexCondition::lockAndWait(int mSec, Mutex* mutex) {
+int Mutex::Condition::lockAndWait(int mSec, Mutex* mutex) {
 	if (mutex) {
 		this->_mutex = mutex;
 	}
@@ -128,7 +128,7 @@ int MutexCondition::lockAndWait(int mSec, Mutex* mutex) {
 		throw MutexException("param \"mutex\" can not be NULL.");
 	}
 
-	MutexLocker lk(*this->_mutex);
+	Locker lk(*this->_mutex);
 
 	if (mSec < 0) {
 		return pthread_cond_wait(&this->cond, *this->_mutex);
@@ -145,20 +145,20 @@ int MutexCondition::lockAndWait(int mSec, Mutex* mutex) {
 	}
 }
 
-int MutexCondition::wakeOne() {
+int Mutex::Condition::wakeOne() {
 	return pthread_cond_signal(&this->cond);
 }
 
-int MutexCondition::wakeAll() {
+int Mutex::Condition::wakeAll() {
 	return pthread_cond_broadcast(&this->cond);
 }
 
-MutexLocker::MutexLocker(Mutex& mutex) :
+Mutex::Locker::Locker(Mutex& mutex) :
 		_mutex(mutex) {
 	this->_mutex.lock();
 }
 
-MutexLocker::~MutexLocker() {
+Mutex::Locker::~Locker() {
 	this->_mutex.unlock();
 }
 

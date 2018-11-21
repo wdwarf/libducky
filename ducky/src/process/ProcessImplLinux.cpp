@@ -17,6 +17,7 @@
 #include <errno.h>
 #include <cstdlib>
 #include <cstdio>
+#include <cstring>
 #include <sys/wait.h>
 #include <signal.h>
 #include <iostream>

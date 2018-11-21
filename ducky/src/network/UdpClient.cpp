@@ -132,7 +132,7 @@ void UdpClient::run() {
 	}
 
 	char* buf = new char[this->bufferSize];
-	while (!this->canStop()) {
+	while (!this->isCanStop()) {
 		string ip;
 		int port = 0;
 		int re = this->sock.recvFrom(buf, this->bufferSize, ip, port);
@@ -216,7 +216,7 @@ UdpClientReadThread::UdpClientReadThread(UdpClient* parent) {
 }
 
 void UdpClientReadThread::recv(const UdpClientContext& context) {
-	MutexLocker lk(this->mutex);
+	Mutex::Locker lk(this->mutex);
 	if (context.getIp().empty() || (context.getPort() <= 0)) {
 		THROW_EXCEPTION(NetworkException, "Invalid context.", -1);
 	}
@@ -235,15 +235,15 @@ void UdpClientReadThread::recv(const char* data, int dataSize, const string& ip,
 }
 
 void UdpClientReadThread::run() {
-	while (!this->canStop()) {
+	while (!this->isCanStop()) {
 		this->sem.wait();
-		if (this->canStop()) {
+		if (this->isCanStop()) {
 			break;
 		}
 
 		UdpClientContext ctx;
 		{
-			MutexLocker lk(this->mutex);
+			Mutex::Locker lk(this->mutex);
 			if (this->contexts.empty()) {
 				continue;
 			}
@@ -273,7 +273,7 @@ UdpClientSendThread::UdpClientSendThread(UdpClient* parent) {
 }
 
 void UdpClientSendThread::send(const UdpClientContext& context) {
-	MutexLocker lk(this->mutex);
+	Mutex::Locker lk(this->mutex);
 	if (context.getIp().empty() || (context.getPort() <= 0)) {
 		THROW_EXCEPTION(NetworkException, "Invalid context.", -1);
 	}
@@ -292,15 +292,15 @@ void UdpClientSendThread::send(const char* data, int dataSize, const string& ip,
 }
 
 void UdpClientSendThread::run() {
-	while (!this->canStop()) {
+	while (!this->isCanStop()) {
 		this->sem.wait();
-		if (this->canStop()) {
+		if (this->isCanStop()) {
 			break;
 		}
 
 		UdpClientContext ctx;
 		{
-			MutexLocker lk(this->mutex);
+			Mutex::Locker lk(this->mutex);
 			if (this->contexts.empty()) {
 				continue;
 			}

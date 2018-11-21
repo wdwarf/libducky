@@ -9,6 +9,8 @@
 #define DUCKY_THREAD_RUNNABLE_H_
 
 #include <ducky/Object.h>
+#include <string>
+#include <typeinfo>
 
 namespace ducky {
 namespace thread {

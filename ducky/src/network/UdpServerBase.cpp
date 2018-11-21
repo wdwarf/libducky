@@ -73,7 +73,7 @@ private:
 	private:
 		void run() {
 			this->_server->onStart();
-			while (!this->canStop() && this->_server->doRecv()) {
+			while (!this->isCanStop() && this->_server->doRecv()) {
 				//
 			}
 			this->_server->onStop();
@@ -91,7 +91,7 @@ private:
 
 	private:
 		void run() {
-			while (!this->canStop() && this->_server->doSend()) {
+			while (!this->isCanStop() && this->_server->doSend()) {
 				//
 			}
 		}
@@ -141,7 +141,7 @@ void UdpServerBase::UdpServerBaseImpl::onStop(){
 }
 
 void UdpServerBase::UdpServerBaseImpl::send(const buffer::Buffer& buf, const SockAddr& sockAddr) {
-	MutexLocker lk(this->mutexSend);
+	Mutex::Locker lk(this->mutexSend);
 	SendContext context;
 	context.buf = buf;
 	context.addr = sockAddr;
@@ -187,7 +187,7 @@ bool UdpServerBase::UdpServerBaseImpl::doSend() {
 
 	SendContext context;
 	{
-		MutexLocker lk(this->mutexSend);
+		Mutex::Locker lk(this->mutexSend);
 		if (this->sendContexts.empty())
 			return false;
 

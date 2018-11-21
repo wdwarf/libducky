@@ -74,7 +74,7 @@ private:
 		} catch (...) {
 		}
 
-		while (!this->canStop()) {
+		while (!this->isCanStop()) {
 			try {
 				const int bufLen = 20480;
 				char* buf = new char[bufLen];
@@ -107,7 +107,7 @@ public:
 	}
 
 	void send(const Buffer& buf) {
-		MutexLocker lk(this->mutex);
+		Mutex::Locker lk(this->mutex);
 		buffers.push_back(buf);
 		this->sem.release();
 	}
@@ -119,16 +119,16 @@ public:
 
 private:
 	void run() {
-		while (!this->canStop()) {
+		while (!this->isCanStop()) {
 			try {
 				this->sem.wait();
-				if (this->canStop()) {
+				if (this->isCanStop()) {
 					break;
 				}
 
 				Buffer buf;
 				{
-					MutexLocker lk(this->mutex);
+					Mutex::Locker lk(this->mutex);
 					if (this->buffers.empty()) {
 						continue;
 					}

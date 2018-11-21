@@ -110,7 +110,7 @@ private:
 
 		void send(SharedPtr<IUdpClientSession> session, const char* buf,
 				int len) {
-			MutexLocker lk(this->mutex);
+			Mutex::Locker lk(this->mutex);
 			if (session.get() && buf && len > 0) {
 				UdpSendContext context(session, buf, len);
 				this->constexts.push_back(context);
@@ -125,14 +125,14 @@ private:
 
 	private:
 		void run() {
-			while (!this->canStop()) {
+			while (!this->isCanStop()) {
 				this->sem.wait();
-				if (this->canStop())
+				if (this->isCanStop())
 					break;
 
 				UdpSendContext context;
 				{
-					MutexLocker lk(this->mutex);
+					Mutex::Locker lk(this->mutex);
 					if (constexts.empty())
 						continue;
 
@@ -170,7 +170,7 @@ private:
 		}
 	private:
 		void run() {
-			while (!this->canStop()) {
+			while (!this->isCanStop()) {
 				SharedPtr<IUdpClientSession> session =
 						this->parent->popReadySession();
 				if (session.get() && !session->isSessionExpired()) {
@@ -201,7 +201,7 @@ private:
 		void addSession(SharedPtr<IUdpClientSession> session) {
 			if (!session.get())
 				return;
-			MutexLocker lk(this->mutex);
+			Mutex::Locker lk(this->mutex);
 			this->sessions.push_back(session);
 		}
 
@@ -209,17 +209,17 @@ private:
 			if (!session.get())
 				return;
 
-			MutexLocker lk(this->mutex);
+			Mutex::Locker lk(this->mutex);
 			session->setSessionExpired(true);
 			this->sessions.remove(session);
 			this->parent->removeSession(session);
 		}
 	private:
 		void run() {
-			while (!this->canStop()) {
+			while (!this->isCanStop()) {
 				UdpServerImpl::SessionList expiredSessions;
 				{
-					MutexLocker lk(this->mutex);
+					Mutex::Locker lk(this->mutex);
 					for (UdpServerImpl::SessionList::iterator it =
 							this->sessions.begin(); it != this->sessions.end();
 							++it) {
@@ -340,17 +340,17 @@ void IUdpClientSession::send(const char* buf, int len) {
 }
 
 void IUdpClientSession::addBuffer(const buffer::Buffer& buf) {
-	MutexLocker lk(this->mutex);
+	Mutex::Locker lk(this->mutex);
 	this->dataBuffers.push_back(buf);
 }
 
 size_t IUdpClientSession::getBufferSize() {
-	MutexLocker lk(this->mutex);
+	Mutex::Locker lk(this->mutex);
 	return this->dataBuffers.size();
 }
 
 Buffer IUdpClientSession::getBuffer() {
-	MutexLocker lk(this->mutex);
+	Mutex::Locker lk(this->mutex);
 	Buffer buffer;
 	if (!this->dataBuffers.empty()) {
 		buffer = this->dataBuffers.front();
@@ -409,7 +409,7 @@ string UdpServerImpl::WrapSessionId(const string& ip, int port) {
 }
 
 void UdpServerImpl::removeSession(const SharedPtr<IUdpClientSession>& session) {
-	MutexLocker lk(this->mutex);
+	Mutex::Locker lk(this->mutex);
 	this->idelSessions.remove(session);
 	this->readySessions.remove(session);
 	this->busySessions.remove(session);
@@ -419,7 +419,7 @@ void UdpServerImpl::removeSession(const SharedPtr<IUdpClientSession>& session) {
 
 void UdpServerImpl::pushIdelSession(
 		const SharedPtr<IUdpClientSession>& session) {
-	MutexLocker lk(this->mutex);
+	Mutex::Locker lk(this->mutex);
 
 	if (session->isSessionExpired()) {
 		return;
@@ -432,7 +432,7 @@ void UdpServerImpl::pushIdelSession(
 
 SharedPtr<IUdpClientSession> UdpServerImpl::popIdelSession() {
 	SharedPtr<IUdpClientSession> session;
-	MutexLocker lk(this->mutex);
+	Mutex::Locker lk(this->mutex);
 	if (!this->idelSessions.empty()) {
 		session = this->idelSessions.front();
 		this->readySessions.push_back(session);
@@ -443,7 +443,7 @@ SharedPtr<IUdpClientSession> UdpServerImpl::popIdelSession() {
 
 void UdpServerImpl::pushReadySession(
 		const SharedPtr<IUdpClientSession>& session) {
-	MutexLocker lk(this->mutex);
+	Mutex::Locker lk(this->mutex);
 
 	if (session->isSessionExpired()) {
 		return;
@@ -465,7 +465,7 @@ void UdpServerImpl::pushReadySession(
 SharedPtr<IUdpClientSession> UdpServerImpl::popReadySession() {
 	this->semReadySession.wait();
 	SharedPtr<IUdpClientSession> session;
-	MutexLocker lk(this->mutex);
+	Mutex::Locker lk(this->mutex);
 	if (!this->readySessions.empty()) {
 		session = this->readySessions.front();
 		this->busySessions.push_back(session);
@@ -476,7 +476,7 @@ SharedPtr<IUdpClientSession> UdpServerImpl::popReadySession() {
 
 void UdpServerImpl::pushBusySession(
 		const SharedPtr<IUdpClientSession>& session) {
-	MutexLocker lk(this->mutex);
+	Mutex::Locker lk(this->mutex);
 
 	if (session->isSessionExpired()) {
 		return;
@@ -489,7 +489,7 @@ void UdpServerImpl::pushBusySession(
 
 SharedPtr<IUdpClientSession> UdpServerImpl::popBusySession() {
 	SharedPtr<IUdpClientSession> session;
-	MutexLocker lk(this->mutex);
+	Mutex::Locker lk(this->mutex);
 	if (!this->busySessions.empty()) {
 		session = this->busySessions.front();
 		this->busySessions.remove(session);
@@ -512,7 +512,7 @@ void UdpServerImpl::addSession(IUdpClientSession* pSession) {
 }
 
 SharedPtr<IUdpClientSession> UdpServerImpl::getSession(string sessionId) {
-	MutexLocker lk(this->mutex);
+	Mutex::Locker lk(this->mutex);
 	for (SessionList::iterator it = this->idelSessions.begin();
 			it != this->idelSessions.end(); ++it) {
 		if ((*it)->getClientId() == sessionId) {
@@ -609,7 +609,7 @@ void UdpServerImpl::stop(bool joinServerThread) {
 
 void UdpServerImpl::run() {
 	this->onStart();
-	while (!this->canStop()) {
+	while (!this->isCanStop()) {
 		char buf[2048] = { 0 };
 		int len = 2048;
 		string ip;
