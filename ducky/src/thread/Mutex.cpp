@@ -69,6 +69,8 @@ Mutex::Condition::Condition(Mutex* mutex, bool shared) :
 	} else {
 		pthread_condattr_setpshared(&this->attr, PTHREAD_PROCESS_PRIVATE);
 	}
+	pthread_condattr_setclock(&this->attr, CLOCK_MONOTONIC);
+
 	pthread_cond_init(&this->cond, &this->attr);
 }
 
@@ -108,7 +110,7 @@ int Mutex::Condition::wait(int mSec, Mutex* mutex) {
 		return pthread_cond_wait(&this->cond, *this->_mutex);
 	} else {
 		timespec ts;
-		clock_gettime(CLOCK_REALTIME, &ts);
+		clock_gettime(CLOCK_MONOTONIC, &ts);
 		ts.tv_sec += mSec / 1000;
 		ts.tv_nsec += (mSec % 1000) * 1000000;
 		if(ts.tv_nsec >= 1000000000){
