@@ -41,9 +41,14 @@ File::File(const std::string& path) {
 }
 
 File::File(const std::string& parent, const std::string& child) {
-
-	this->setPath(
-			File(parent).getPath() + PATH_SEPARATER + File(child).getPath());
+	string p1 = File(parent).getPath();
+	if (!p1.empty())
+		p1 += PATH_SEPARATER;
+	string p2 = File(child).getPath();
+	if (!p2.empty() && PATH_SEPARATER[0] == p2[0]) {
+		p2 = p2.substr(1);
+	}
+	this->setPath(p1 + p2);
 }
 
 File::File(std::list<std::string> path) {
