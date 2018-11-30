@@ -35,10 +35,10 @@ public:
 	bool isOpened() const;
 	const std::string& getFilePath() const;
 
-	Zip::ZipImpl& operator <<(const ZipEntry& entry);
-	Zip::ZipImpl& operator <<(const std::string& file);
+	void setCurrentEntry(const ZipEntry& entry);
+	void zipFileToCurrEntry(const std::string& file);
 
-	Zip::ZipImpl& zip(const std::string& src, const std::string& entry = "",
+	void zip(const std::string& src, const std::string& entry = "",
 			const std::string& newFileName = "");
 
 private:
@@ -47,8 +47,8 @@ private:
 	void* _zipFile;
 	mutable ducky::thread::Mutex mutex;
 
-	Zip::ZipImpl& doZipRegFile(const std::string& src,
-			const std::string& entry = "", const std::string& newFileName = "");
+	void doZipRegFile(const std::string& src, const std::string& entry = "",
+			const std::string& newFileName = "");
 };
 
 Zip::ZipImpl::ZipImpl(const std::string& filePath) :
@@ -95,25 +95,27 @@ const std::string& Zip::ZipImpl::getFilePath() const {
 	return _filePath;
 }
 
-Zip::ZipImpl& Zip::ZipImpl::operator <<(const std::string& file) {
+void Zip::ZipImpl::zipFileToCurrEntry(const std::string& file) {
 	this->zip(file, this->_currentEntry);
 
 	Mutex::Locker lk(this->mutex);
 	this->_currentEntry = "";
-	return *this;
 }
 
-Zip::ZipImpl& Zip::ZipImpl::operator <<(const ZipEntry& entry) {
+void Zip::ZipImpl::setCurrentEntry(const ZipEntry& entry) {
 	Mutex::Locker lk(this->mutex);
 	this->_currentEntry = entry.getEntry();
-	return *this;
 }
 
-Zip::ZipImpl& Zip::ZipImpl::zip(const std::string& src,
-		const std::string& entry, const std::string& newFileName) {
+void Zip::ZipImpl::zip(const std::string& src, const std::string& entry,
+		const std::string& newFileName) {
 	Mutex::Locker lk(this->mutex);
 
 	File srcFile(src);
+
+	if(!srcFile.isExists()){
+		THROW_EXCEPTION(ZipException, "file[" + src + "] not exists.", 0);
+	}
 
 	if (srcFile.isDirectory()) {
 		std::list<File> files = srcFile.list();
@@ -128,14 +130,13 @@ Zip::ZipImpl& Zip::ZipImpl::zip(const std::string& src,
 
 			doZipRegFile(*it, File(entry, newFileName));
 		}
-
-		return *this;
+		return;
 	}
 
-	return doZipRegFile(src, entry, newFileName);
+	this->doZipRegFile(src, entry, newFileName);
 }
 
-Zip::ZipImpl& Zip::ZipImpl::doZipRegFile(const std::string& src,
+void Zip::ZipImpl::doZipRegFile(const std::string& src,
 		const std::string& entry, const std::string& newFileName) {
 	File srcFile(src);
 	string zipFileName = (newFileName.empty() ? srcFile.getName() : newFileName);
@@ -168,7 +169,6 @@ Zip::ZipImpl& Zip::ZipImpl::doZipRegFile(const std::string& src,
 	if (0 != zipCloseFileInZip(this->_zipFile)) {
 		THROW_EXCEPTION(ZipException, "file[" + src + "] zip failed.", 0);
 	}
-	return *this;
 }
 
 //////////////////////////////////////////////////////////
@@ -205,12 +205,12 @@ const std::string& Zip::getFilePath() const {
 }
 
 Zip& Zip::operator <<(const ZipEntry& entry) {
-	this->impl->operator <<(entry);
+	this->impl->setCurrentEntry(entry);
 	return *this;
 }
 
 Zip& Zip::operator <<(const std::string& file) {
-	this->impl->operator <<(file);
+	this->impl->zipFileToCurrEntry(file);
 	return *this;
 }
 

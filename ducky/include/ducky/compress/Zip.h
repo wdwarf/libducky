@@ -9,14 +9,12 @@
 #define DUCKY_COMPRESS_ZIP_H_
 
 #include <ducky/Object.h>
-#include <ducky/exception/Exception.h>
+#include <ducky/compress/CompressException.h>
 #include <ducky/compress/ZipEntry.h>
 #include <string>
 
 namespace ducky {
 namespace compress {
-
-EXCEPTION_DEF(ZipException);
 
 class Zip: public Object {
 public:
@@ -27,13 +25,13 @@ public:
 	void open();
 	void close();
 	bool isOpened() const;
-	const std::string& getFilePath() const;
-
 	Zip& operator <<(const ZipEntry& entry);
 	Zip& operator <<(const std::string& file);
 
 	Zip& zip(const std::string& src, const std::string& entry = "",
 			const std::string& newFileName = "");
+
+	const std::string& getFilePath() const;
 
 private:
 	class ZipImpl;

@@ -88,7 +88,9 @@ void* Thread::_ThreadFunc(void* p) {
 		thread->state = TS_STOPED;
 	}
 
+#ifdef _THREAD_DEBUG_
 	Thread::RemoveThreadInfo(thread->getThreadId());
+#endif
 
 	if (thread->freeOnTerminated) {
 		delete thread;
@@ -205,9 +207,10 @@ bool Thread::start() {
 	this->threadId.setValid(true);
 	this->state = TS_RUNNING;
 
+#ifdef _THREAD_DEBUG_
 	Thread::AddThreadInfo(
 			ThreadInfo(this->getThreadId(), runnable->getClassName(), ""));
-
+#endif
 	return true;
 }
 
@@ -260,6 +263,7 @@ void Thread::setFreeOnTerminated(bool freeOnTerminated) {
 	this->freeOnTerminated = freeOnTerminated;
 }
 
+#ifdef _THREAD_DEBUG_
 std::list<Thread::ThreadInfo> Thread::threadInfos;
 Mutex Thread::sMutex;
 
@@ -321,6 +325,8 @@ const ThreadId& Thread::ThreadInfo::getTid() const {
 void Thread::ThreadInfo::setTid(const ThreadId& tid) {
 	this->tid = tid;
 }
+
+#endif
 
 } /* namespace ducky */
 } /* namespace thread */

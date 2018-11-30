@@ -8,6 +8,7 @@
 #ifndef DUCKY_THREAD_THREAD_H_
 #define DUCKY_THREAD_THREAD_H_
 
+#include <ducky/ducky_config.h>
 #include <ducky/thread/Runnable.h>
 #include <ducky/thread/Mutex.h>
 #include <ducky/function/Function.h>
@@ -91,6 +92,7 @@ private:
 
 	// for debug
 public:
+#ifdef _THREAD_DEBUG_
 	class ThreadInfo {
 	public:
 		ThreadInfo(ThreadId tid);
@@ -121,6 +123,7 @@ private:
 
 	static void AddThreadInfo(const ThreadInfo&);
 	static void RemoveThreadInfo(const ThreadId&);
+#endif
 };
 
 } /* namespace ducky */
