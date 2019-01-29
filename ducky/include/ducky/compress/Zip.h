@@ -25,9 +25,18 @@ public:
 	void open();
 	void close();
 	bool isOpened() const;
+
+	// 设定当前entry
 	Zip& operator <<(const ZipEntry& entry);
+	/**
+	 * 添加一个文件file到压缩包
+	 * 文件会按原名称加入到当前entry，同zip(file);
+	 */
 	Zip& operator <<(const std::string& file);
 
+	/**
+	 * 将源文件/目录src以名称newFileName加入到entry里去
+	 */
 	Zip& zip(const std::string& src, const std::string& entry = "",
 			const std::string& newFileName = "");
 

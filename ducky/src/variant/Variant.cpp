@@ -8,6 +8,8 @@
 #include <ducky/variant/Variant.h>
 #include <ducky/algorithm/String.h>
 #include <sstream>
+#include <iomanip>
+#include <limits>
 #include <cstring>
 #include <cmath>
 
@@ -205,65 +207,28 @@ VariantTypeInfo Variant::TypeInfo(VariantType type) {
 	VariantTypeInfo typeInfo;
 
 	typeInfo.type = type;
-	switch (type) {
-	case VT_BOOLEAN: {
-		typeInfo.size = sizeof(bool);
-		break;
-	}
-	case VT_UCHAR: {
-		typeInfo.size = sizeof(unsigned char);
-		break;
-	}
-	case VT_USHORT: {
-		typeInfo.size = sizeof(unsigned short);
-		break;
-	}
-	case VT_UINT: {
-		typeInfo.size = sizeof(unsigned int);
-		break;
-	}
-	case VT_ULONG: {
-		typeInfo.size = sizeof(unsigned long);
-		break;
-	}
-	case VT_ULONGLONG: {
-		typeInfo.size = sizeof(unsigned long long);
-		break;
-	}
-	case VT_CHAR: {
-		typeInfo.size = sizeof(char);
-		break;
-	}
-	case VT_SHORT: {
-		typeInfo.size = sizeof(short);
-		break;
-	}
-	case VT_INT: {
-		typeInfo.size = sizeof(int);
-		break;
-	}
-	case VT_LONG: {
-		typeInfo.size = sizeof(long);
-		break;
-	}
-	case VT_LONGLONG: {
-		typeInfo.size = sizeof(long long);
-		break;
-	}
-	case VT_FLOAT: {
-		typeInfo.size = sizeof(float);
-		break;
-	}
-	case VT_DOUBLE: {
-		typeInfo.size = sizeof(double);
-		break;
-	}
-	default:
-		typeInfo.size = 0;
-		break;
-	}
+	typeInfo.size = VT_BOOLEAN == type ? sizeof(bool) :
+					VT_UCHAR == type ? sizeof(unsigned char) :
+					VT_USHORT == type ? sizeof(unsigned short) :
+					VT_UINT == type ? sizeof(unsigned int) :
+					VT_ULONG == type ? sizeof(unsigned long) :
+					VT_ULONGLONG == type ? sizeof(unsigned long long) :
+					VT_CHAR == type ? sizeof(char) :
+					VT_SHORT == type ? sizeof(short) :
+					VT_INT == type ? sizeof(int) :
+					VT_LONG == type ? sizeof(long) :
+					VT_LONGLONG == type ? sizeof(long long) :
+					VT_FLOAT == type ? sizeof(float) :
+					VT_DOUBLE == type ? sizeof(double) : 0;
 
 	return typeInfo;
+}
+
+template<typename T>
+static string _ToString(const T& t){
+	stringstream val;
+	val << fixed << setprecision(numeric_limits<T>::digits10) << t;
+	return val.str();
 }
 
 string Variant::toString() const {
@@ -331,7 +296,7 @@ string Variant::toString() const {
 		break;
 	}
 	}
-	return val.str().c_str();
+	return val.str();
 }
 
 buffer::Buffer Variant::toBuffer() const {
@@ -339,63 +304,15 @@ buffer::Buffer Variant::toBuffer() const {
 	switch (this->vt) {
 	case VT_UNKNOWN:
 		break;
-	case VT_BOOLEAN: {
-		val << this->value.valBool;
-		break;
-	}
-	case VT_UCHAR: {
-		val << this->value.valUChar;
-		break;
-	}
-	case VT_USHORT: {
-		val << this->value.valUShort;
-		break;
-	}
-	case VT_UINT: {
-		val << this->value.valUInt;
-		break;
-	}
-	case VT_ULONG: {
-		val << this->value.valULong;
-		break;
-	}
-	case VT_ULONGLONG: {
-		val << this->value.valULongLong;
-		break;
-	}
-	case VT_CHAR: {
-		val << this->value.valChar;
-		break;
-	}
-	case VT_SHORT: {
-		val << this->value.valShort;
-		break;
-	}
-	case VT_INT: {
-		val << this->value.valInt;
-		break;
-	}
-	case VT_LONG: {
-		val << this->value.valLong;
-		break;
-	}
-	case VT_LONGLONG: {
-		val << this->value.valLongLong;
-		break;
-	}
-	case VT_FLOAT: {
-		val << this->value.valFloat;
-		break;
-	}
-	case VT_DOUBLE: {
-		val << this->value.valDouble;
-		break;
-	}
 	case VT_CARRAY:
 	case VT_STRING: {
 		if (this->value.valPtr && this->size > 0) {
 			val.setData((const char*) this->value.valPtr, this->size);
 		}
+		break;
+	}
+	default: {
+		val.setData((const char*) &this->value, this->size);
 		break;
 	}
 	}
@@ -404,47 +321,6 @@ buffer::Buffer Variant::toBuffer() const {
 
 void Variant::clear() {
 	switch (this->vt) {
-	case VT_UNKNOWN:
-		break;
-	case VT_BOOLEAN: {
-		break;
-	}
-	case VT_UCHAR: {
-		break;
-	}
-	case VT_USHORT: {
-		break;
-	}
-	case VT_UINT: {
-		break;
-	}
-	case VT_ULONG: {
-		break;
-	}
-	case VT_ULONGLONG: {
-		break;
-	}
-	case VT_CHAR: {
-		break;
-	}
-	case VT_SHORT: {
-		break;
-	}
-	case VT_INT: {
-		break;
-	}
-	case VT_LONG: {
-		break;
-	}
-	case VT_LONGLONG: {
-		break;
-	}
-	case VT_FLOAT: {
-		break;
-	}
-	case VT_DOUBLE: {
-		break;
-	}
 	case VT_CARRAY:
 	case VT_STRING: {
 		if (this->value.valPtr) {
@@ -452,6 +328,8 @@ void Variant::clear() {
 		}
 		break;
 	}
+	default:
+		break;
 	}
 	this->vt = VT_UNKNOWN;
 	this->size = 0;
@@ -648,58 +526,6 @@ void Variant::setValue(const void* v) {
 	switch (this->vt) {
 	case VT_UNKNOWN:
 		break;
-	case VT_BOOLEAN: {
-		memcpy(&this->value.valBool, v, this->size);
-		break;
-	}
-	case VT_UCHAR: {
-		memcpy(&this->value.valUChar, v, this->size);
-		break;
-	}
-	case VT_USHORT: {
-		memcpy(&this->value.valUShort, v, this->size);
-		break;
-	}
-	case VT_UINT: {
-		memcpy(&this->value.valUInt, v, this->size);
-		break;
-	}
-	case VT_ULONG: {
-		memcpy(&this->value.valULong, v, this->size);
-		break;
-	}
-	case VT_ULONGLONG: {
-		memcpy(&this->value.valULongLong, v, this->size);
-		break;
-	}
-	case VT_CHAR: {
-		memcpy(&this->value.valChar, v, this->size);
-		break;
-	}
-	case VT_SHORT: {
-		memcpy(&this->value.valShort, v, this->size);
-		break;
-	}
-	case VT_INT: {
-		memcpy(&this->value.valInt, v, this->size);
-		break;
-	}
-	case VT_LONG: {
-		memcpy(&this->value.valLong, v, this->size);
-		break;
-	}
-	case VT_LONGLONG: {
-		memcpy(&this->value.valLongLong, v, this->size);
-		break;
-	}
-	case VT_FLOAT: {
-		memcpy(&this->value.valFloat, v, this->size);
-		break;
-	}
-	case VT_DOUBLE: {
-		memcpy(&this->value.valDouble, v, this->size);
-		break;
-	}
 	case VT_CARRAY: {
 		memcpy(this->value.valPtr, v, this->size);
 		break;
@@ -710,6 +536,9 @@ void Variant::setValue(const void* v) {
 		}
 		memcpy(this->value.valPtr, v, this->size);
 		break;
+	}
+	default: {
+		memcpy(&this->value, v, this->size);
 	}
 	}
 }
@@ -722,58 +551,6 @@ void Variant::setValue(const void* v, unsigned long size) {
 	this->zero();
 
 	switch (this->vt) {
-	case VT_BOOLEAN: {
-		memcpy(&this->value.valBool, v, s);
-		break;
-	}
-	case VT_UCHAR: {
-		memcpy(&this->value.valUChar, v, s);
-		break;
-	}
-	case VT_USHORT: {
-		memcpy(&this->value.valUShort, v, s);
-		break;
-	}
-	case VT_UINT: {
-		memcpy(&this->value.valUInt, v, s);
-		break;
-	}
-	case VT_ULONG: {
-		memcpy(&this->value.valULong, v, s);
-		break;
-	}
-	case VT_ULONGLONG: {
-		memcpy(&this->value.valULongLong, v, s);
-		break;
-	}
-	case VT_CHAR: {
-		memcpy(&this->value.valChar, v, s);
-		break;
-	}
-	case VT_SHORT: {
-		memcpy(&this->value.valShort, v, s);
-		break;
-	}
-	case VT_INT: {
-		memcpy(&this->value.valInt, v, s);
-		break;
-	}
-	case VT_LONG: {
-		memcpy(&this->value.valLong, v, s);
-		break;
-	}
-	case VT_LONGLONG: {
-		memcpy(&this->value.valLongLong, v, s);
-		break;
-	}
-	case VT_FLOAT: {
-		memcpy(&this->value.valFloat, v, s);
-		break;
-	}
-	case VT_DOUBLE: {
-		memcpy(&this->value.valDouble, v, s);
-		break;
-	}
 	case VT_CARRAY: {
 		memcpy(this->value.valPtr, v, s);
 		break;
@@ -786,8 +563,10 @@ void Variant::setValue(const void* v, unsigned long size) {
 			memcpy(this->value.valPtr, v, this->size);
 		break;
 	}
-	default:
+	default: {
+		memcpy(&this->value, v, s);
 		break;
+	}
 	}
 }
 
@@ -911,7 +690,6 @@ Variant::operator bool() const {
 	case VT_UINT: {
 		return (0 != this->value.valUInt);
 	}
-
 	case VT_ULONG: {
 		return (0 != this->value.valULong);
 	}
