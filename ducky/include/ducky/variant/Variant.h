@@ -122,6 +122,84 @@ public:
 	static VariantTypeInfo TypeInfoFromString(const string& typeName);
 	static VariantTypeInfo TypeInfo(VariantType type);
 
+	friend bool operator==(const Variant& v1, const Variant& v2);
+
+	Variant operator +(const char* v) const;
+	Variant operator +(const std::string& v) const;
+	Variant operator ==(const bool& v) const;
+	Variant operator !=(const bool& v) const;
+
+	friend std::ostream& operator<<(std::ostream& o,
+			const ducky::variant::Variant& v);
+
+#define _VARIANT_OPT_DEF2_(T, OP) Variant operator OP(const T& v);
+
+#define _VARIANT_OPT_DEF2(OP) _VARIANT_OPT_DEF2_(char, OP)\
+_VARIANT_OPT_DEF2_(short, OP)\
+_VARIANT_OPT_DEF2_(int, OP)\
+_VARIANT_OPT_DEF2_(long long, OP)\
+_VARIANT_OPT_DEF2_(unsigned char, OP)\
+_VARIANT_OPT_DEF2_(unsigned short, OP)\
+_VARIANT_OPT_DEF2_(unsigned int, OP)\
+_VARIANT_OPT_DEF2_(unsigned long long, OP)
+
+	_VARIANT_OPT_DEF2(+)
+	_VARIANT_OPT_DEF2(-)
+	_VARIANT_OPT_DEF2(*)
+	_VARIANT_OPT_DEF2(/)
+	_VARIANT_OPT_DEF2(%)
+	_VARIANT_OPT_DEF2(==)
+	_VARIANT_OPT_DEF2(!=)
+	_VARIANT_OPT_DEF2(|)
+	_VARIANT_OPT_DEF2(&)
+
+#define _VARIANT_OPT_DEF_FLOAT2(OP) _VARIANT_OPT_DEF2_(float, OP)\
+_VARIANT_OPT_DEF2_(double, OP)
+
+	_VARIANT_OPT_DEF_FLOAT2(+)
+	_VARIANT_OPT_DEF_FLOAT2(-)
+	_VARIANT_OPT_DEF_FLOAT2(*)
+	_VARIANT_OPT_DEF_FLOAT2(/)
+	_VARIANT_OPT_DEF_FLOAT2(==)
+	_VARIANT_OPT_DEF_FLOAT2(!=)
+
+	friend Variant operator +(const char* p1, const Variant& p2);
+	friend Variant operator +(const std::string& p1, const Variant& p2);
+
+	friend Variant operator ==(const bool& p1, const Variant& p2);
+	friend Variant operator !=(const bool& p1, const Variant& p2);
+
+#define _VARIANT_OPT_DEF_(T, OP) friend  Variant operator OP(const T& p1, const Variant& p2);
+
+#define _VARIANT_OPT_DEF(OP) _VARIANT_OPT_DEF_(char, OP)\
+_VARIANT_OPT_DEF_(short, OP)\
+_VARIANT_OPT_DEF_(int, OP)\
+_VARIANT_OPT_DEF_(long long, OP)\
+_VARIANT_OPT_DEF_(unsigned char, OP)\
+_VARIANT_OPT_DEF_(unsigned short, OP)\
+_VARIANT_OPT_DEF_(unsigned int, OP)\
+_VARIANT_OPT_DEF_(unsigned long long, OP)
+
+	_VARIANT_OPT_DEF(+)
+	_VARIANT_OPT_DEF(-)
+	_VARIANT_OPT_DEF(*)
+	_VARIANT_OPT_DEF(/)
+	_VARIANT_OPT_DEF(%)
+	_VARIANT_OPT_DEF(==)
+	_VARIANT_OPT_DEF(!=)
+	_VARIANT_OPT_DEF(|)
+	_VARIANT_OPT_DEF(&)
+
+#define _VARIANT_OPT_DEF_FLOAT(OP) _VARIANT_OPT_DEF_(float, OP)\
+_VARIANT_OPT_DEF_(double, OP)
+
+	_VARIANT_OPT_DEF_FLOAT(+)
+	_VARIANT_OPT_DEF_FLOAT(-)
+	_VARIANT_OPT_DEF_FLOAT(*)
+	_VARIANT_OPT_DEF_FLOAT(/)
+	_VARIANT_OPT_DEF_FLOAT(==)
+	_VARIANT_OPT_DEF_FLOAT(!=)
+
 private:
 	VariantType vt;
 	unsigned long size;

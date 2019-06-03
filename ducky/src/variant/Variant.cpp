@@ -225,7 +225,7 @@ VariantTypeInfo Variant::TypeInfo(VariantType type) {
 }
 
 template<typename T>
-static string _ToString(const T& t){
+static string _ToString(const T& t) {
 	stringstream val;
 	val << fixed << setprecision(numeric_limits<T>::digits10) << t;
 	return val.str();
@@ -786,6 +786,121 @@ Variant::operator string() const {
 Variant::operator buffer::Buffer() const {
 	return this->toBuffer();
 }
+
+std::ostream& operator<<(std::ostream& o, const ducky::variant::Variant& v) {
+	o << v.toString();
+	return o;
+}
+
+//bool Variant::operator==(const Variant& v) const
+//{
+//	return this->toString() == v.toString();
+//}
+
+bool operator==(const Variant& v1, const Variant& v2)
+		{
+	return v1.toString() == v2.toString();
+		}
+
+Variant Variant::operator+(const char* v) const {
+	return (this->toString() + v);
+}
+
+Variant Variant::operator+(const std::string& v) const {
+	return (this->toString() + v);
+}
+
+Variant Variant::operator==(const bool& v) const {
+	return ((bool) (*this) == v);
+}
+
+Variant Variant::operator!=(const bool& v) const {
+	return ((bool) (*this) != v);
+}
+
+#define _VARIANT_OPT_DEF_IMPL2_(T, OP) Variant Variant::operator OP(const T& v)\
+{\
+	return ((T)(*this) OP v);\
+}
+
+#define _VARIANT_OPT_DEF_IMPL2(OP) _VARIANT_OPT_DEF_IMPL2_(char, OP)\
+_VARIANT_OPT_DEF_IMPL2_(short, OP)\
+_VARIANT_OPT_DEF_IMPL2_(int, OP)\
+_VARIANT_OPT_DEF_IMPL2_(long long, OP)\
+_VARIANT_OPT_DEF_IMPL2_(unsigned char, OP)\
+_VARIANT_OPT_DEF_IMPL2_(unsigned short, OP)\
+_VARIANT_OPT_DEF_IMPL2_(unsigned int, OP)\
+_VARIANT_OPT_DEF_IMPL2_(unsigned long long, OP)
+
+_VARIANT_OPT_DEF_IMPL2(+)
+_VARIANT_OPT_DEF_IMPL2(-)
+_VARIANT_OPT_DEF_IMPL2(*)
+_VARIANT_OPT_DEF_IMPL2(/)
+_VARIANT_OPT_DEF_IMPL2(%)
+_VARIANT_OPT_DEF_IMPL2(==)
+_VARIANT_OPT_DEF_IMPL2(!=)
+_VARIANT_OPT_DEF_IMPL2(|)
+_VARIANT_OPT_DEF_IMPL2(&)
+
+#define _VARIANT_OPT_DEF_IMPL_FLOAT2(OP) _VARIANT_OPT_DEF_IMPL2_(float, OP)\
+		_VARIANT_OPT_DEF_IMPL2_(double, OP)
+
+_VARIANT_OPT_DEF_IMPL_FLOAT2(+)
+_VARIANT_OPT_DEF_IMPL_FLOAT2(-)
+_VARIANT_OPT_DEF_IMPL_FLOAT2(*)
+_VARIANT_OPT_DEF_IMPL_FLOAT2(/)
+_VARIANT_OPT_DEF_IMPL_FLOAT2(==)
+_VARIANT_OPT_DEF_IMPL_FLOAT2(!=)
+
+Variant operator +(const char* p1, const Variant& p2) {
+	return (p1 + p2.toString());
+}
+
+Variant operator +(const std::string& p1, const Variant& p2) {
+	return (p1 + p2.toString());
+}
+
+Variant operator ==(const bool& p1, const Variant& p2) {
+	return (p1 == (bool) p2);
+}
+
+Variant operator !=(const bool& p1, const Variant& p2) {
+	return (p1 != (bool) p2);
+}
+
+#define _VARIANT_OPT_DEF_IMPL_(T, OP) Variant operator OP(const T& p1, const Variant& p2)\
+{\
+	return (p1 OP (T)p2);\
+}
+
+#define _VARIANT_OPT_DEF_IMPL(OP) _VARIANT_OPT_DEF_IMPL_(char, OP)\
+_VARIANT_OPT_DEF_IMPL_(short, OP)\
+_VARIANT_OPT_DEF_IMPL_(int, OP)\
+_VARIANT_OPT_DEF_IMPL_(long long, OP)\
+_VARIANT_OPT_DEF_IMPL_(unsigned char, OP)\
+_VARIANT_OPT_DEF_IMPL_(unsigned short, OP)\
+_VARIANT_OPT_DEF_IMPL_(unsigned int, OP)\
+_VARIANT_OPT_DEF_IMPL_(unsigned long long, OP)
+
+_VARIANT_OPT_DEF_IMPL(+)
+_VARIANT_OPT_DEF_IMPL(-)
+_VARIANT_OPT_DEF_IMPL(*)
+_VARIANT_OPT_DEF_IMPL(/)
+_VARIANT_OPT_DEF_IMPL(%)
+_VARIANT_OPT_DEF_IMPL(==)
+_VARIANT_OPT_DEF_IMPL(!=)
+_VARIANT_OPT_DEF_IMPL(|)
+_VARIANT_OPT_DEF_IMPL(&)
+
+#define _VARIANT_OPT_DEF_IMPL_FLOAT(OP) _VARIANT_OPT_DEF_IMPL_(float, OP)\
+		_VARIANT_OPT_DEF_IMPL_(double, OP)
+
+_VARIANT_OPT_DEF_IMPL_FLOAT(+)
+_VARIANT_OPT_DEF_IMPL_FLOAT(-)
+_VARIANT_OPT_DEF_IMPL_FLOAT(*)
+_VARIANT_OPT_DEF_IMPL_FLOAT(/)
+_VARIANT_OPT_DEF_IMPL_FLOAT(==)
+_VARIANT_OPT_DEF_IMPL_FLOAT(!=)
 
 } /* namespace variant */
 } /* namespace ducky */
