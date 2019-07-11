@@ -4,6 +4,7 @@
 #include <string>
 #include <ducky/Object.h>
 #include <map>
+#include <bits/allocator.h>
 #include <ducky/exception/Exception.h>
 #include <ducky/thread/Mutex.h>
 
@@ -33,7 +34,7 @@ public:
 	}
 	virtual ~_ICreator() {
 	}
-	virtual Object* createObject() = 0;
+	virtual void* createObject() = 0;
 	virtual bool IsSingleton() = 0;
 };
 
@@ -41,7 +42,7 @@ public:
 template<typename T>
 class _NewCreator: public _ICreator {
 public:
-	virtual Object* createObject() {
+	virtual void* createObject() {
 		return new T();
 	}
 
@@ -57,9 +58,11 @@ public:
 			obj(NULL) {
 	}
 
-	virtual Object* createObject() {
+	virtual void* createObject() {
 		if (!obj) {
-			obj = new T();
+			std::allocator<T> allocatorT;
+			obj = (T*)allocatorT.allocate(sizeof(T));
+			allocatorT.construct(obj);
 		}
 		return obj;
 	}
@@ -126,7 +129,7 @@ public:
 	}
 
 	//创建对象
-	Object* createObject(string className) {
+	void* createObject(string className) {
 		thread::Mutex::Locker lk(this->mutex);
 		CreatorMap::iterator it = this->creatorMap.find(className);
 		if (it != this->creatorMap.end()) {
@@ -143,7 +146,7 @@ public:
 		thread::Mutex::Locker lk(this->mutex);
 		CreatorMap::iterator it = this->creatorMap.find(className);
 		if (it != this->creatorMap.end()) {
-			T* obj = dynamic_cast<T*>(it->second->createObject());
+			T* obj = static_cast<T*>(it->second->createObject());
 			if (NULL == obj) {
 				THROW_EXCEPTION(FactoryException,
 						"Can not convert to class \"" + className + "\"", 0);

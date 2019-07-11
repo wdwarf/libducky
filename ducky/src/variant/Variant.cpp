@@ -797,10 +797,9 @@ std::ostream& operator<<(std::ostream& o, const ducky::variant::Variant& v) {
 //	return this->toString() == v.toString();
 //}
 
-bool operator==(const Variant& v1, const Variant& v2)
-		{
+bool operator==(const Variant& v1, const Variant& v2) {
 	return v1.toString() == v2.toString();
-		}
+}
 
 Variant Variant::operator+(const char* v) const {
 	return (this->toString() + v);
